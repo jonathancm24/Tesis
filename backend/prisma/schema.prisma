@@ -1,0 +1,429 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id          Int       @id @default(autoincrement())
+  nombre      String    @unique
+  description String?
+  usuarios    Usuario[]
+
+  @@map("Roles")
+}
+
+model Usuario {
+  id            Int      @id @default(autoincrement())
+  nombre        String
+  apellido      String
+  email         String   @unique
+  cedula        String   @unique
+  fechaNacimiento DateTime @map("fecha_nacimiento")
+  password      String
+  telefono      String?
+  direccion     String?
+  NotasAdicionales String? @map("notas_adicionales")
+  fechaRegistro DateTime @default(now()) @map("fecha_registro")
+  parroquiaId   Int?      @map("parroquia_id")
+  roleId        Int      @map("rol_id")
+
+  parroquia                   Parroquia?             @relation(fields: [parroquiaId], references: [id])
+  role                        Role                  @relation(fields: [roleId], references: [id])
+  observacionesComoEstudiante Observacion[]         @relation("EstudianteObservaciones")
+  observacionesComoDocente    Observacion[]         @relation("DocenteObservaciones")
+  solicitudesComoDocente      Solicitud[]           @relation("DocenteSolicitudes")
+  solicitudesComoEstudiante   Solicitud[]           @relation("EstudianteSolicitudes")
+  archivosSubidos             Archivo[]             @relation("ArchivosSubidosPorUsuario")
+  especialidades              UsuarioEspecialidad[] @relation("EspecialidadesPorUsuario")
+  tratamientosComoEstudiante  Tratamiento[]         @relation("TratamientosComoEstudiante")
+  tratamientosComoDocente     Tratamiento[]         @relation("TratamientosComoDocente")
+  odontogramosComoEstudiante  Odontograma[]         @relation("OdontogramasComoEstudiante")
+  odontogramosComoDocente     Odontograma[]         @relation("OdontogramasComoDocente")
+  casosclinicosComoEstudiante CasoClinico[]         @relation("CasosClinicosComoEstudiante")
+  casosclinicosComoDocente    CasoClinico[]         @relation("CasosClinicosComoDocente")
+  archivosrelacionados        ArchivoRelacion[]     @relation("ArchivosRelacionadosPorUsuario")
+  citasComoEstudiante         Cita[]                @relation("CitasComoEstudiante")
+  citasComoDocente            Cita[]                @relation("CitasComoDocente")
+  disponibilidad              Disponibilidad[]      @relation("DisponibilidadPorUsuario")
+  logs                        Log[]                 @relation("LogsPorUsuario")
+
+  @@map("Usuarios")
+}
+
+model Especialidad {
+  id          Int     @id @default(autoincrement())
+  nombre      String  @unique
+  descripcion String?
+
+  usuarios      UsuarioEspecialidad[] @relation("EspecialidadesPorUsuario")
+  casosClinicos CasoClinico[]         @relation("CasosClinicosPorEspecialidad")
+  citas         Cita[]                @relation("CitasPorEspecialidad")
+  solicitudes   Solicitud[]           @relation("SolicitudesPorEspecialidad")
+
+  @@map("Especialidades")
+}
+
+model UsuarioEspecialidad {
+  id             Int @id @default(autoincrement())
+  usuarioId      Int @map("usuario_id")
+  especialidadId Int @map("especialidad_id")
+  
+
+  usuario      Usuario      @relation("EspecialidadesPorUsuario", fields: [usuarioId], references: [id])
+  especialidad Especialidad @relation("EspecialidadesPorUsuario", fields: [especialidadId], references: [id])
+
+  @@map("UsuariosEspecialidades")
+}
+
+model Pais {
+  id     Int    @id @default(autoincrement())
+  nombre String @unique
+
+  provincias Provincia[]
+
+  @@map("Paises")
+}
+
+model Provincia {
+  id     Int    @id @default(autoincrement())
+  nombre String @unique
+  paisId Int    @map("pais_id")
+
+  pais     Pais     @relation(fields: [paisId], references: [id])
+  cantones Canton[]
+
+  @@map("Provincias")
+}
+
+model Canton {
+  id          Int    @id @default(autoincrement())
+  nombre      String @unique
+  provinciaId Int    @map("provincia_id")
+
+  provincia  Provincia   @relation(fields: [provinciaId], references: [id])
+  parroquias Parroquia[]
+
+  @@map("Cantones")
+}
+
+model Parroquia {
+  id       Int    @id @default(autoincrement())
+  nombre   String @unique
+  cantonId Int    @map("canton_id")
+
+  canton    Canton     @relation(fields: [cantonId], references: [id])
+  usuarios  Usuario[]
+  pacientes Paciente[]
+
+  @@map("Parroquias")
+}
+
+model Paciente {
+  id              Int      @id @default(autoincrement())
+  nombre          String
+  apellido        String
+  fechaNacimiento DateTime @map("fecha_nacimiento")
+  telefono        String?
+  direccion       String?
+  genero          String?
+  tipoSangre      String? @map("tipo_sangre")
+  Nacionalidad    String?
+  parroquiaId     Int      @map("parroquia_id")
+
+  parroquia       Parroquia         @relation(fields: [parroquiaId], references: [id])
+  odontograma     Odontograma[]     @relation("OdontogramasPorPaciente")
+  casosClinicos   CasoClinico[]     @relation("CasosClinicosPorPaciente")
+  citas           Cita[]            @relation("CitasPorPaciente")
+  historialMedico HistorialMedico[] @relation("HistorialMedicoPorPaciente")
+
+  @@map("Pacientes")
+}
+
+enum EstadoCasoClinico {
+  PENDIENTE
+  EN_PROCESO
+  FINALIZADO
+  REVISION_PROFESOR
+  APROBADO
+  RECHAZADO
+  CANCELADO
+}
+
+model CasoClinico {
+  id                 Int               @id @default(autoincrement())
+  // titulo            String
+  
+  descripcion        String //en vez de esto seria motivo principal de la consulta
+  fechaCreacion      DateTime          @default(now()) @map("fecha_creacion")
+  fechaActualizacion DateTime          @updatedAt @map("fecha_actualizacion")
+  pacienteId         Int               @map("paciente_id")
+  profesorId         Int               @map("profesor_id")
+  estudianteId       Int               @map("estudiante_id")
+  especialidadId     Int               @map("especialidad_id")
+  calificacion       Int?
+  estado             EstadoCasoClinico @default(PENDIENTE)
+
+  paciente       Paciente       @relation("CasosClinicosPorPaciente", fields: [pacienteId], references: [id])
+  especialidad   Especialidad   @relation("CasosClinicosPorEspecialidad", fields: [especialidadId], references: [id])
+  profesor       Usuario        @relation("CasosClinicosComoDocente", fields: [profesorId], references: [id])
+  estudiante     Usuario        @relation("CasosClinicosComoEstudiante", fields: [estudianteId], references: [id])
+  observaciones  Observacion[]  @relation("CasoClinicoObservaciones")
+  odontograma    Odontograma[]  @relation("OdontogramasPorCasoClinico")
+  prescripciones Prescripcion[] @relation("PrescripcionesPorCasoClinico")
+  tratamientos   Tratamiento[]  @relation("TratamientosPorCasoClinico")
+
+  @@map("CasosClinicos")
+}
+
+enum EstadoTratamiento {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  CANCELADO
+  EN_PROCESO
+  FINALIZADO
+}
+
+model Tratamiento {
+  id                 Int               @id @default(autoincrement())
+  // titulo o nombre del tratamiento 
+  estudianteId       Int               @map("estudiante_id")
+  docenteId          Int?              @map("docente_id")
+  descripcion        String
+  //solo una fecha en la que se realiza el tratamiento
+  fechaInicio        DateTime          @map("fecha_inicio")
+  fechaFin           DateTime          @map("fecha_fin")
+  fechaCreacion      DateTime          @default(now()) @map("fecha_creacion")
+  fechaActualizacion DateTime          @updatedAt @map("fecha_actualizacion")
+  casoClinicoId      Int               @map("caso_clinico_id")
+  estado             EstadoTratamiento @default(PENDIENTE)
+
+  estudiante    Usuario       @relation("TratamientosComoEstudiante", fields: [estudianteId], references: [id])
+  docente       Usuario?      @relation("TratamientosComoDocente", fields: [docenteId], references: [id])
+  casoClinico   CasoClinico   @relation("TratamientosPorCasoClinico", fields: [casoClinicoId], references: [id])
+  observaciones Observacion[] @relation("TratamientoObservaciones")
+ // relacionar con especialidad
+  @@map("Tratamientos")
+}
+
+enum EstadoPrescripcion {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  CANCELADO
+  EN_PROCESO
+  COMPLETADO
+  INCOMPLETO
+}
+
+model Prescripcion {
+  id                 Int                @id @default(autoincrement())
+  medicamento        String
+  dosis              String
+  frecuencia         String
+  duracion           String
+  estado             EstadoPrescripcion @default(PENDIENTE)
+  fechaCreacion      DateTime           @default(now()) @map("fecha_creacion")
+  fechaActualizacion DateTime           @updatedAt @map("fecha_actualizacion")
+  casoClinicoId      Int                @map("caso_clinico_id")
+
+  casoClinico   CasoClinico   @relation("PrescripcionesPorCasoClinico", fields: [casoClinicoId], references: [id])
+  observaciones Observacion[] @relation("PrescripcionObservaciones")
+
+  @@map("Prescripciones")
+}
+
+enum EstadoOdontograma {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  CANCELADO
+}
+
+model Odontograma {
+  id                 Int               @id @default(autoincrement())
+  fechaCreacion      DateTime          @default(now()) @map("fecha_creacion")
+  fechaActualizacion DateTime          @updatedAt @map("fecha_actualizacion")
+  datos              Json
+  estado             EstadoOdontograma @default(PENDIENTE)
+  conclusion         String?
+  pacienteId         Int               @map("paciente_id")
+  casoClinicoId      Int?              @map("caso_clinico_id")
+  docenteId          Int?              @map("docente_id")
+  estudianteId       Int               @map("estudiante_id")
+
+  paciente      Paciente      @relation("OdontogramasPorPaciente", fields: [pacienteId], references: [id])
+  casoClinico   CasoClinico?  @relation("OdontogramasPorCasoClinico", fields: [casoClinicoId], references: [id])
+  estudiante    Usuario       @relation("OdontogramasComoEstudiante", fields: [estudianteId], references: [id])
+  docente       Usuario?      @relation("OdontogramasComoDocente", fields: [docenteId], references: [id])
+  observaciones Observacion[] @relation("OdontogramaObservaciones")
+
+  @@map("Odontogramas")
+}
+
+model HistorialMedico {
+  id                      Int      @id @default(autoincrement())
+  fechaCreacion           DateTime @default(now()) @map("fecha_creacion")
+  fechaActualizacion      DateTime @updatedAt @map("fecha_actualizacion")
+  medicamentos            String?
+  alergias                String?
+  enfermedadesImportantes String?  @map("enfermedades_importantes")
+  observacionesCriticas   String?  @map("observaciones_criticas")
+  pacienteId              Int      @map("paciente_id")
+
+
+  paciente Paciente @relation("HistorialMedicoPorPaciente", fields: [pacienteId], references: [id])
+
+  @@map("HistorialMedico")
+}
+
+enum EstadoCita {
+  DISPONIBLE
+  RESERVADA
+  CANCELADA
+  FINALIZADA
+  NO_ASISTIO
+}
+
+model Cita {
+  id             Int        @id @default(autoincrement())
+  fecha          DateTime
+  estado         EstadoCita @default(RESERVADA)
+  observaciones  String?
+  pacienteId     Int        @map("paciente_id")
+  especialidadId Int        @map("especialidad_id")
+  estudianteId   Int        @map("estudiante_id")
+  docenteId      Int?       @map("docente_id")
+  horainicio     DateTime   @map("hora_inicio")
+  horafin        DateTime   @map("hora_fin")
+
+  especialidad Especialidad @relation("CitasPorEspecialidad", fields: [especialidadId], references: [id])
+  paciente     Paciente     @relation("CitasPorPaciente", fields: [pacienteId], references: [id])
+  estudiante   Usuario      @relation("CitasComoEstudiante", fields: [estudianteId], references: [id])
+  docente      Usuario?     @relation("CitasComoDocente", fields: [docenteId], references: [id])
+
+  @@map("Citas")
+}
+
+enum EstadoObservacion {
+  PENDIENTE
+  REVISADO
+  FINALIZADO
+  INCOMPLETO
+}
+
+model Observacion {
+  id                  Int               @id @default(autoincrement())
+  titulo              String
+  fecha               DateTime          @default(now())
+  fechaActualizacion  DateTime          @updatedAt @map("fecha_actualizacion")
+  estado              EstadoObservacion @default(PENDIENTE)
+  descripcion         String
+  contenidoEstudiante String?           @map("contenido_estudiante")
+  contenidoDocente    String?           @map("contenido_docente")
+  estudianteId        Int               @map("estudiante_id")
+  docenteId           Int?              @map("docente_id")
+  odontogramaId       Int?              @map("odontograma_id")
+  tratamientoId       Int?              @map("tratamiento_id")
+  prescripcionId      Int?              @map("prescripcion_id")
+  casoClinicoId       Int?              @map("caso_clinico_id")
+
+  estudiante   Usuario       @relation("EstudianteObservaciones", fields: [estudianteId], references: [id])
+  docente      Usuario?      @relation("DocenteObservaciones", fields: [docenteId], references: [id])
+  casoClinico  CasoClinico?  @relation("CasoClinicoObservaciones", fields: [casoClinicoId], references: [id])
+  odontograma  Odontograma?  @relation("OdontogramaObservaciones", fields: [odontogramaId], references: [id])
+  tratamiento  Tratamiento?  @relation("TratamientoObservaciones", fields: [tratamientoId], references: [id])
+  prescripcion Prescripcion? @relation("PrescripcionObservaciones", fields: [prescripcionId], references: [id])
+
+  @@map("Observaciones")
+}
+
+enum EstadoSolicitud {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+  CANCELADA
+}
+
+model Solicitud {
+  id             Int             @id @default(autoincrement())
+  fecha          DateTime        @default(now())
+  estado         EstadoSolicitud @default(PENDIENTE)
+  observaciones  String?
+  estudianteId   Int             @map("estudiante_id")
+  docenteId      Int?            @map("docente_id")
+  especialidadId Int             @map("especialidad_id")
+
+  estudiante   Usuario      @relation("EstudianteSolicitudes", fields: [estudianteId], references: [id])
+  docente      Usuario?     @relation("DocenteSolicitudes", fields: [docenteId], references: [id])
+  especialidad Especialidad @relation("SolicitudesPorEspecialidad", fields: [especialidadId], references: [id])
+
+  @@map("Solicitudes")
+}
+
+model Archivo {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  tipo        String
+  url         String
+  fechaSubida DateTime @default(now()) @map("fecha_subida")
+  usuarioId   Int      @map("usuario_id")
+
+  usuario         Usuario           @relation("ArchivosSubidosPorUsuario", fields: [usuarioId], references: [id])
+  archivoRelacion ArchivoRelacion[] @relation("ArchivosRelacionados")
+
+  @@map("Archivos")
+}
+
+model ArchivoRelacion {
+  id          Int     @id @default(autoincrement())
+  archivoId   Int     @map("archivo_id")
+  entidadTipo String  @map("entidad_tipo")
+  entidadId   Int     @map("entidad_id")
+  usuarioId   Int     @map("usuario_id")
+  rol         String?
+
+  archivo Archivo @relation("ArchivosRelacionados", fields: [archivoId], references: [id])
+  usuario Usuario @relation("ArchivosRelacionadosPorUsuario", fields: [usuarioId], references: [id])
+
+  @@map("ArchivosRelacionados")
+}
+
+enum DiaSemana {
+  LUNES
+  MARTES
+  MIERCOLES
+  JUEVES
+  VIERNES
+  SABADO
+  DOMINGO
+}
+
+model Disponibilidad {
+  id         Int       @id @default(autoincrement())
+  dia        DiaSemana
+  horaInicio String    @map("hora_inicio")
+  horaFin    String    @map("hora_fin")
+  usuarioId  Int       @map("usuario_id")
+
+  usuario Usuario @relation("DisponibilidadPorUsuario", fields: [usuarioId], references: [id])
+
+  @@map("Disponibilidad")
+}
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  fecha     DateTime @default(now())
+  usuarioId Int      @map("usuario_id")
+  accion    String
+  tabla     String
+  detalle   Json?
+
+  usuario Usuario @relation("LogsPorUsuario", fields: [usuarioId], references: [id])
+
+  @@map("Logs")
+}
