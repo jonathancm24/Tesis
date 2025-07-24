@@ -5,7 +5,7 @@ import { AppService } from './app.service';
 import { PrismaService } from './prisma/prisma.service';
 import { EspecialidadModule } from './modules/especialidades/especialidad.module';
 import { UsuariosModule } from './modules/usuarios/usudarios.module';
-import { RolesModule } from './modules/Roles/roles.module';
+import { RolesModule } from './modules/roles/roles.module';
 import { PaisModule } from './modules/Pais/pais.module';
 import { CantonModule } from './modules/Canton/canton.module';
 import { ParroquiaModule } from './modules/Parroquia/parroquia.module';
@@ -31,17 +31,17 @@ import { PrismaModule } from './prisma/prisma.module';
     AuthModule,
     UsuariosModule,
     EspecialidadModule,
-    RolesModule,
     PaisModule,
     CantonModule,
     ParroquiaModule,
     ProvinciaModule,
+    RolesModule,           // ← IMPORTANTE: Debe estar antes que PermisosUsuariosModule
     PermisosUsuariosModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    PermisosInicializadorService,
+    PermisosInicializadorService, // ✅ MANTENER SOLO ESTE
   ],
 })
 export class AppModule {}

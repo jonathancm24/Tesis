@@ -22,8 +22,20 @@ export class PermisosInicializadorService implements OnModuleInit {
    * Asegura que el sistema tenga todos los permisos y roles necesarios
    */
   async onModuleInit() {
-    await this.inicializarPermisos();
-    await this.rolesService.inicializarRolesPredefinidos();
+    try {
+      console.log('🔧 Inicializando sistema de permisos...');
+      
+      await this.inicializarPermisos();
+      console.log('✅ Permisos inicializados correctamente');
+      
+      await this.rolesService.inicializarRolesPredefinidos();
+      console.log('✅ Roles base inicializados correctamente');
+      
+      console.log('🚀 Sistema de permisos listo');
+    } catch (error) {
+      console.error('❌ Error al inicializar sistema de permisos:', error.message);
+      // No lanzar el error para que la aplicación pueda continuar
+    }
   }
 
   /**
@@ -54,24 +66,27 @@ export class PermisosInicializadorService implements OnModuleInit {
     descripcion: string;
     modulo: string;
   }) {
-    // Verificar si el permiso ya existe
-    const permisoExistente = await this.prisma.permiso.findUnique({
-      where: { nombre: permisoData.nombre }
-    });
-
-    if (permisoExistente) {
-      return; // El permiso ya existe, no hacer nada
-    }
-
-    // Crear el permiso
     try {
+      // Verificar si el permiso ya existe
+      const permisoExistente = await this.prisma.permiso.findUnique({
+        where: { nombre: permisoData.nombre }
+      });
+
+      if (permisoExistente) {
+        return; // El permiso ya existe, no hacer nada
+      }
+
+      // Crear el permiso
       await this.prisma.permiso.create({
         data: permisoData
       });
+
     } catch (error) {
       // Ignorar errores de conflicto (permiso ya existe)
       // Esto puede pasar si múltiples instancias intentan crear el mismo permiso simultáneamente
-      console.warn(`Permiso ${permisoData.nombre} ya existe o hubo un error al crearlo:`, error.message);
+      if (!error.message.includes('unique constraint')) {
+        console.warn(`Error al crear permiso ${permisoData.nombre}:`, error.message);
+      }
     }
   }
 

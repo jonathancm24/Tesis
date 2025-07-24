@@ -99,14 +99,14 @@ export class RolesService {
     return this.prisma.$transaction(async (tx) => {
       // Eliminar todos los permisos actuales del rol
       await tx.rolePermiso.deleteMany({
-        where: { roleId }
+        where: { roleId: rolId } // ← CAMBIAR: era 'roleId' ahora es 'roleId: rolId'
       });
 
       // Asignar los nuevos permisos (si hay alguno)
       if (dto.permisos.length > 0) {
         await tx.rolePermiso.createMany({
           data: dto.permisos.map(permisoId => ({
-            roleId,
+            roleId: rolId, // ← CAMBIAR: era 'roleId' ahora es 'roleId: rolId'
             permisoId
           }))
         });
