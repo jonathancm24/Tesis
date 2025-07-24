@@ -1,0 +1,77 @@
+/* Variables globales usadas:
+   --header-bg, --header-text, --color-danger, --shadow-regular */
+
+/* Barra de encabezado principal */
+.header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background: var(--header-bg, #4e73df);
+  color: var(--header-text, #ffffff);
+  box-shadow: var(--shadow-regular, 0 2px 4px rgba(0, 0, 0, 0.1));
+  position: relative;
+  z-index: 10;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+/* Logo de marca en la cabecera */
+.header-bar .brand-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  margin-right: 0.75rem;
+  transition: transform 0.2s;
+}
+.header-bar .brand-logo:hover {
+  transform: scale(1.1);
+}
+
+/* Área de notificaciones */
+.notification-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  transform: translate(50%, -50%);
+  background: var(--color-danger, #e74a3b);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s;
+}
+.notification-badge:hover {
+  background: darken(var(--color-danger, #e74a3b), 5%);
+}
+
+/* Avatar de usuario */
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--header-text, #ffffff);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.avatar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* Adaptaciones responsivas */
+@media (max-width: 576px) {
+  .header-bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+  .notification-badge {
+    top: 0.75rem;
+    right: 1rem;
+  }
+}

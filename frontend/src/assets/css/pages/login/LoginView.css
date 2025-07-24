@@ -1,0 +1,98 @@
+/* src/assets/css/Login.css */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  background: linear-gradient(135deg, #2b5876, #4e4376);
+}
+.login-panel {
+  margin: auto;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  max-width: 900px;
+  width: 95%;
+  height: 600px;
+}
+.left-side, .right-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.left-side {
+  background: radial-gradient(circle at top, #4e4376, #2b5876);
+  color: #fff;
+  padding: 2rem;
+}
+.left-side .logo {
+  width: 120px;
+  margin-bottom: 1.5rem;
+}
+.left-side h2 {
+  margin: .5rem 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+.left-side p {
+  font-size: .95rem;
+  text-align: center;
+  max-width: 250px;
+}
+.right-side {
+  padding: 2rem 3rem;
+}
+.form-container {
+  width: 100%;
+  max-width: 350px;
+}
+.form-container h3 {
+  margin-bottom: 1.5rem;
+  color: #2b5876;
+  text-align: center;
+}
+.input-group {
+  position: relative;
+  margin-bottom: 1.2rem;
+}
+.input-group i {
+  position: absolute;
+  top: 50%; left: 1rem;
+  transform: translateY(-50%);
+  color: #2b5876;
+}
+.input-group input {
+  width: 100%; padding: .9rem 1rem  .9rem 3rem;
+  border: 1px solid #ccc; border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color .3s, box-shadow .3s;
+}
+.input-group input:focus {
+  border-color: #4e4376;
+  box-shadow: 0 0 8px rgba(78, 67, 118, .3);
+  outline: none;
+}
+button {
+  width: 100%; padding: .9rem;
+  border: none;
+  border-radius: 8px;
+  background: #4e4376;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .3s;
+}
+button:hover:not(:disabled) {
+  background: #2b5876;
+}
+button:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+@media (max-width: 768px) {
+  .login-panel { flex-direction: column; height: auto; }
+  .left-side { display: none; }
+}

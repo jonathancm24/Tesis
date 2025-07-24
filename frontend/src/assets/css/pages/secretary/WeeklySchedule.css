@@ -1,0 +1,72 @@
+.weekly-schedule {
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.weekly-schedule h2 {
+  color: #004085; /* Azul institucional */
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.weekly-schedule .table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.weekly-schedule .table thead th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  text-align: center;
+}
+
+.weekly-schedule .table tbody td {
+  text-align: center;
+  vertical-align: middle;
+  padding: 0.75rem;
+}
+
+.weekly-schedule .table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.weekly-schedule .text-muted {
+  font-style: italic;
+  color: #6c757d;
+}
+
+.badge {
+  padding: 0.5em 0.75em;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
+.bg-info {
+  background-color: #17a2b8 !important;
+  color: white !important;
+}
+
+.bg-success {
+  background-color: #28a745 !important;
+  color: white !important;
+}
+
+.bg-warning {
+  background-color: #ffc107 !important;
+  color: #212529 !important;
+}
+
+.bg-danger {
+  background-color: #dc3545 !important;
+  color: white !important;
+}
+
+.bg-secondary {
+  background-color: #6c757d !important;
+  color: white !important;
+}

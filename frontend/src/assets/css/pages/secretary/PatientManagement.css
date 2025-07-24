@@ -1,0 +1,23 @@
+/* src/assets/css/pages/secretary/PatientManagement.css */
+
+.patient-management-view {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+.patient-management-view h2 {
+  margin-bottom: 1.5rem;
+  color: #004d40;
+  font-weight: 600;
+}
+
+.patient-management-view .btn-primary {
+  margin-bottom: 1rem;
+}
+
+.patient-management-view input[type="text"] {
+  max-width: 400px;
+  margin-top: 1rem;
+}

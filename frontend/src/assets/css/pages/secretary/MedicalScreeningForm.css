@@ -1,0 +1,87 @@
+/* src/assets/css/pages/secretary/MedicalScreeningForm.css */
+
+.medical-form-container {
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.medical-form-title {
+  font-size: 1.75rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: var(--color-primary, #00695c);
+  text-align: center;
+}
+
+.medical-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.form-group select,
+.form-group input,
+.form-group textarea {
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-group select:focus,
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: var(--color-primary, #00695c);
+  outline: none;
+}
+
+button.submit-button {
+  background-color: var(--color-primary, #00695c);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button.submit-button:hover {
+  background-color: #004d40;
+}
+
+.patient-info-box {
+  background-color: #f4f6f7;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #ddd;
+}
+
+.patient-info-box span {
+  display: inline-block;
+  margin-right: 1.5rem;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .medical-form-container {
+    padding: 1rem;
+  }
+}

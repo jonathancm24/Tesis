@@ -12,6 +12,7 @@ model Role {
   nombre      String    @unique
   description String?
   usuarios    Usuario[]
+  permisos    RolePermiso[] // Relación con permisos a través de tabla intermedia
 
   @@map("Roles")
 }
@@ -50,6 +51,8 @@ model Usuario {
   citasComoDocente            Cita[]                @relation("CitasComoDocente")
   disponibilidad              Disponibilidad[]      @relation("DisponibilidadPorUsuario")
   logs                        Log[]                 @relation("LogsPorUsuario")
+  permisosIndividuales        UsuarioPermiso[]     @relation("UsuarioPermisos") // Permisos extra asignados individualmente
+  permisosOtorgados          UsuarioPermiso[]     @relation("PermisosOtorgados") // Permisos que este usuario ha otorgado a otros
 
   @@map("Usuarios")
 }
@@ -426,4 +429,48 @@ model Log {
   usuario Usuario @relation("LogsPorUsuario", fields: [usuarioId], references: [id])
 
   @@map("Logs")
+}
+
+// Nueva tabla para definir permisos del sistema
+model Permiso {
+  id          Int       @id @default(autoincrement())
+  nombre      String    @unique // Ejemplo: "VER_USUARIOS", "CREAR_CITAS"
+  descripcion String?   // Descripción legible del permiso
+  modulo      String    // Módulo al que pertenece: "USUARIOS", "CITAS", "TRATAMIENTOS"
+  roles       RolePermiso[] // Relación muchos a muchos con roles
+  usuariosIndividuales UsuarioPermiso[] // Permisos asignados individualmente
+
+  @@map("Permisos")
+}
+
+// Tabla intermedia para relación muchos a muchos entre Role y Permiso
+model RolePermiso {
+  id        Int     @id @default(autoincrement())
+  roleId    Int     @map("role_id")
+  permisoId Int     @map("permiso_id")
+  
+  role      Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permiso   Permiso @relation(fields: [permisoId], references: [id], onDelete: Cascade)
+  
+  @@unique([roleId, permisoId]) // Un rol no puede tener el mismo permiso duplicado
+  @@map("RolesPermisos")
+}
+
+// Nueva tabla para permisos individuales asignados a usuarios específicos
+model UsuarioPermiso {
+  id                Int       @id @default(autoincrement())
+  usuarioId         Int       @map("usuario_id")
+  permisoId         Int       @map("permiso_id")
+  otorgadoPor       Int?      @map("otorgado_por") // ID del admin que otorgó el permiso
+  fechaOtorgamiento DateTime  @default(now()) @map("fecha_otorgamiento")
+  fechaExpiracion   DateTime? @map("fecha_expiracion") // Para permisos temporales
+  activo            Boolean   @default(true) // Para desactivar sin eliminar
+  justificacion     String?   // Por qué se otorgó este permiso
+  
+  usuario     Usuario @relation("UsuarioPermisos", fields: [usuarioId], references: [id], onDelete: Cascade)
+  permiso     Permiso @relation(fields: [permisoId], references: [id], onDelete: Cascade)
+  otorgador   Usuario? @relation("PermisosOtorgados", fields: [otorgadoPor], references: [id])
+  
+  @@unique([usuarioId, permisoId]) // Un usuario no puede tener el mismo permiso individual duplicado
+  @@map("UsuariosPermisos")
 }

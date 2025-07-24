@@ -1,3 +1,10 @@
 {
-    "editor.unicodeHighlight.nonBasicASCII": true
+    "editor.unicodeHighlight.nonBasicASCII": true,
+    "cSpell.words": [
+        "Alexander",
+        "Alfaro",
+        "Eloy",
+        "Manabí",
+        "Morán"
+    ]
 }

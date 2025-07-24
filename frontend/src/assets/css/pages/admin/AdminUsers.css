@@ -1,0 +1,178 @@
+/* src/assets/css/pages/admin/AdminUsers.css */
+
+/* Contenedor principal */
+.admin-users {
+  background: #f5f5f5;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+/* Toolbar */
+.admin-users .toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-users .toolbar .search-input {
+  flex: 1;
+  max-width: 300px;
+}
+
+.admin-users .toolbar .search-input .form-control {
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ced4da;
+  transition: border-color .2s, box-shadow .2s;
+}
+.admin-users .toolbar .search-input .form-control:focus {
+  border-color: #4e73df;
+  box-shadow: 0 0 0 0.2rem rgba(78,115,223,.25);
+}
+
+.admin-users .toolbar .btn-add {
+  background-color: #1cc88a;
+  border-color: #1cc88a;
+  color: #fff;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: background-color .2s, transform .1s;
+}
+.admin-users .toolbar .btn-add:hover {
+  background-color: #17a673;
+  transform: translateY(-1px);
+}
+
+/* Tabla */
+.admin-users .table-responsive {
+  margin-top: 1.5rem;
+}
+.admin-users table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid #e3e6f0;
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+.admin-users thead {
+  background-color: #f8f9fc;
+}
+.admin-users thead th {
+  color: #5a5c69;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-bottom: none;
+}
+.admin-users tbody tr {
+  transition: background-color .15s ease-in-out;
+}
+.admin-users tbody tr:hover:not(.table-secondary) {
+  background-color: #f2f2f2;
+}
+
+/* Fila inactiva */
+.admin-users tbody tr.table-secondary {
+  opacity: 0.6;
+}
+
+/* Badges de rol */
+.admin-users .badge {
+  font-size: 0.85rem;
+  text-transform: capitalize;
+}
+
+/* Columna 'Activo' */
+.admin-users td:nth-child(5) {
+  text-align: center;
+  font-weight: 500;
+  color: #4e73df;
+}
+
+/* Acciones */
+.admin-users td.actions {
+  text-align: center;
+}
+
+.admin-users td.actions .btn {
+  margin: 0 0.25rem 0.25rem 0;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.375rem;
+  transition: background-color .2s, transform .1s;
+}
+.admin-users td.actions .btn-primary {
+  background-color: #4e73df;
+  border-color: #4e73df;
+  color: #fff;
+}
+.admin-users td.actions .btn-primary:hover {
+  background-color: #2e59d9;
+  transform: translateY(-1px);
+}
+.admin-users td.actions .btn-warning {
+  background-color: #f6c23e;
+  border-color: #f6c23e;
+  color: #212529;
+}
+.admin-users td.actions .btn-warning:hover {
+  background-color: #dda20a;
+  transform: translateY(-1px);
+}
+.admin-users td.actions .btn-danger {
+  background-color: #e74a3b;
+  border-color: #e74a3b;
+  color: #fff;
+}
+.admin-users td.actions .btn-danger:hover {
+  background-color: #c82333;
+  transform: translateY(-1px);
+}
+
+/* Modal */
+.admin-users .modal-content {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+.admin-users .modal-header {
+  background-color: #4e73df;
+  border-bottom: none;
+}
+.admin-users .modal-header .modal-title {
+  color: #fff;
+  font-weight: 600;
+}
+.admin-users .modal-header .btn-close-white {
+  filter: invert(1);
+}
+
+/* Fade transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity .2s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+  .admin-users .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .admin-users .toolbar .btn-add {
+    width: 100%;
+    justify-content: center;
+  }
+  .admin-users td.actions .btn {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+}

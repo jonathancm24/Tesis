@@ -1,0 +1,100 @@
+/* src/assets/css/pages/student/OdontogramView.css */
+
+/* Container */
+.odontogram-view {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.odontogram-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+.odontogram-header .form-label {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+/* Estado-selector buttons */
+.estado-selector .btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.status-btn {
+  border: 1px solid #ccc;
+  background: #f0f0f0;
+  color: #333;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.status-btn.active,
+.status-btn:hover {
+  background: #0d6efd;
+  color: #fff;
+  border-color: #0a58ca;
+}
+
+/* Grid of teeth */
+.chart-grid {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+/* Individual tooth cell */
+.tooth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border: 1px solid #999;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* Status colors */
+.tooth.libre {
+  background: #f8f9fa;
+  color: #333;
+}
+.tooth.sano {
+  background: #198754;
+  color: #fff;
+}
+.tooth.caries {
+  background: #dc3545;
+  color: #fff;
+}
+.tooth.fractura {
+  background: #ffc107;
+  color: #212529;
+}
+.tooth.ausente {
+  background: #6c757d;
+  color: #fff;
+}
+.tooth.restaurado {
+  background: #0dcaf0;
+  color: #212529;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .odontogram-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .chart-grid {
+    gap: 0.25rem;
+  }
+  .tooth {
+    height: 40px;
+    font-size: 0.9rem;
+  }
+}

@@ -1,7 +1,7 @@
 import { PrismaService } from "../../prisma/prisma.service";
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { RegisterDto } from "./DTO/registro.dto";
-import { hash } from "bcrypt";
+import { compare, hash } from "bcrypt";
 import { Usuario } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
@@ -43,7 +43,7 @@ try {
         throw error;
         }
     }
-
+ // Método para obtener todos los usuarios
   async findAll(): Promise<Usuario[]> {
     return this.prisma.usuario.findMany({
       include: {
@@ -51,5 +51,19 @@ try {
         role: true,
       },
     });
+  }
+// Método para encontrar un usuario por email
+  async findByEmail(email: string): Promise<Usuario | null> {
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { email },
+      include: {
+        role: true,
+      },
+    });
+
+    if (!usuario) {
+      throw new NotFoundException(`Usuario con email ${email} no encontrado`);
+    }
+    return usuario;
   }
 }

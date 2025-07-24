@@ -1,0 +1,80 @@
+/* src/assets/css/pages/admin/HomeAdmin.css */
+
+/* Contenedor principal */
+.home-admin {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 15px rgba(0,0,0,0.05);
+}
+
+/* Título */
+.home-admin h1 {
+  font-weight: 700;
+  color: #4e73df;
+}
+
+/* Estadísticas: grid */
+.home-admin .row {
+  margin-top: 1.5rem;
+}
+
+/* Tarjeta de estadística */
+.admin-stat-card {
+  border: none;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: transform .2s, box-shadow .2s;
+}
+.admin-stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Encabezado de tarjeta */
+.admin-stat-card .card-header {
+  padding: 1rem 1.25rem;
+}
+
+/* Color y tipografía de la etiqueta */
+.admin-stat-card .stat-label {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Ícono de estadística */
+.admin-stat-card .stat-icon {
+  font-size: 1.5rem;
+}
+
+/* Cuerpo de tarjeta */
+.admin-stat-card .card-body {
+  padding: 1.5rem 1.25rem;
+}
+
+/* Número de estadística */
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #5a5c69;
+  line-height: 1;
+}
+
+/* Colores para cada tipo de estadística */
+.bg-primary    { background-color: #4e73df !important; }
+.bg-success    { background-color: #1cc88a !important; }
+.bg-info       { background-color: #36b9cc !important; }
+.bg-warning    { background-color: #f6c23e !important; }
+
+/* Ajustes de texto en header cuando tiene text-dark */
+.text-dark {
+  color: #212529 !important;
+}
+
+/* Responsivo: apilar tarjetas en móvil */
+@media (max-width: 576px) {
+  .home-admin .row {
+    row-gap: 1rem;
+  }
+}

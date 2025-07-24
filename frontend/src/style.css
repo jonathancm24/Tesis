@@ -1,0 +1,9 @@
+/* src/style.css */
+:root {
+  --bs-primary: #28a745;
+  --bs-danger:  #dc3545;
+  --bs-light:   #ffffff;
+  --bs-info:    #007bff;
+}
+html, body, #app { height: 100%; margin: 0; }
+body { background-color: var(--bs-light); }

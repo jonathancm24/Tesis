@@ -1,0 +1,172 @@
+/* src/assets/css/pages/student/ClinicalCasesView.css */
+/* Container & layout */
+.ccv-container {
+  padding: 1rem;
+  font-family: sans-serif;
+}
+
+/* Topbar */
+.ccv-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.ccv-title {
+  display: flex;
+  align-items: center;
+  color: #333;
+}
+.ccv-title i {
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
+}
+.ccv-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.ccv-search {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.ccv-btn {
+  background: #007bff;
+  border: none;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.ccv-btn.filter { background: #6c757d; }
+.ccv-btn.create { background: #28a745; }
+.ccv-btn i { pointer-events: none; }
+
+/* Grid & Cards */
+.ccv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
+  gap: 1rem;
+}
+.ccv-card {
+  position: relative;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+.ccv-card .stripe {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 6px;
+}
+.stripe-gray { background: #6c757d; }
+.stripe-yellow { background: #ffc107; }
+.stripe-blue { background: #007bff; }
+.stripe-green { background: #28a745; }
+
+.card-content {
+  padding: 1rem;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  color: white;
+  font-size: 0.8rem;
+}
+.badge-gray { background: #6c757d; }
+.badge-yellow { background: #ffc107; color: #212529; }
+.badge-blue { background: #007bff; }
+.badge-green { background: #28a745; }
+.patient { font-weight: bold; margin: 0.5rem 0; }
+.meta { font-size: 0.85rem; color: #555; margin-bottom: 0.5rem; }
+.reason { font-size: 0.9rem; }
+
+/* View button */
+.ccv-card .view {
+  width: 100%;
+  border-top: 1px solid #eee;
+  background: #f8f9fa;
+  color: #333;
+  font-weight: bold;
+}
+.ccv-card .view:hover {
+  background: #e2e6ea;
+}
+
+/* Empty State */
+.ccv-empty {
+  text-align: center;
+  color: #777;
+  padding: 2rem;
+}
+.ccv-empty i {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Modal */
+.ccv-modal-backdrop {
+  position: fixed; inset:0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+}
+.ccv-modal {
+  position: fixed;
+  top: 10%; left:50%;
+  transform: translateX(-50%);
+  width: 90%; max-width:600px;
+  background: white;
+  border-radius: 8px;
+  z-index: 1001;
+  overflow: hidden;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #f1f1f1; padding: 0.75rem 1rem;
+}
+.modal-header h3 { margin:0; }
+.modal-header .close {
+  background:none; border:none; font-size:1.25rem; cursor:pointer;
+}
+
+/* Tabs */
+.tabs {
+  display: flex; border-bottom:1px solid #ddd;
+}
+.tabs button {
+  flex:1; padding:0.75rem; background:none; border:none;
+  cursor:pointer; font-weight:bold; color:#555;
+}
+.tabs button.active {
+  border-bottom:3px solid #007bff; color:#007bff;
+}
+
+/* Body panels */
+.body { padding:1rem; max-height:60vh; overflow-y:auto; }
+.panel h4 { margin-top:0; font-size:1.1rem; }
+.panel dl dt { font-weight:bold; margin-top:0.5rem; }
+.panel dl dd { margin:0 0 0.5rem 0.5rem; }
+
+/* Treatment table */
+.treat-table {
+  width:100%; border-collapse: collapse; margin-top:0.5rem;
+}
+.treat-table th, .treat-table td {
+  border:1px solid #ddd; padding:0.5rem; text-align:left;
+}
+.small-badge { font-size:0.75rem; padding:0.2rem 0.4rem; border-radius:8px; }
+.list { list-style:none; padding:0; margin:0.5rem 0; }
+.list li { padding:0.5rem 0; border-bottom:1px solid #eee; }
+
+/* Actions */
+.actions {
+  display:flex; justify-content:flex-end; gap:0.5rem;
+  padding:0.75rem 1rem; background:#f1f1f1;
+}
+.ccv-btn.primary { background:#007bff; color:white; }

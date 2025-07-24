@@ -1,0 +1,26 @@
+/* src/assets/css/pages/secretary/PatientForm.css */
+
+.patient-form {
+  background-color: #f5f5f5;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 0 8px rgba(0,0,0,0.05);
+}
+
+.patient-form label {
+  font-weight: 500;
+  color: #333;
+}
+
+.patient-form input {
+  border-radius: 0.5rem;
+}
+
+.patient-form .btn-success {
+  min-width: 120px;
+}
+
+.patient-form .btn-secondary {
+  min-width: 120px;
+}
