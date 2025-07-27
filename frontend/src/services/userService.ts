@@ -67,13 +67,14 @@ class UserService {
    */
   async updateUser(id: number, formData: FormUser): Promise<User> {
     try {
-      // Convertir FormUser a UpdateUserRequest
+      // ✅ NO INCLUIR PASSWORD EN ACTUALIZACIONES NORMALES
       const userData: UpdateUserRequest = {
         nombre: formData.nombre,
         apellido: formData.apellido,
         email: formData.email,
-        roleId: formData.roleId || await this.getRoleIdByName(formData.role), // <- Cambiado aquí
+        roleId: formData.roleId || await this.getRoleIdByName(formData.role),
         activo: formData.activo
+        // ✅ NO INCLUIR password aquí
       }
 
       const response = await fetch(`${this.baseUrl}${API_CONFIG.ENDPOINTS.USERS.BY_ID(id)}`, {
@@ -186,12 +187,28 @@ class UserService {
   /**
    * Mapear roles del frontend al ID del backend (usando roles dinámicos)
    */
-  async getRoleIdByName(roleName: string): Promise<number> {
+  async getRoleIdByName(roleName: UserRole): Promise<number> {
     try {
       const roles = await this.getRoles()
-      const role = roles.find(r => r.nombre.toLowerCase() === roleName.toUpperCase())
+      console.log('Roles obtenidos:', roles) // ✅ Debug
+    
+      // ✅ BUSCAR POR NOMBRE EXACTO (sin convertir a mayúsculas/minúsculas)
+      const roleMap: Record<UserRole, string> = {
+        'admin': 'ADMIN',
+        'profesor': 'PROFESOR',
+        'estudiante': 'ESTUDIANTE',
+        'secretario': 'SECRETARIO',
+        'paciente': 'PACIENTE'
+      }
+      
+      const backendRoleName = roleMap[roleName]
+      const role = roles.find(r => r.nombre === backendRoleName)
+      
+      console.log(`Buscando rol: ${roleName} -> ${backendRoleName}, encontrado:`, role) // ✅ Debug
+    
       return role?.id || 3 // Default: estudiante
-    } catch {
+    } catch (error) {
+      console.error('Error al obtener roles:', error) // ✅ Debug
       // Fallback estático si falla la consulta
       const roleIdMap: Record<UserRole, number> = {
         'admin': 1,
@@ -200,7 +217,7 @@ class UserService {
         'secretario': 4,
         'paciente': 5
       }
-      return roleIdMap[roleName as UserRole] || 3
+      return roleIdMap[roleName] || 3
     }
   }
 }

@@ -59,23 +59,31 @@ try {
   async update(id: number, data: UpdateUsuarioDto): Promise<Usuario> {
     // Verificar si el usuario existe
     const usuario = await this.findById(id);
-    // Si no se proporciona una nueva contraseña, mantener la actual
-    if (!data.password) {
-      data.password = usuario.password;
+    
+    // ✅ CREAR OBJETO DE ACTUALIZACIÓN SIN MODIFICAR LA CONTRASEÑA AUTOMÁTICAMENTE
+    const updateData: any = {
+      nombre: data.nombre,
+      apellido: data.apellido,
+      email: data.email,
+      roleId: data.roleId,
+      activo: data.activo,
+      parroquiaId: data.parroquiaId,
+    };
+
+    // ✅ SOLO HASHEAR SI SE PROPORCIONA UNA NUEVA CONTRASEÑA
+    if (data.password && data.password !== usuario.password) {
+      updateData.password = await hash(data.password, 10);
     }
-    // Si la fecha de nacimiento no se proporciona, mantener la actual
-    if (!data.fechaNacimiento) {
-      data.fechaNacimiento = usuario.fechaNacimiento;
+
+    // ✅ SOLO ACTUALIZAR FECHA SI SE PROPORCIONA
+    if (data.fechaNacimiento) {
+      updateData.fechaNacimiento = new Date(data.fechaNacimiento);
     }
+
     // Actualizar el usuario
-    const hashedPassword = data.password ? await hash(data.password, 10) : usuario.password; 
     return this.prisma.usuario.update({
       where: { id },
-      data: {
-        ...data,
-        password: hashedPassword,
-        fechaNacimiento: new Date(data.fechaNacimiento),
-      },
+      data: updateData,
       include: {
         especialidades: {
           include: {

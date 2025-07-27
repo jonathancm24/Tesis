@@ -8,4 +8,5 @@ export class UpdateUsuarioDto extends PartialType(
   @IsOptional()
   @IsBoolean()
   activo?: boolean;
+  email: any;
 }
