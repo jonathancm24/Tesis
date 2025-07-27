@@ -13,6 +13,13 @@
       <div class="panel right-panel">
         <form @submit.prevent="onSubmit" class="login-form">
           <h3>Iniciar Sesión</h3>
+          
+          <!-- Mostrar errores -->
+          <div v-if="authStore.error" class="error-message">
+            <i class="fas fa-exclamation-triangle"></i>
+            {{ authStore.error }}
+          </div>
+
           <div class="input-group">
             <i class="fas fa-envelope" aria-hidden="true"></i>
             <input
@@ -20,7 +27,7 @@
               type="email"
               placeholder="Correo electrónico"
               required
-              :disabled="loading"
+              :disabled="authStore.loading"
               aria-label="Correo electrónico"
             />
           </div>
@@ -31,12 +38,12 @@
               type="password"
               placeholder="Contraseña"
               required
-              :disabled="loading"
+              :disabled="authStore.loading"
               aria-label="Contraseña"
             />
           </div>
-          <button type="submit" class="btn-login" :disabled="loading">
-            <span v-if="!loading">Entrar</span>
+          <button type="submit" class="btn-login" :disabled="authStore.loading">
+            <span v-if="!authStore.loading">Entrar</span>
             <span v-else><i class="fas fa-spinner fa-spin"></i> Cargando...</span>
           </button>
           <a href="#" class="forgot-link">¿Olvidaste tu contraseña?</a>
@@ -49,21 +56,20 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { loginMock } from '@/mocks/admin/api'
+import { useAuthStore } from '@/store/auth'
 
 const email = ref('')
 const password = ref('')
-const loading = ref(false)
 const router = useRouter()
+const authStore = useAuthStore()
 
 async function onSubmit() {
-  if (loading.value) return
-  loading.value = true
+  if (authStore.loading) return
 
   try {
-    const user = await loginMock(email.value.trim(), password.value)
-    localStorage.setItem('user', JSON.stringify(user))
+    const user = await authStore.login(email.value.trim(), password.value)
 
+    // Redirigir según el rol (mantener lógica existente)
     switch (user.role) {
       case 'admin':
         router.push({ name: 'HomeAdmin' })
@@ -80,10 +86,9 @@ async function onSubmit() {
       default:
         router.push({ name: 'Login' })
     }
-  } catch (err: any) {
-    alert(err.message || 'Error al iniciar sesión')
-  } finally {
-    loading.value = false
+  } catch (error) {
+    // El error ya está en authStore.error
+    console.error('Error de login:', error)
   }
 }
 </script>
@@ -234,5 +239,23 @@ async function onSubmit() {
 
 .forgot-link:hover {
   text-decoration: underline;
+}
+
+/* Agregar solo el estilo del error */
+.error-message {
+  background: #ffe6e6;
+  border: 1px solid #ff9999;
+  color: #cc0000;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.error-message i {
+  color: #cc0000;
 }
 </style>

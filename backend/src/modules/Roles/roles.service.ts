@@ -123,6 +123,7 @@ export class RolesService {
    * @returns Lista de todos los roles con sus permisos incluidos
    */
   async obtenerTodos() {
+    
     return this.prisma.role.findMany({
       include: {
         permisos: {
@@ -303,5 +304,22 @@ export class RolesService {
         throw error;
       }
     }
+  }
+  /**
+   * Obtiene todos los roles del sistema sin incluir permisos
+   * 
+   * @returns Lista de roles con solo ID, nombre y descripción
+   */
+  async findAll() {
+    return this.prisma.role.findMany({
+      select: {
+        id: true,
+        nombre: true,
+        description: true
+      },
+      orderBy: {
+        nombre: 'asc'
+      }
+    });
   }
 }

@@ -26,8 +26,12 @@ export class RegisterDto {
   @IsInt()
   roleId: number;
 
+  @IsOptional()
   @IsArray()
   @ArrayNotEmpty()
-  @IsInt({ each: true })
+  @IsInt({ each: true }) 
   especialidadIds: number[];
+
+  @IsInt({ each: true })
+  parroquiaId: number;
 }

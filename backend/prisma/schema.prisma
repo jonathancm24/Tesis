@@ -29,6 +29,7 @@ model Usuario {
   direccion     String?
   NotasAdicionales String? @map("notas_adicionales")
   fechaRegistro DateTime @default(now()) @map("fecha_registro")
+  activo        Boolean  @default(true)
   parroquiaId   Int?      @map("parroquia_id")
   roleId        Int      @map("rol_id")
 

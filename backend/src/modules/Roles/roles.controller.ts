@@ -54,7 +54,7 @@ export class RolesController {
    * 
    * @returns Lista completa de roles con sus permisos y estadísticas
    */
-  @Get()
+  @Get('/todos/con-permisos')
   @RequirePermissions(PermisoEnum.VER_ROLES)
   async obtenerTodos() {
     return this.rolesService.obtenerTodos();
@@ -92,5 +92,16 @@ export class RolesController {
     @Body() dto: AsignarPermisosDto
   ) {
     return this.rolesService.asignarPermisos(id, dto);
+  }
+
+  /**
+   * Obtiene todos los roles del sistema sin incluir permisos
+   * 
+   * @returns Lista de roles con solo ID, nombre y descripción
+   */
+  @Get('/todos')
+  @RequirePermissions(PermisoEnum.VER_ROLES)
+  async findAll() {
+    return this.rolesService.findAll();
   }
 }

@@ -13,10 +13,10 @@ export class AuthService {
     private prisma: PrismaService, // Inyectamos el servicio de Prisma
   ) {}
  // Método para validar al usuario
-  async validateUser(email: string, pass: string): Promise<any> {
+  async validateUser(email: string, password: string): Promise<any> {
     const user = await this.usuariosService.findByEmail(email);
-    if (user && (await compare(pass, user.password))) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    
+    if (user && user.activo && await compare(password, user.password)) {
       const { password, ...result } = user;
       return result;
     }
@@ -24,15 +24,26 @@ export class AuthService {
   }
 
   async login(user: any) {
-    // Generamos el payload del JWT
-    const payload = {
+    const payload = { 
+      email: user.email, 
       sub: user.id,
-      nombre: user.nombre,
-      role: user.role.nombre, // Incluimos el nombre del rol en el payload
-    };
+      role: user.role.nombre 
+    }
+    
+    // ✅ ASEGURAR QUE RETORNE ESTA ESTRUCTURA
     return {
-      access_token: this.jwtService.sign(payload),// Firmamos el token con el payload
-    };
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        nombre: user.nombre,
+        apellido: user.apellido,
+        email: user.email,
+        role: {
+          id: user.role.id,
+          nombre: user.role.nombre
+        }
+      }
+    }
   }
 
   /**

@@ -135,24 +135,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import UserForm from '@/components/admin/UserForm.vue'
-import type { User, Role } from '@/mocks/api'
-import {
-  fetchUsersMock,
-  saveUserMock,
-  deleteUserMock,
-} from '@/mocks/api'
-
-// Interfaz para datos del formulario
-interface FormUser {
-  id?: number
-  nombre: string
-  email: string
-  role: Role
-  especialidad?: string
-  historial?: string
-  activo: boolean
-  password?: string
-}
+import { userService } from '@/services/userService'
+import type { User, FormUser, UserRole } from '@/types/user'
 
 // Estados
 const users = ref<User[]>([])
@@ -164,22 +148,26 @@ const editingUser = ref<Partial<FormUser>>({})
 
 // Carga inicial de usuarios
 onMounted(loadUsers)
+
 async function loadUsers() {
   loading.value = true
   error.value = ''
   try {
-    users.value = await fetchUsersMock()
+    users.value = await userService.getUsers()
+    console.log('Usuarios cargados:', users.value)
   } catch (err: any) {
     error.value = err.message || 'Error al cargar usuarios'
+    console.error('Error al cargar usuarios:', err)
   } finally {
     loading.value = false
   }
 }
 
-// Filtrado por nombre o email
+// Filtrado por nombre, apellido o email
 const filteredUsers = computed(() =>
   users.value.filter(u =>
     u.nombre.toLowerCase().includes(filter.value.toLowerCase()) ||
+    u.apellido.toLowerCase().includes(filter.value.toLowerCase()) ||
     u.email.toLowerCase().includes(filter.value.toLowerCase())
   )
 )
@@ -187,14 +175,31 @@ const filteredUsers = computed(() =>
 // Abrir modal en modo creación o edición
 function openModal(user?: User) {
   editingUser.value = user
-    ? { ...user }
-    : { nombre: '', email: '', role: 'estudiante', activo: true }
+    ? { 
+        id: user.id,
+        nombre: user.nombre,
+        apellido: user.apellido,
+        email: user.email,
+        role: user.role,
+        activo: user.activo
+      }
+    : { 
+        nombre: '', 
+        apellido: '', 
+        email: '', 
+        role: 'estudiante' as UserRole,
+        activo: true,
+        cedula: '',
+        password: '',
+        fechaNacimiento: ''
+      }
   isModalOpen.value = true
 }
 
 // Cerrar modal
 function closeModal() {
   isModalOpen.value = false
+  editingUser.value = {}
 }
 
 // Guardar usuario (crear o actualizar)
@@ -202,11 +207,34 @@ async function handleSave(data: FormUser) {
   isModalOpen.value = false
   loading.value = true
   error.value = ''
+  
   try {
-    await saveUserMock(data as User)
+    if (data.id) {
+      // Actualizar usuario existente
+      await userService.updateUser(data.id, data)
+    } else {
+      // Crear nuevo usuario
+      await userService.createUser(data)
+    }
     await loadUsers()
   } catch (err: any) {
     error.value = err.message || 'Error al guardar usuario'
+    console.error('Error al guardar usuario:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+// Alternar activo/inactivo
+async function onToggleActive(user: User) {
+  loading.value = true
+  error.value = ''
+  try {
+    await userService.toggleUserActive(user.id)
+    await loadUsers()
+  } catch (err: any) {
+    error.value = err.message || 'Error al actualizar estado'
+    console.error('Error al cambiar estado:', err)
   } finally {
     loading.value = false
   }
@@ -214,41 +242,28 @@ async function handleSave(data: FormUser) {
 
 // Eliminar usuario
 async function onDelete(id: number) {
-  if (!confirm('¿Eliminar este usuario?')) return
+  if (!confirm('¿Estás seguro de que quieres eliminar este usuario?')) return
+  
   loading.value = true
   error.value = ''
   try {
-    await deleteUserMock(id)
+    await userService.deleteUser(id)
     await loadUsers()
   } catch (err: any) {
     error.value = err.message || 'Error al eliminar usuario'
-  } finally {
-    loading.value = false
-  }
-}
-
-// Alternar activo/inactivo
-async function onToggleActive(u: User) {
-  loading.value = true
-  error.value = ''
-  try {
-    await saveUserMock({ ...u, activo: !u.activo })
-    await loadUsers()
-  } catch (err: any) {
-    error.value = err.message || 'Error al actualizar estado'
+    console.error('Error al eliminar usuario:', err)
   } finally {
     loading.value = false
   }
 }
 
 // Clases para badges de rol
-function roleBadgeClass(role: Role) {
+function roleBadgeClass(role: UserRole) {
   return {
     'badge bg-danger': role === 'admin',
     'badge bg-success': role === 'profesor',
     'badge bg-info text-dark': role === 'estudiante',
-    'badge bg-warning text-dark': role === 'secretario',
-    'badge bg-secondary text-white': role === 'paciente',
+    'badge bg-warning text-dark': role === 'secretario',  
   }
 }
 </script>
