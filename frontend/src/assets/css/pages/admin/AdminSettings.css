@@ -40,7 +40,7 @@
 }
 
 .admin-settings .form-control:focus {
-  border-color: #4e73df;
+  border-color: #a8ffaa;
   box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
 }
 

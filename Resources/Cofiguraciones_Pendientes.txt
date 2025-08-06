@@ -1,0 +1,24 @@
+¿Qué es pg_trgm? 
+Es una extensión que divide el texto en "trigramas" 
+(grupos de 3 letras) y crea un índice sobre ellos. 
+Esto le permite encontrar subcadenas de texto de forma 
+extremadamente rápida, incluso con comodines al inicio (%texto%).
+
+Pasos para implementarlo:
+
+    1. Activar la extensión en tu base de datos: 
+        Conéctate a tu base de datos y ejecuta este comando una 
+        sola vez:
+            ```sql
+            CREATE EXTENSION IF NOT EXISTS pg_trgm;
+            ```
+    2. Crear índices GIN en las columnas de búsqueda: 
+        Ejecuta estos comandos para crear los índices en las tablas 
+        correspondientes. El índice GIN es ideal para este tipo de 
+        búsquedas.
+            ```sql
+            CREATE INDEX idx_parroquias_nombre_trgm ON "Parroquias" USING gin (nombre gin_trgm_ops);
+            CREATE INDEX idx_cantones_nombre_trgm ON "Cantones" USING gin (nombre gin_trgm_ops);
+            CREATE INDEX idx_provincias_nombre_trgm ON "Provincias" USING gin (nombre gin_trgm_ops);
+            CREATE INDEX idx_paises_nombre_trgm ON "Paises" USING gin (nombre gin_trgm_ops);
+            ```

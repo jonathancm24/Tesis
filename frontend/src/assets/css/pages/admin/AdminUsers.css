@@ -29,7 +29,7 @@
   transition: border-color .2s, box-shadow .2s;
 }
 .admin-users .toolbar .search-input .form-control:focus {
-  border-color: #4e73df;
+  border-color: #b8ffae;
   box-shadow: 0 0 0 0.2rem rgba(78,115,223,.25);
 }
 
@@ -139,7 +139,7 @@
   overflow: hidden;
 }
 .admin-users .modal-header {
-  background-color: #4e73df;
+  background-color: #c8f6be;
   border-bottom: none;
 }
 .admin-users .modal-header .modal-title {

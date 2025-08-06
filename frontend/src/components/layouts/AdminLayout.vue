@@ -61,9 +61,10 @@ function toggleDarkMode() {
 }
 
 const menuItems = [
-  { name: 'HomeAdmin',     label: 'Inicio',    icon: 'fas fa-home',    to: { name: 'HomeAdmin' } },
-  { name: 'AdminUsers',    label: 'Usuarios',  icon: 'fas fa-users',   to: { name: 'AdminUsers' } },
-  { name: 'AdminSettings', label: 'Ajustes',   icon: 'fas fa-cog',     to: { name: 'AdminSettings' } }
+  { name: 'HomeAdmin',         label: 'Inicio',           icon: 'fas fa-home',         to: { name: 'HomeAdmin' } },
+  { name: 'AdminUsers',        label: 'Usuarios',         icon: 'fas fa-users',        to: { name: 'AdminUsers' } },
+  { name: 'BaseDataManagement', label: 'Base de Datos',       icon: 'fas fa-database',     to: { name: 'BaseDataManagement' } },
+  { name: 'AdminSettings',     label: 'Ajustes',          icon: 'fas fa-cog',          to: { name: 'AdminSettings' } }
 ]
 </script>
 

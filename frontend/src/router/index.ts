@@ -17,9 +17,10 @@ const Login = () => import('@/views/Login.vue')
 // -------------------------
 
 // 👑 Admin
-const HomeAdmin      = () => import('@/views/admin/HomeAdmin.vue')
-const AdminUsers     = () => import('@/views/admin/AdminUsers.vue')
-const AdminSettings  = () => import('@/views/admin/AdminSettings.vue')
+const HomeAdmin         = () => import('@/views/admin/HomeAdmin.vue')
+const AdminUsers        = () => import('@/views/admin/AdminUsers.vue')
+const AdminSettings     = () => import('@/views/admin/AdminSettings.vue')
+const BaseDataManagement = () => import('@/views/admin/BaseDataManagement.vue')
 
 // 👨‍🏫 Profesor
 const ProfessorDashboard    = () => import('@/views/professor/ProfessorDashboardView.vue')
@@ -62,7 +63,8 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '', name: 'HomeAdmin', component: HomeAdmin },
       { path: 'users', name: 'AdminUsers', component: AdminUsers },
-      { path: 'settings', name: 'AdminSettings', component: AdminSettings }
+      { path: 'settings', name: 'AdminSettings', component: AdminSettings },
+      { path: 'base-data', name: 'BaseDataManagement', component: BaseDataManagement }
     ]
   },
 

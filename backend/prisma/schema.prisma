@@ -130,14 +130,25 @@ model Paciente {
   id              Int      @id @default(autoincrement())
   nombre          String
   apellido        String
+  cedula          String   @unique
   fechaNacimiento DateTime @map("fecha_nacimiento")
   telefono        String?
   direccion       String?
   genero          String?
-  tipoSangre      String? @map("tipo_sangre")
+  estadoCivil     String? @map("estado_civil")
+  EmpresaLaboral   String? @map("empresa_laboral")
+  ocupacion      String?
   Nacionalidad    String?
+  email           String? 
+  fechaRegistro  DateTime @default(now()) @map("fecha_registro")
+  activo          Boolean  @default(true)
   parroquiaId     Int      @map("parroquia_id")
+  representante    String?
+  relacionRep      String?
+  cedulaRep        String?
+  telefonoRep      String?
 
+  respuestasTamizaje RespuestaTamizaje[] 
   parroquia       Parroquia         @relation(fields: [parroquiaId], references: [id])
   odontograma     Odontograma[]     @relation("OdontogramasPorPaciente")
   casosClinicos   CasoClinico[]     @relation("CasosClinicosPorPaciente")
@@ -145,6 +156,7 @@ model Paciente {
   historialMedico HistorialMedico[] @relation("HistorialMedicoPorPaciente")
 
   @@map("Pacientes")
+  
 }
 
 enum EstadoCasoClinico {
@@ -284,6 +296,39 @@ model HistorialMedico {
 
   @@map("HistorialMedico")
 }
+
+enum TipoPregunta {
+  SI_NO
+  TEXTO
+  NUMERICO
+  FECHA
+  OPCION_MULTIPLE
+}
+
+model PreguntaTamizaje {
+  id             Int               @id @default(autoincrement())
+  texto          String
+  tipo           TipoPregunta
+  categoria      String?
+  orden          Int?
+  soloMujer      Boolean           @default(false)
+  requiereDetalle Boolean          @default(false)
+
+  respuestas     RespuestaTamizaje[]
+}
+
+model RespuestaTamizaje {
+  id             Int               @id @default(autoincrement())
+  pacienteId     Int
+  historialId    Int?
+  preguntaId     Int
+  respuesta      String?           // "si", "no", texto libre, fecha, etc.
+  detalle        String?
+
+  paciente       Paciente          @relation(fields: [pacienteId], references: [id])
+  pregunta       PreguntaTamizaje  @relation(fields: [preguntaId], references: [id])
+}
+
 
 enum EstadoCita {
   DISPONIBLE

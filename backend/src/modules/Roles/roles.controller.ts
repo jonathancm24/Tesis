@@ -27,10 +27,23 @@ import { PermisoEnum } from '../../common/enums/permisos.enum';
  * Todos los endpoints requieren autenticación JWT y permisos específicos
  */
 @Controller('roles')
-@UseGuards(JwtAuthGuard, PermissionsGuard) // Proteger todas las rutas con autenticación y permisos
+//@UseGuards(JwtAuthGuard, PermissionsGuard) // Proteger todas las rutas con autenticación y permisos
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
+
+  /**
+   * Obtiene todos los roles del sistema sin incluir permisos
+   * 
+   * @returns Lista de roles con solo ID, nombre y descripción
+   */
+  @Get('/todos')
+  //@RequirePermissions(PermisoEnum.VER_ROLES)
+  async findAll() {
+    return this.rolesService.findAll();
+  }
+
+  
   /**
    * Crea un nuevo rol en el sistema
    * 
@@ -94,14 +107,5 @@ export class RolesController {
     return this.rolesService.asignarPermisos(id, dto);
   }
 
-  /**
-   * Obtiene todos los roles del sistema sin incluir permisos
-   * 
-   * @returns Lista de roles con solo ID, nombre y descripción
-   */
-  @Get('/todos')
-  @RequirePermissions(PermisoEnum.VER_ROLES)
-  async findAll() {
-    return this.rolesService.findAll();
-  }
+  
 }

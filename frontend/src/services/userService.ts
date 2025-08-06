@@ -1,6 +1,6 @@
 // frontend/src/services/userService.ts
 import { API_CONFIG, getAuthHeaders } from '@/config/api'
-import type { User, CreateUserRequest, UpdateUserRequest, UserRole, FormUser, Role } from '@/types/user'
+import type { User, CreateUserRequest, UpdateUserRequest, UserRole, FormUser, Role, Especialidad, Parroquia } from '@/types/user'
 
 class UserService {
   private baseUrl = API_CONFIG.BASE_URL
@@ -28,20 +28,106 @@ class UserService {
   }
 
   /**
+   * Obtener todos los roles disponibles desde la BD
+   */
+  async getRoles(): Promise<Role[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/roles/todos`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al obtener roles')
+      }
+
+      return await response.json()
+    } catch (error: any) {
+      throw new Error(error.message || 'Error de conexión')
+    }
+  }
+
+  /**
+   * Obtener todas las especialidades disponibles
+   */
+  async getEspecialidades(): Promise<Especialidad[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/especialidades`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al obtener especialidades')
+      }
+
+      return await response.json()
+    } catch (error: any) {
+      throw new Error(error.message || 'Error de conexión')
+    }
+  }
+
+  /**
+   * Obtener todas las parroquias disponibles
+   */
+  async getParroquias(): Promise<Parroquia[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/parroquia`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al obtener parroquias')
+      }
+
+      return await response.json()
+    } catch (error: any) {
+      throw new Error(error.message || 'Error de conexión')
+    }
+  }
+
+  /**
+   * Buscar parroquias por término de búsqueda
+   */
+  async buscarParroquias(query: string): Promise<Parroquia[]> {
+    try {
+      if (!query || query.length < 2) {
+        return [];
+      }
+
+      const response = await fetch(`${this.baseUrl}/parroquia/buscar?q=${encodeURIComponent(query)}`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al buscar parroquias')
+      }
+
+      return await response.json()
+    } catch (error: any) {
+      throw new Error(error.message || 'Error de conexión')
+    }
+  }
+
+  /**
    * Crear nuevo usuario
    */
   async createUser(formData: FormUser): Promise<User> {
     try {
-      // Convertir FormUser a CreateUserRequest
+      // Convertir FormUser a CreateUserRequest (coincide con RegisterDto)
       const userData: CreateUserRequest = {
         nombre: formData.nombre,
         apellido: formData.apellido,
         email: formData.email,
-        cedula: formData.cedula || '',
-        fechaNacimiento: formData.fechaNacimiento || '2000-01-01',
-        password: formData.password || 'temp123',
+        cedula: formData.cedula,
+        fechaNacimiento: formData.fechaNacimiento,
+        password: formData.password,
+        NotasAdicionales: formData.NotasAdicionales,
         roleId: formData.roleId || await this.getRoleIdByName(formData.role),
-        especialidadIds: []
+        especialidadIds: formData.especialidadIds || [],
+        parroquiaId: formData.parroquiaId
       }
 
       const response = await fetch(`${this.baseUrl}${API_CONFIG.ENDPOINTS.AUTH.REGISTER}`, {
@@ -67,14 +153,16 @@ class UserService {
    */
   async updateUser(id: number, formData: FormUser): Promise<User> {
     try {
-      // ✅ NO INCLUIR PASSWORD EN ACTUALIZACIONES NORMALES
+      // Convertir FormUser a UpdateUserRequest
       const userData: UpdateUserRequest = {
         nombre: formData.nombre,
         apellido: formData.apellido,
         email: formData.email,
+        NotasAdicionales: formData.NotasAdicionales,
         roleId: formData.roleId || await this.getRoleIdByName(formData.role),
-        activo: formData.activo
-        // ✅ NO INCLUIR password aquí
+        activo: formData.activo,
+        especialidadIds: formData.especialidadIds,
+        parroquiaId: formData.parroquiaId
       }
 
       const response = await fetch(`${this.baseUrl}${API_CONFIG.ENDPOINTS.USERS.BY_ID(id)}`, {
@@ -135,26 +223,6 @@ class UserService {
       throw new Error(error.message || 'Error de conexión')
     }
   }
-  
-  /**
-   * Obtener todos los roles disponibles desde la BD
-   */
-  async getRoles(): Promise<Role[]> {
-    try {
-      const response = await fetch(`${this.baseUrl}${API_CONFIG.ENDPOINTS.ROLES.BASE}`, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      })
-
-      if (!response.ok) {
-        throw new Error('Error al obtener roles')
-      }
-
-      return await response.json()
-    } catch (error: any) {
-      throw new Error(error.message || 'Error de conexión')
-    }
-  }
 
   /**
    * Mapear usuario del backend al formato simple del frontend
@@ -166,7 +234,12 @@ class UserService {
       apellido: backendUser.apellido,
       email: backendUser.email,
       role: this.mapRoleToFrontend(backendUser.role?.nombre || 'ESTUDIANTE'),
-      activo: backendUser.activo ?? true
+      activo: backendUser.activo ?? true,
+      especialidades: backendUser.especialidades?.map((e: any) => ({
+        id: e.especialidad?.id || e.id,
+        nombre: e.especialidad?.nombre || e.nombre,
+        descripcion: e.especialidad?.descripcion || e.descripcion
+      })) || []
     }
   }
 
@@ -185,14 +258,11 @@ class UserService {
   }
 
   /**
-   * Mapear roles del frontend al ID del backend (usando roles dinámicos)
+   * Mapear roles del frontend al ID del backend
    */
   async getRoleIdByName(roleName: UserRole): Promise<number> {
     try {
       const roles = await this.getRoles()
-      console.log('Roles obtenidos:', roles) // ✅ Debug
-    
-      // ✅ BUSCAR POR NOMBRE EXACTO (sin convertir a mayúsculas/minúsculas)
       const roleMap: Record<UserRole, string> = {
         'admin': 'ADMIN',
         'profesor': 'PROFESOR',
@@ -204,12 +274,9 @@ class UserService {
       const backendRoleName = roleMap[roleName]
       const role = roles.find(r => r.nombre === backendRoleName)
       
-      console.log(`Buscando rol: ${roleName} -> ${backendRoleName}, encontrado:`, role) // ✅ Debug
-    
-      return role?.id || 3 // Default: estudiante
+      return role?.id || 3
     } catch (error) {
-      console.error('Error al obtener roles:', error) // ✅ Debug
-      // Fallback estático si falla la consulta
+      // Fallback estático
       const roleIdMap: Record<UserRole, number> = {
         'admin': 1,
         'profesor': 2,

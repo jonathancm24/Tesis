@@ -22,7 +22,24 @@ export const API_CONFIG = {
     ROLES: {
       BASE: '/roles',
       PERMISSIONS: (id: number) => `/roles/${id}/permisos`
+    },
+    ESPECIALIDADES: {
+      BASE: '/especialidades'
+    },
+    PAISES: {
+      BASE: '/pais'
+    },
+    PROVINCIAS: {
+      BASE: '/provincia'
+    },
+    CANTONES: {
+      BASE: '/canton'
+    },
+    PARROQUIAS: {
+      BASE: '/parroquia',
+      SEARCH: '/parroquia/buscar' 
     }
+
   }
 }
 

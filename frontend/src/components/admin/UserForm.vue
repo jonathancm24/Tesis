@@ -4,7 +4,7 @@
     <!-- Nombre -->
     <div class="col-12 col-md-6">
       <label for="nombre" class="form-label">
-        <i class="fas fa-user me-1"></i> Nombre
+        <i class="fas fa-user me-1"></i> Nombre *
       </label>
       <input
         id="nombre"
@@ -22,7 +22,7 @@
     <!-- Apellido -->
     <div class="col-12 col-md-6">
       <label for="apellido" class="form-label">
-        <i class="fas fa-user me-1"></i> Apellido
+        <i class="fas fa-user me-1"></i> Apellido *
       </label>
       <input
         id="apellido"
@@ -38,9 +38,9 @@
     </div>
 
     <!-- Email -->
-    <div class="col-12">
+    <div class="col-12 col-md-6">
       <label for="email" class="form-label">
-        <i class="fas fa-envelope me-1"></i> Email
+        <i class="fas fa-envelope me-1"></i> Email *
       </label>
       <input
         id="email"
@@ -55,10 +55,66 @@
       </div>
     </div>
 
+    <!-- Cédula -->
+    <div class="col-12 col-md-6">
+      <label for="cedula" class="form-label">
+        <i class="fas fa-id-card me-1"></i> Cédula *
+      </label>
+      <input
+        id="cedula"
+        v-model="local.cedula"
+        type="text"
+        class="form-control"
+        placeholder="1234567890"
+        required
+      />
+      <div class="invalid-feedback">
+        La cédula es obligatoria.
+      </div>
+    </div>
+
+    <!-- Fecha de Nacimiento -->
+    <div class="col-12 col-md-6">
+      <label for="fechaNacimiento" class="form-label">
+        <i class="fas fa-calendar me-1"></i> Fecha de Nacimiento *
+      </label>
+      <input
+        id="fechaNacimiento"
+        v-model="local.fechaNacimiento"
+        type="date"
+        class="form-control"
+        required
+      />
+      <div class="invalid-feedback">
+        La fecha de nacimiento es obligatoria.
+      </div>
+    </div>
+
+    <!-- Contraseña -->
+    <div class="col-12 col-md-6">
+      <label for="password" class="form-label">
+        <i class="fas fa-lock me-1"></i> Contraseña *
+      </label>
+      <input
+        id="password"
+        v-model="local.password"
+        type="password"
+        class="form-control"
+        placeholder="Mínimo 6 caracteres"
+        :required="!editMode"
+      />
+      <div class="invalid-feedback">
+        La contraseña debe tener al menos 6 caracteres.
+      </div>
+      <div v-if="editMode" class="form-text">
+        Deja en blanco para mantener la contraseña actual.
+      </div>
+    </div>
+
     <!-- Rol -->
     <div class="col-12 col-md-6">
       <label for="role" class="form-label">
-        <i class="fas fa-user-tag me-1"></i> Rol
+        <i class="fas fa-user-tag me-1"></i> Rol *
       </label>
       <select
         id="role"
@@ -83,8 +139,79 @@
       </div>
     </div>
 
+    <!-- Parroquia -->
+    <div class="col-12">
+      <AutocompleteParroquia
+        v-model="local.parroquiaId"
+        label="Parroquia"
+        placeholder="Buscar por nombre de parroquia o ciudad (ej: Manta, Quito, Guayaquil...)"
+        required
+        input-id="parroquia"
+        @change="onParroquiaChange"
+      />
+    </div>
+
+    <!-- Especialidades (Selección múltiple) -->
+    <div class="col-12">
+      <label for="especialidades" class="form-label">
+        <i class="fas fa-stethoscope me-1"></i> Especialidades
+      </label>
+      <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+        <div class="form-text mb-2">
+          Selecciona una o más especialidades (opcional para algunos roles)
+        </div>
+        <div v-if="loadingEspecialidades" class="text-center">
+          <div class="spinner-border spinner-border-sm" role="status"></div>
+          <span class="ms-2">Cargando especialidades...</span>
+        </div>
+        <div v-else class="row">
+          <div 
+            v-for="especialidad in availableEspecialidades" 
+            :key="especialidad.id"
+            class="col-12 col-md-6 mb-2"
+          >
+            <div class="form-check">
+              <input
+                :id="`esp-${especialidad.id}`"
+                v-model="local.especialidadIds"
+                class="form-check-input"
+                type="checkbox"
+                :value="especialidad.id"
+              />
+              <label 
+                :for="`esp-${especialidad.id}`" 
+                class="form-check-label"
+              >
+                {{ especialidad.nombre }}
+                <small v-if="especialidad.descripcion" class="text-muted d-block">
+                  {{ especialidad.descripcion }}
+                </small>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notas Adicionales -->
+    <div class="col-12">
+      <label for="notasAdicionales" class="form-label">
+        <i class="fas fa-sticky-note me-1"></i> Notas Adicionales
+      </label>
+      <textarea
+        id="notasAdicionales"
+        v-model="local.NotasAdicionales"
+        class="form-control"
+        rows="3"
+        placeholder="Observaciones o notas adicionales sobre el usuario..."
+      ></textarea>
+      <div class="form-text">
+        Campo opcional para información adicional.
+      </div>
+    </div>
+
     <!-- Activo (switch) -->
-    <div class="col-12 col-md-6 d-flex align-items-end">
+    <div class="col-12">
       <div class="form-check form-switch">
         <input
           id="activo"
@@ -98,52 +225,8 @@
       </div>
     </div>
 
-    <!-- Campos adicionales solo para creación -->
-    <template v-if="!editMode">
-      <div class="col-12 col-md-6">
-        <label for="cedula" class="form-label">
-          <i class="fas fa-id-card me-1"></i> Cédula
-        </label>
-        <input
-          id="cedula"
-          v-model="local.cedula"
-          type="text"
-          class="form-control"
-          placeholder="1234567890"
-          required
-        />
-      </div>
-
-      <div class="col-12 col-md-6">
-        <label for="password" class="form-label">
-          <i class="fas fa-lock me-1"></i> Contraseña
-        </label>
-        <input
-          id="password"
-          v-model="local.password"
-          type="password"
-          class="form-control"
-          placeholder="Mínimo 6 caracteres"
-          required
-        />
-      </div>
-
-      <div class="col-12">
-        <label for="fechaNacimiento" class="form-label">
-          <i class="fas fa-calendar me-1"></i> Fecha de Nacimiento
-        </label>
-        <input
-          id="fechaNacimiento"
-          v-model="local.fechaNacimiento"
-          type="date"
-          class="form-control"
-          required
-        />
-      </div>
-    </template>
-
     <!-- Botones -->
-    <div class="col-12 d-flex justify-content-end mt-3">
+    <div class="col-12 d-flex justify-content-end mt-4">
       <button
         type="button"
         class="btn btn-outline-secondary me-2"
@@ -161,8 +244,9 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import type { FormUser, UserRole, Role } from '@/types/user'
+import type { FormUser, UserRole, Role, Especialidad, Parroquia } from '@/types/user'
 import { userService } from '@/services/userService'
+import AutocompleteParroquia from '@/components/common/AutocompleteParroquia.vue' // ✅ IMPORTAR
 
 interface Props {
   modelValue: Partial<FormUser>
@@ -177,35 +261,44 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-// ✅ AGREGAR ESTADO PARA ROLES DINÁMICOS
+// Estados para cargar datos
 const availableRoles = ref<Role[]>([])
+const availableEspecialidades = ref<Especialidad[]>([])
 const loadingRoles = ref(false)
+const loadingEspecialidades = ref(false)
 
+// Formulario local
 const local = ref<FormUser>({
   id: props.modelValue.id,
   nombre: props.modelValue.nombre ?? '',
   apellido: props.modelValue.apellido ?? '',
   email: props.modelValue.email ?? '',
-  role: props.modelValue.role ?? ('estudiante' as UserRole),
-  activo: props.modelValue.activo ?? true,
   cedula: props.modelValue.cedula ?? '',
+  fechaNacimiento: props.modelValue.fechaNacimiento ?? '',
   password: props.modelValue.password ?? '',
-  fechaNacimiento: props.modelValue.fechaNacimiento ?? ''
+  NotasAdicionales: props.modelValue.NotasAdicionales ?? '',
+  role: props.modelValue.role ?? ('estudiante' as UserRole),
+  roleId: props.modelValue.roleId,
+  especialidadIds: props.modelValue.especialidadIds ?? [],
+  parroquiaId: props.modelValue.parroquiaId ?? 0,
+  activo: props.modelValue.activo ?? true
 })
 
-// ✅ CARGAR ROLES AL MONTAR EL COMPONENTE
+// Cargar datos al montar el componente
 onMounted(async () => {
-  await loadRoles()
+  await Promise.all([
+    loadRoles(),
+    loadEspecialidades()
+  ])
 })
 
 async function loadRoles() {
   loadingRoles.value = true
   try {
     availableRoles.value = await userService.getRoles()
-    console.log('Roles disponibles:', availableRoles.value)
   } catch (error) {
     console.error('Error al cargar roles:', error)
-    // Fallback con roles por defecto
+    // Fallback
     availableRoles.value = [
       { id: 1, nombre: 'ADMIN', description: 'Administrador' },
       { id: 2, nombre: 'PROFESOR', description: 'Profesor' },
@@ -217,7 +310,25 @@ async function loadRoles() {
   }
 }
 
-// Función para mapear nombre del rol de BD a frontend
+async function loadEspecialidades() {
+  loadingEspecialidades.value = true
+  try {
+    availableEspecialidades.value = await userService.getEspecialidades()
+  } catch (error) {
+    console.error('Error al cargar especialidades:', error)
+    // Fallback
+    availableEspecialidades.value = [
+      { id: 1, nombre: 'Odontología General', descripcion: 'Atención dental general' },
+      { id: 2, nombre: 'Ortodoncia', descripcion: 'Corrección de dientes y mordida' },
+      { id: 3, nombre: 'Endodoncia', descripcion: 'Tratamiento de conductos' },
+      { id: 4, nombre: 'Periodoncia', descripcion: 'Tratamiento de encías' }
+    ]
+  } finally {
+    loadingEspecialidades.value = false
+  }
+}
+
+// Funciones de mapeo
 function mapRoleNameToFrontend(backendRoleName: string): UserRole {
   const roleMap: Record<string, UserRole> = {
     'ADMIN': 'admin',
@@ -229,7 +340,6 @@ function mapRoleNameToFrontend(backendRoleName: string): UserRole {
   return roleMap[backendRoleName] || 'estudiante'
 }
 
-// Función para obtener el label del rol
 function getRoleLabel(roleName: string): string {
   const labelMap: Record<string, string> = {
     'ADMIN': 'Administrador',
@@ -249,11 +359,15 @@ watch(() => props.modelValue, (newValue) => {
       nombre: newValue.nombre ?? '',
       apellido: newValue.apellido ?? '',
       email: newValue.email ?? '',
-      role: newValue.role ?? ('estudiante' as UserRole),
-      activo: newValue.activo ?? true,
       cedula: newValue.cedula ?? '',
+      fechaNacimiento: newValue.fechaNacimiento ?? '',
       password: newValue.password ?? '',
-      fechaNacimiento: newValue.fechaNacimiento ?? ''
+      NotasAdicionales: newValue.NotasAdicionales ?? '',
+      role: newValue.role ?? ('estudiante' as UserRole),
+      roleId: newValue.roleId,
+      especialidadIds: newValue.especialidadIds ?? [],
+      parroquiaId: newValue.parroquiaId ?? 0,
+      activo: newValue.activo ?? true
     }
   }
 }, { immediate: true })
@@ -271,6 +385,11 @@ async function onSave() {
   
   emit('save', userData)
 }
+
+function onParroquiaChange(parroquia: Parroquia | null) {
+  console.log('Parroquia seleccionada:', parroquia)
+  // Aquí puedes hacer validaciones adicionales si es necesario
+}
 </script>
 
 <style scoped>
@@ -281,6 +400,9 @@ async function onSave() {
   color: var(--bs-primary);
 }
 .form-check-input {
+  cursor: pointer;
+}
+.form-check-label {
   cursor: pointer;
 }
 </style>
