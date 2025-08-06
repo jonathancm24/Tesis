@@ -183,9 +183,11 @@
                 class="form-check-label"
               >
                 {{ especialidad.nombre }}
+                <!--
                 <small v-if="especialidad.descripcion" class="text-muted d-block">
                   {{ especialidad.descripcion }}
                 </small>
+                -->
               </label>
             </div>
           </div>

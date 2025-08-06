@@ -169,17 +169,40 @@
         </div>
         <div class="card-body">
           <form @submit.prevent="handleSubmitCanton" class="row g-3">
-            <div class="col-md-6">
+            <!-- Selección de País -->
+            <div class="col-md-4">
+              <label for="cantonPais" class="form-label">País *</label>
+              <select
+                id="cantonPais"
+                v-model="formData.canton.paisId"
+                class="form-select"
+                :class="{ 'is-invalid': errors.paisId }"
+                required
+                @change="onCantonPaisChange"
+              >
+                <option value="">Seleccionar país...</option>
+                <option v-for="pais in paises" :key="pais.id" :value="pais.id">
+                  {{ pais.nombre }}
+                </option>
+              </select>
+              <div v-if="errors.paisId" class="invalid-feedback">
+                {{ errors.paisId }}
+              </div>
+            </div>
+            
+            <!-- Selección de Provincia (filtrada por país) -->
+            <div class="col-md-4">
               <label for="cantonProvincia" class="form-label">Provincia *</label>
               <select
                 id="cantonProvincia"
                 v-model="formData.canton.provinciaId"
                 class="form-select"
                 :class="{ 'is-invalid': errors.provinciaId }"
+                :disabled="!formData.canton.paisId"
                 required
               >
-                <option value="">Seleccionar provincia...</option>
-                <option v-for="provincia in provincias" :key="provincia.id" :value="provincia.id">
+                <option value="">{{ formData.canton.paisId ? 'Seleccionar provincia...' : 'Primero seleccione un país' }}</option>
+                <option v-for="provincia in filteredProvinciasForCanton" :key="provincia.id" :value="provincia.id">
                   {{ provincia.nombre }}
                 </option>
               </select>
@@ -187,7 +210,9 @@
                 {{ errors.provinciaId }}
               </div>
             </div>
-            <div class="col-md-6">
+            
+            <!-- Nombre del Cantón -->
+            <div class="col-md-4">
               <label for="cantonNombre" class="form-label">Nombre del Cantón *</label>
               <input
                 id="cantonNombre"
@@ -203,6 +228,17 @@
                 {{ errors.nombre }}
               </div>
             </div>
+            
+            <!-- Información de ayuda -->
+            <div class="col-12">
+              <div class="alert alert-info d-flex align-items-center mb-3">
+                <i class="fas fa-info-circle me-2"></i>
+                <small>
+                  <strong>Ayuda:</strong> Selecciona primero el país, luego la provincia correspondiente y finalmente ingresa el nombre del cantón.
+                </small>
+              </div>
+            </div>
+            
             <div class="col-12">
               <div class="d-flex gap-2 justify-content-end">
                 <button type="button" class="btn btn-outline-secondary" @click="cancelForm" :disabled="submitting">
@@ -229,17 +265,62 @@
         </div>
         <div class="card-body">
           <form @submit.prevent="handleSubmitParroquia" class="row g-3">
-            <div class="col-md-6">
+            <!-- Selección de País -->
+            <div class="col-md-3">
+              <label for="parroquiaPais" class="form-label">País *</label>
+              <select
+                id="parroquiaPais"
+                v-model="formData.parroquia.paisId"
+                class="form-select"
+                :class="{ 'is-invalid': errors.paisId }"
+                required
+                @change="onParroquiaPaisChange"
+              >
+                <option value="">Seleccionar país...</option>
+                <option v-for="pais in paises" :key="pais.id" :value="pais.id">
+                  {{ pais.nombre }}
+                </option>
+              </select>
+              <div v-if="errors.paisId" class="invalid-feedback">
+                {{ errors.paisId }}
+              </div>
+            </div>
+            
+            <!-- Selección de Provincia (filtrada por país) -->
+            <div class="col-md-3">
+              <label for="parroquiaProvincia" class="form-label">Provincia *</label>
+              <select
+                id="parroquiaProvincia"
+                v-model="formData.parroquia.provinciaId"
+                class="form-select"
+                :class="{ 'is-invalid': errors.provinciaId }"
+                :disabled="!formData.parroquia.paisId"
+                required
+                @change="onParroquiaProvinciaChange"
+              >
+                <option value="">{{ formData.parroquia.paisId ? 'Seleccionar provincia...' : 'Primero seleccione un país' }}</option>
+                <option v-for="provincia in filteredProvinciasForParroquia" :key="provincia.id" :value="provincia.id">
+                  {{ provincia.nombre }}
+                </option>
+              </select>
+              <div v-if="errors.provinciaId" class="invalid-feedback">
+                {{ errors.provinciaId }}
+              </div>
+            </div>
+            
+            <!-- Selección de Cantón (filtrado por provincia) -->
+            <div class="col-md-3">
               <label for="parroquiaCanton" class="form-label">Cantón *</label>
               <select
                 id="parroquiaCanton"
                 v-model="formData.parroquia.cantonId"
                 class="form-select"
                 :class="{ 'is-invalid': errors.cantonId }"
+                :disabled="!formData.parroquia.provinciaId"
                 required
               >
-                <option value="">Seleccionar cantón...</option>
-                <option v-for="canton in cantones" :key="canton.id" :value="canton.id">
+                <option value="">{{ formData.parroquia.provinciaId ? 'Seleccionar cantón...' : 'Primero seleccione una provincia' }}</option>
+                <option v-for="canton in filteredCantonesForParroquia" :key="canton.id" :value="canton.id">
                   {{ canton.nombre }}
                 </option>
               </select>
@@ -247,7 +328,9 @@
                 {{ errors.cantonId }}
               </div>
             </div>
-            <div class="col-md-6">
+            
+            <!-- Nombre de la Parroquia -->
+            <div class="col-md-3">
               <label for="parroquiaNombre" class="form-label">Nombre de la Parroquia *</label>
               <input
                 id="parroquiaNombre"
@@ -263,6 +346,17 @@
                 {{ errors.nombre }}
               </div>
             </div>
+            
+            <!-- Información de ayuda -->
+            <div class="col-12">
+              <div class="alert alert-info d-flex align-items-center mb-3">
+                <i class="fas fa-info-circle me-2"></i>
+                <small>
+                  <strong>Ayuda:</strong> Sigue la jerarquía: País → Provincia → Cantón → Parroquia. Los campos se habilitarán según tu selección.
+                </small>
+              </div>
+            </div>
+            
             <div class="col-12">
               <div class="d-flex gap-2 justify-content-end">
                 <button type="button" class="btn btn-outline-secondary" @click="cancelForm" :disabled="submitting">
@@ -498,8 +592,17 @@ const submitting = ref(false)
 const formData = reactive({
   pais: { nombre: '' },
   provincia: { nombre: '', paisId: null as number | null },
-  canton: { nombre: '', provinciaId: null as number | null },
-  parroquia: { nombre: '', cantonId: null as number | null }
+  canton: { 
+    nombre: '', 
+    paisId: null as number | null,
+    provinciaId: null as number | null 
+  },
+  parroquia: { 
+    nombre: '', 
+    paisId: null as number | null,
+    provinciaId: null as number | null,
+    cantonId: null as number | null 
+  }
 })
 
 // Errores de validación
@@ -516,6 +619,19 @@ const getCantonesByProvincia = computed(() => (provinciaId: number) =>
 
 const getParroquiasByCanton = computed(() => (cantonId: number) => 
   props.parroquias.filter(p => p.cantonId === cantonId)
+)
+
+// Computed properties para formularios jerárquicos
+const filteredProvinciasForCanton = computed(() => 
+  formData.canton.paisId ? props.provincias.filter(p => p.paisId === formData.canton.paisId) : []
+)
+
+const filteredProvinciasForParroquia = computed(() => 
+  formData.parroquia.paisId ? props.provincias.filter(p => p.paisId === formData.parroquia.paisId) : []
+)
+
+const filteredCantonesForParroquia = computed(() => 
+  formData.parroquia.provinciaId ? props.cantones.filter(c => c.provinciaId === formData.parroquia.provinciaId) : []
 )
 
 /**
@@ -542,8 +658,11 @@ function resetForm(): void {
   formData.provincia.nombre = ''
   formData.provincia.paisId = null
   formData.canton.nombre = ''
+  formData.canton.paisId = null
   formData.canton.provinciaId = null
   formData.parroquia.nombre = ''
+  formData.parroquia.paisId = null
+  formData.parroquia.provinciaId = null
   formData.parroquia.cantonId = null
   
   Object.keys(errors).forEach(key => delete errors[key])
@@ -571,6 +690,10 @@ function validateForm(): boolean {
       isValid = false
     }
   } else if (activeForm.value === 'canton') {
+    if (!formData.canton.paisId) {
+      errors.paisId = 'Debe seleccionar un país'
+      isValid = false
+    }
     if (!formData.canton.provinciaId) {
       errors.provinciaId = 'Debe seleccionar una provincia'
       isValid = false
@@ -580,6 +703,14 @@ function validateForm(): boolean {
       isValid = false
     }
   } else if (activeForm.value === 'parroquia') {
+    if (!formData.parroquia.paisId) {
+      errors.paisId = 'Debe seleccionar un país'
+      isValid = false
+    }
+    if (!formData.parroquia.provinciaId) {
+      errors.provinciaId = 'Debe seleccionar una provincia'
+      isValid = false
+    }
     if (!formData.parroquia.cantonId) {
       errors.cantonId = 'Debe seleccionar un cantón'
       isValid = false
@@ -660,6 +791,38 @@ async function handleSubmitParroquia(): Promise<void> {
   } finally {
     submitting.value = false
   }
+}
+
+/**
+ * Maneja el cambio de país en el formulario de cantón
+ */
+function onCantonPaisChange(): void {
+  // Resetear la provincia seleccionada cuando cambia el país
+  formData.canton.provinciaId = null
+  // Limpiar errores relacionados
+  delete errors.provinciaId
+}
+
+/**
+ * Maneja el cambio de país en el formulario de parroquia
+ */
+function onParroquiaPaisChange(): void {
+  // Resetear provincia y cantón cuando cambia el país
+  formData.parroquia.provinciaId = null
+  formData.parroquia.cantonId = null
+  // Limpiar errores relacionados
+  delete errors.provinciaId
+  delete errors.cantonId
+}
+
+/**
+ * Maneja el cambio de provincia en el formulario de parroquia
+ */
+function onParroquiaProvinciaChange(): void {
+  // Resetear el cantón seleccionado cuando cambia la provincia
+  formData.parroquia.cantonId = null
+  // Limpiar errores relacionados
+  delete errors.cantonId
 }
 </script>
 
