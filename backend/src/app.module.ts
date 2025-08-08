@@ -14,6 +14,8 @@ import { AuthModule } from './modules/Auth/auth.module'; // Importamos el módul
 import { PermisosUsuariosModule } from './modules/usuarios/permisos-usuarios.module';
 import { PermisosInicializadorService } from './modules/permisos/permisos-inicializador.service';
 import { PrismaModule } from './prisma/prisma.module';
+import { PacienteModule } from './modules/pacientes/paciente.module'; // Módulo de pacientes
+import { EncuestaModule } from './modules/Encuesta/encuesta.module'; // Módulo de encuestas de tamizaje
 
 /**
  * Módulo principal de la aplicación
@@ -37,6 +39,8 @@ import { PrismaModule } from './prisma/prisma.module';
     ProvinciaModule,
     RolesModule,           // ← IMPORTANTE: Debe estar antes que PermisosUsuariosModule
     PermisosUsuariosModule,
+    PacienteModule,        // ← Módulo de gestión de pacientes
+    EncuestaModule,        // ← Módulo de encuestas de tamizaje
   ],
   controllers: [AppController],
   providers: [

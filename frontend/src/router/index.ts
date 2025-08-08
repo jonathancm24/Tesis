@@ -36,15 +36,17 @@ const PatientAssignment    = () => import('@/views/secretary/PatientAssignmentVi
 const WeeklySchedule       = () => import('@/views/secretary/WeeklyScheduleView.vue')
 const PatientManagement    = () => import('@/views/secretary/PatientManagementView.vue')
 const MedicalScreening     = () => import('@/views/secretary/MedicalScreeningView.vue') // ✅ CORREGIDO
+const SecretaryProfile     = () => import('@/views/secretary/ProfileView.vue')
 
 // 👨‍🎓 Estudiante
 const StudentDashboard  = () => import('@/views/student/DashboardView.vue')
-const ClinicalHistory   = () => import('@/views/student/ClinicalHistoryView.vue')
+const Pacientes         = () => import('@/views/student/Pacientes.vue')
 const ClinicalCases     = () => import('@/views/student/ClinicalCasesView.vue')
 const AssignmentsView   = () => import('@/views/student/AssignmentsView.vue')
 const CommunicationView = () => import('@/views/student/CommunicationView.vue')
 const OdontogramView    = () => import('@/views/student/OdontogramView.vue')
 const StudentResources  = () => import('@/views/student/ResourcesView.vue')
+const StudentProfile    = () => import('@/views/student/ProfileView.vue')
 
 // -------------------------
 // Definición de rutas
@@ -94,7 +96,8 @@ const routes: RouteRecordRaw[] = [
       { path: 'schedule', name: 'WeeklySchedule', component: WeeklySchedule },
       { path: 'management', name: 'PatientManagement', component: PatientManagement },
       { path: 'screening', name: 'MedicalScreening', component: MedicalScreening }, // ✅ Vista correcta
-      { path: 'affiliations', name: 'Affiliation', component: AffiliationView }
+      { path: 'affiliations', name: 'Affiliation', component: AffiliationView },
+      { path: 'profile', name: 'SecretaryProfile', component: SecretaryProfile }
     ]
   },
 
@@ -105,12 +108,13 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, roles: ['estudiante'] as Role[] },
     children: [
       { path: '', name: 'StudentDashboard', component: StudentDashboard },
-      { path: 'history', name: 'ClinicalHistory', component: ClinicalHistory },
+      { path: 'pacientes', name: 'Pacientes', component: Pacientes },
       { path: 'cases', name: 'ClinicalCases', component: ClinicalCases },
       { path: 'assignments', name: 'Assignments', component: AssignmentsView },
       { path: 'communication', name: 'Communication', component: CommunicationView },
       { path: 'resources', name: 'StudentResources', component: StudentResources },
-      { path: 'odontogram', name: 'Odontogram', component: OdontogramView }
+      { path: 'odontogram', name: 'Odontogram', component: OdontogramView },
+      { path: 'profile', name: 'StudentProfile', component: StudentProfile }
     ]
   },
 

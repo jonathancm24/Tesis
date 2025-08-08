@@ -203,6 +203,12 @@ export class RolesService {
           
           // Especialidades
           PermisoEnum.VER_ESPECIALIDADES,
+          
+          // 🎯 Permisos de encuestas de tamizaje (NUEVOS)
+          PermisoEnum.VER_ENCUESTAS,        // Puede ver todas las encuestas
+          PermisoEnum.CREAR_ENCUESTAS,      // Puede crear encuestas si es necesario
+          PermisoEnum.VER_CONFIGURACION,    // Puede ver configuración de preguntas
+          PermisoEnum.VER_ESTADISTICAS,     // Puede ver estadísticas del sistema
         ]
       },
       {
@@ -226,6 +232,10 @@ export class RolesService {
           
           // Ver especialidades disponibles
           PermisoEnum.VER_ESPECIALIDADES,
+          
+          // 🎯 Permisos de encuestas de tamizaje (NUEVOS)
+          PermisoEnum.VER_ENCUESTAS,     // Puede ver encuestas y antecedentes
+          PermisoEnum.CREAR_ENCUESTAS,   // Puede crear encuestas de tamizaje
         ]
       },
       {

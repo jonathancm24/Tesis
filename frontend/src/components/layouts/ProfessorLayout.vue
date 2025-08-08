@@ -149,10 +149,10 @@ const navItems = [
     color: 'success'
   },
   { 
-    name: 'ClassManagement', 
-    label: 'Gestión de Clases', 
-    icon: 'fas fa-chalkboard', 
-    to: { name: 'ClassManagement' },
+    name: 'ProfessorAssignments', 
+    label: 'Gestión de Tareas', 
+    icon: 'fas fa-tasks', 
+    to: { name: 'ProfessorAssignments' },
     color: 'primary'
   },
   { 
@@ -163,32 +163,11 @@ const navItems = [
     color: 'info'
   },
   { 
-    name: 'ClinicalSupervision', 
-    label: 'Supervisión Clínica', 
-    icon: 'fas fa-stethoscope', 
-    to: { name: 'ClinicalSupervision' },
-    color: 'warning'
-  },
-  { 
-    name: 'Evaluations', 
-    label: 'Evaluaciones', 
-    icon: 'fas fa-clipboard-check', 
-    to: { name: 'Evaluations' },
+    name: 'ProfessorProfile', 
+    label: 'Mi Perfil', 
+    icon: 'fas fa-user', 
+    to: { name: 'ProfessorProfile' },
     color: 'secondary'
-  },
-  { 
-    name: 'ProfessorResources', 
-    label: 'Recursos', 
-    icon: 'fas fa-folder', 
-    to: { name: 'ProfessorResources' },
-    color: 'info'
-  },
-  { 
-    name: 'Reports', 
-    label: 'Reportes', 
-    icon: 'fas fa-file-alt', 
-    to: { name: 'Reports' },
-    color: 'danger'
   }
 ]
 </script>

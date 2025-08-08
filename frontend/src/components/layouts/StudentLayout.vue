@@ -149,10 +149,10 @@ const navItems = [
     color: 'success'
   },
   { 
-    name: 'ClinicalHistory', 
-    label: 'Historial Clínico', 
-    icon: 'fas fa-notes-medical', 
-    to: { name: 'ClinicalHistory' },
+    name: 'Pacientes', 
+    label: 'Gestión de Pacientes', 
+    icon: 'fas fa-users', 
+    to: { name: 'Pacientes' },
     color: 'primary'
   },
   { 

@@ -44,6 +44,12 @@ export enum PermisoEnum {
   // === GESTIÓN DE ESPECIALIDADES ===
   VER_ESPECIALIDADES = 'VER_ESPECIALIDADES',         // Puede ver especialidades disponibles
   GESTIONAR_ESPECIALIDADES = 'GESTIONAR_ESPECIALIDADES', // Puede crear/editar especialidades
+  
+  // === GESTIÓN DE ENCUESTAS DE TAMIZAJE ===
+  VER_ENCUESTAS = 'VER_ENCUESTAS',                   // Puede ver encuestas de tamizaje
+  CREAR_ENCUESTAS = 'CREAR_ENCUESTAS',               // Puede crear nuevas encuestas de tamizaje
+  VER_ESTADISTICAS = 'VER_ESTADISTICAS',             // Puede ver estadísticas del sistema
+  VER_CONFIGURACION = 'VER_CONFIGURACION',           // Puede ver configuraciones del sistema
 }
 
 /**
@@ -91,5 +97,11 @@ export const PERMISOS_POR_MODULO = {
   ESPECIALIDADES: [
     PermisoEnum.VER_ESPECIALIDADES,
     PermisoEnum.GESTIONAR_ESPECIALIDADES,
+  ],
+  ENCUESTAS: [
+    PermisoEnum.VER_ENCUESTAS,
+    PermisoEnum.CREAR_ENCUESTAS,
+    PermisoEnum.VER_ESTADISTICAS,
+    PermisoEnum.VER_CONFIGURACION,
   ],
 };

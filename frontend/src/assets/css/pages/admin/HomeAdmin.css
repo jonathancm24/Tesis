@@ -1,80 +1,322 @@
-/* src/assets/css/pages/admin/HomeAdmin.css */
-
-/* Contenedor principal */
-.home-admin {
-  background: #fff;
+/* Admin Home Styles */
+.admin-home {
   padding: 2rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 0 15px rgba(0,0,0,0.05);
 }
 
-/* Título */
-.home-admin h1 {
-  font-weight: 700;
-  color: #b8f7ac;
+.welcome-section {
+  margin-bottom: 2rem;
 }
 
-/* Estadísticas: grid */
-.home-admin .row {
-  margin-top: 1.5rem;
-}
-
-/* Tarjeta de estadística */
-.admin-stat-card {
-  border: none;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  transition: transform .2s, box-shadow .2s;
-}
-.admin-stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-}
-
-/* Encabezado de tarjeta */
-.admin-stat-card .card-header {
-  padding: 1rem 1.25rem;
-}
-
-/* Color y tipografía de la etiqueta */
-.admin-stat-card .stat-label {
-  font-size: 1rem;
+.welcome-section h1 {
+  color: #2c3e50;
   font-weight: 600;
-  text-transform: uppercase;
 }
 
-/* Ícono de estadística */
-.admin-stat-card .stat-icon {
-  font-size: 1.5rem;
+/* Stat Cards */
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 120px;
 }
 
-/* Cuerpo de tarjeta */
-.admin-stat-card .card-body {
-  padding: 1.5rem 1.25rem;
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-/* Número de estadística */
-.stat-number {
+.stat-icon {
   font-size: 2.5rem;
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-content {
+  flex: 1;
+  color: white;
+}
+
+.stat-number {
+  font-size: 1.8rem;
   font-weight: 700;
-  color: #5a5c69;
+  margin-bottom: 0.25rem;
   line-height: 1;
 }
 
-/* Colores para cada tipo de estadística */
-.bg-primary    { background-color: #4e73df !important; }
-.bg-success    { background-color: #1cc88a !important; }
-.bg-info       { background-color: #36b9cc !important; }
-.bg-warning    { background-color: #f6c23e !important; }
-
-/* Ajustes de texto en header cuando tiene text-dark */
-.text-dark {
-  color: #212529 !important;
+.stat-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  font-weight: 500;
 }
 
-/* Responsivo: apilar tarjetas en móvil */
+/* Background colors for cards */
+.bg-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bg-success {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.bg-info {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.bg-warning {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  color: #333 !important;
+}
+
+.bg-warning .stat-content {
+  color: #333 !important;
+}
+
+.bg-warning .stat-icon {
+  color: #333 !important;
+}
+
+/* Overview Section */
+.overview-section {
+  padding: 0.5rem;
+}
+
+.overview-title {
+  color: #495057;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.overview-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0.5rem;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  transition: background-color 0.2s ease;
+}
+
+.stat-item:hover {
+  background-color: #e9ecef;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.stat-text {
+  font-size: 0.75rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+/* System Status (removed old styles) */
+.system-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.status-label {
+  font-weight: 600;
+  min-width: 120px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-online,
+.status-connected {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-offline,
+.status-disconnected {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.status-maintenance,
+.status-slow {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-badge i {
+  font-size: 0.75rem;
+}
+
+/* Panel Tables */
+.table th {
+  border-top: none;
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.875rem;
+}
+
+.table td {
+  vertical-align: middle;
+  font-size: 0.875rem;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.025);
+}
+
+/* Badge styles */
+.badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Button groups */
+.btn-group-sm .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.btn-group-sm .btn i {
+  font-size: 0.875rem;
+}
+
+/* Card headers */
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  font-weight: 600;
+}
+
+.card-header h5 {
+  color: #495057;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .admin-home {
+    padding: 1rem;
+  }
+  
+  .stat-card {
+    padding: 1rem;
+    min-height: 100px;
+  }
+  
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+  
+  .stat-number {
+    font-size: 1.4rem;
+  }
+  
+  .stat-label {
+    font-size: 0.8rem;
+  }
+  
+  .overview-section {
+    padding: 0.25rem;
+  }
+  
+  .overview-title {
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .overview-stats {
+    gap: 0.5rem;
+  }
+  
+  .stat-item {
+    padding: 0.375rem;
+  }
+  
+  .stat-value {
+    font-size: 1rem;
+  }
+  
+  .stat-text {
+    font-size: 0.7rem;
+  }
+  
+  .system-status {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .status-label {
+    min-width: auto;
+  }
+  
+  .table-responsive {
+    font-size: 0.8rem;
+  }
+  
+  .btn-group-sm .btn {
+    padding: 0.2rem 0.4rem;
+  }
+}
+
 @media (max-width: 576px) {
-  .home-admin .row {
-    row-gap: 1rem;
+  .welcome-section h1 {
+    font-size: 1.5rem;
+  }
+  
+  .stat-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem 0.75rem;
+  }
+  
+  .stat-content {
+    margin-top: 0.5rem;
+  }
+  
+  .overview-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .overview-title {
+    font-size: 0.75rem;
+  }
+  
+  .stat-value {
+    font-size: 0.9rem;
   }
 }

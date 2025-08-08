@@ -156,10 +156,10 @@ const menuItems = [
     color: 'primary'
   },
   {
-    name: 'PatientAssignmentView',
+    name: 'PatientAssignment',
     label: 'Asignaciones',
     icon: 'fas fa-user-check',
-    to: { name: 'PatientAssignmentView' },
+    to: { name: 'PatientAssignment' },
     color: 'info'
   },
   {

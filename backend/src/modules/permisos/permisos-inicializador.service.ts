@@ -138,6 +138,12 @@ export class PermisosInicializadorService implements OnModuleInit {
       // Especialidades
       [PermisoEnum.VER_ESPECIALIDADES]: 'Permite consultar las especialidades disponibles',
       [PermisoEnum.GESTIONAR_ESPECIALIDADES]: 'Permite crear y modificar especialidades médicas',
+
+      // Encuestas de Tamizaje
+      [PermisoEnum.VER_ENCUESTAS]: 'Permite consultar encuestas de tamizaje realizadas',
+      [PermisoEnum.CREAR_ENCUESTAS]: 'Permite crear nuevas encuestas de tamizaje para pacientes',
+      [PermisoEnum.VER_ESTADISTICAS]: 'Permite acceder a estadísticas del sistema',
+      [PermisoEnum.VER_CONFIGURACION]: 'Permite ver configuraciones del sistema como preguntas de tamizaje',
     };
 
     return descripciones[permiso] || `Permiso: ${permiso}`;

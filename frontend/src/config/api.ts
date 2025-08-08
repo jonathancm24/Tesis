@@ -78,6 +78,13 @@ export const API_CONFIG = {
     PARROQUIAS: {
       BASE: '/parroquia',
       SEARCH: '/parroquia/buscar' 
+    },
+    ENCUESTAS_TAMIZAJE: {
+      BASE: '/encuestas-tamizaje',
+      FORMULARIO: (pacienteId: number) => `/encuestas-tamizaje/formulario/${pacienteId}`,
+      ANTECEDENTES: (pacienteId: number) => `/encuestas-tamizaje/antecedentes/${pacienteId}`,
+      VERIFICAR: (pacienteId: number) => `/encuestas-tamizaje/verificar/${pacienteId}`,
+      ADMIN_PREGUNTAS: '/encuestas-tamizaje/admin/preguntas'
     }
 
   }
