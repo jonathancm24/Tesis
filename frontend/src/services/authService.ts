@@ -1,6 +1,6 @@
 // src/services/authService.ts
 import { API_CONFIG, getAuthHeaders } from '@/config/api'
-import type { LoginRequest, LoginResponse, User, FrontendUser, FrontendRole } from '@/types/auth'
+import type { LoginResponse, User, FrontendUser, FrontendRole } from '@/types/auth'
 
 class AuthService {
   private baseUrl = API_CONFIG.BASE_URL

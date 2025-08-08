@@ -145,3 +145,8 @@ export const toast = new ToastService()
 export function useToast() {
   return toast
 }
+
+// Función utilitaria para compatibilidad
+export function showToast(title: string, type: 'success' | 'error' | 'warning' | 'info' = 'info', message?: string) {
+  toast[type](title, message)
+}

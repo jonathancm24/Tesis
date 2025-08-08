@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Delete, Param, ParseIntPipe, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Delete, Param, ParseIntPipe, Patch, Request } from '@nestjs/common';
 import { RegisterDto } from './DTO/registro.dto';
 import { UsuariosService } from './usuarios.service';
 import { UpdateUsuarioDto } from './DTO/update-usuario.dto';
@@ -6,6 +6,9 @@ import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { PermisoEnum } from 'src/common/enums/permisos.enum';
 import { RequirePermissions } from 'src/common/decorators/permissions.decorator';
 import { PermissionsGuard } from 'src/guards/permissions.guard';
+import { PerfilDto } from './DTO/perfil.dto';
+import { IPerfilResponse } from './Interface/perfil.inerface';
+import { ChangePasswordDto } from './DTO/change-password.dto';
 
 
 @Controller('auth') // Cambiamos la ruta base a 'auth' para unificar
@@ -62,6 +65,33 @@ export class UsuariosController {
   @RequirePermissions(PermisoEnum.VER_USUARIOS)
   async findById(@Param('id', ParseIntPipe) id: number) {
     return this.usuariosService.findById(id);
+  }
+
+  // ===== ENDPOINTS DE PERFIL =====
   
+  // Obtener perfil del usuario autenticado
+  @Get('perfil')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@Request() req): Promise<IPerfilResponse> {
+    return await this.usuariosService.getProfile(req.user.id);
+  }
+
+  // Actualizar perfil del usuario autenticado
+  @Patch('perfil')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(
+    @Request() req, 
+    @Body() perfilDto: PerfilDto
+  ): Promise<IPerfilResponse> {
+    return await this.usuariosService.updateProfile(req.user.id, perfilDto);
+  }
+  // Cambiar contraseña del usuario autenticado
+  @Patch('perfil/cambiar-password')
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @Request() req,
+    @Body() changePasswordDto: ChangePasswordDto
+  ) {
+    return await this.usuariosService.changePassword(req.user.id, changePasswordDto);
   }
 }
