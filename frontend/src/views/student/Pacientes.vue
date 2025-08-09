@@ -655,6 +655,14 @@
       :pacienteId="pacienteParaAntecedentes"
       @cerrar="cerrarAntecedentes"
     />
+
+    <!-- MODAL DE CASO CLÍNICO -->
+    <CasoClinicoForm
+      :mostrarFormulario="mostrarCasoClinico"
+      :paciente="pacienteParaCasoClinico"
+      @cerrar="cerrarCasoClinico"
+      @guardado="onCasoClinicoGuardado"
+    />
   </div>
 </template>
 
@@ -664,6 +672,7 @@ import { pacienteService } from '@/services/pacienteService';
 import AutocompleteParroquia from '@/components/common/AutocompleteParroquia.vue';
 import EncuestaTamizajeForm from '@/components/student/EncuestaTamizajeForm.vue';
 import AntecedentesMedicosViewer from '@/components/student/AntecedentesMedicosViewer.vue';
+import CasoClinicoForm from '@/components/student/CasoClinicoForm.vue';
 import type { 
   PacienteLista, 
   RegistroPaciente, 
@@ -682,8 +691,10 @@ const pacienteSeleccionado = ref<HistorialCompleto | null>(null);
 const mostrarHistorial = ref(false);
 const mostrarEncuestaTamizaje = ref(false);
 const mostrarAntecedentes = ref(false);
+const mostrarCasoClinico = ref(false);
 const pacienteParaEncuesta = ref<PacienteLista | null>(null);
 const pacienteParaAntecedentes = ref<number | null>(null);
+const pacienteParaCasoClinico = ref<PacienteLista | null>(null);
 
 // Estados del formulario de registro
 const mostrarFormularioRegistro = ref(false);
@@ -933,13 +944,32 @@ const cerrarAntecedentes = () => {
 
 // Método para verificar si el paciente tiene encuesta completa
 const pacienteTieneEncuestaCompleta = (paciente: PacienteLista): boolean => {
-  // Verificar si el paciente tiene la propiedad tieneEncuestaCompleta
-  return paciente.tieneEncuestaCompleta === true;
+  // Por ahora permitir siempre el caso clínico (hasta que el backend implemente la validación de encuesta)
+  // En el futuro, esto verificará si el paciente completó la encuesta de tamizaje
+  console.log('Verificando encuesta para paciente:', paciente.nombre, paciente.apellido);
+  return true; // Temporalmente permitir todos los casos clínicos
+  // return paciente.tieneEncuestaCompleta === true;
 };
 
 // Métodos de acciones
 const iniciarCasoClinico = (paciente: PacienteLista | { id: number; nombre: string; apellido: string }) => {
   console.log('Iniciando caso clínico para:', paciente.nombre, paciente.apellido);
+  pacienteParaCasoClinico.value = paciente as PacienteLista;
+  mostrarCasoClinico.value = true;
+};
+
+// Método para cerrar caso clínico
+const cerrarCasoClinico = () => {
+  mostrarCasoClinico.value = false;
+  pacienteParaCasoClinico.value = null;
+};
+
+// Método cuando se guarda un caso clínico
+const onCasoClinicoGuardado = async (casoId: number) => {
+  console.log('Caso clínico guardado con ID:', casoId);
+  
+  // Recargar la lista de pacientes para actualizar estado
+  await cargarPacientes();
 };
 
 // Métodos de utilidad

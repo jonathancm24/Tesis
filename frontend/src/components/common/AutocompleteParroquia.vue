@@ -88,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch } from 'vue'
 import { userService } from '@/services/userService'
 import type { Parroquia } from '@/types/user'
 // Props y Emits definidos

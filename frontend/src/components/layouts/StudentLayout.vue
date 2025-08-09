@@ -148,48 +148,77 @@ const navItems = [
     to: { name: 'StudentDashboard' },
     color: 'success'
   },
-  { 
+    { 
     name: 'Pacientes', 
     label: 'Gestión de Pacientes', 
     icon: 'fas fa-users', 
     to: { name: 'Pacientes' },
-    color: 'primary'
+    color: 'success'
   },
   { 
     name: 'ClinicalCases', 
     label: 'Casos Clínicos', 
-    icon: 'fas fa-file-medical', 
+    icon: 'fas fa-stethoscope', 
     to: { name: 'ClinicalCases' },
+    color: 'danger'
+  },
+  { 
+    name: 'StudentCalendar', 
+    label: 'Calendario', 
+    icon: 'fas fa-calendar-alt', 
+    to: { name: 'StudentCalendar' },
+    color: 'primary'
+  },
+  { 
+    name: 'StudentTreatments', 
+    label: 'Planes de Tratamiento', 
+    icon: 'fas fa-procedures', 
+    to: { name: 'StudentTreatments' },
     color: 'info'
-  },
-  { 
-    name: 'Assignments', 
-    label: 'Tareas', 
-    icon: 'fas fa-tasks', 
-    to: { name: 'Assignments' },
-    color: 'warning'
-  },
-  { 
-    name: 'Communication', 
-    label: 'Mensajes', 
-    icon: 'fas fa-envelope', 
-    to: { name: 'Communication' },
-    color: 'secondary'
   },
   { 
     name: 'StudentResources', 
     label: 'Recursos', 
     icon: 'fas fa-book', 
     to: { name: 'StudentResources' },
-    color: 'info'
+    color: 'secondary'
   },
   { 
+    name: 'StudentTasks', 
+    label: 'Tareas', 
+    icon: 'fas fa-tasks', 
+    to: { name: 'StudentTasks' },
+    color: 'warning'
+  },
+  { 
+    name: 'StudentRequests', 
+    label: 'Solicitudes', 
+    icon: 'fas fa-clipboard-list', 
+    to: { name: 'StudentRequests' },
+    color: 'primary'
+  },
+  { 
+    name: 'StudentMessages', 
+    label: 'Mensajes', 
+    icon: 'fas fa-envelope', 
+    to: { name: 'StudentMessages' },
+    color: 'info'
+  },
+
+  /*{ 
     name: 'Odontogram', 
     label: 'Odontograma', 
     icon: 'fas fa-tooth', 
     to: { name: 'Odontogram' },
     color: 'danger'
-  }
+  },
+  { 
+    name: 'TopografiaMucosaOral', 
+    label: 'Topografía de la Mucosa Oral', 
+    icon: 'fas fa-map', 
+    to: { name: 'TopografiaMucosaOral' },
+    color: 'warning'
+  }*/
 ]
 </script>
 

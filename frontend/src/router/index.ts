@@ -42,10 +42,16 @@ const SecretaryProfile     = () => import('@/views/secretary/ProfileView.vue')
 const StudentDashboard  = () => import('@/views/student/DashboardView.vue')
 const Pacientes         = () => import('@/views/student/Pacientes.vue')
 const ClinicalCases     = () => import('@/views/student/ClinicalCasesView.vue')
+const StudentCalendar   = () => import('@/views/student/CalendarView.vue')
+const StudentTreatments = () => import('@/views/student/TreatmentsView.vue')
+const StudentResources  = () => import('@/views/student/ResourcesView.vue')
+const StudentTasks      = () => import('@/views/student/TasksView.vue')
+const StudentRequests   = () => import('@/views/student/RequestsView.vue')
+const StudentMessages   = () => import('@/views/student/MessagesView.vue')
 const AssignmentsView   = () => import('@/views/student/AssignmentsView.vue')
 const CommunicationView = () => import('@/views/student/CommunicationView.vue')
+const TopografiaMucosaOralView = () => import('@/views/student/TopografiaMucosaOralView.vue')
 const OdontogramView    = () => import('@/views/student/OdontogramView.vue')
-const StudentResources  = () => import('@/views/student/ResourcesView.vue')
 const StudentProfile    = () => import('@/views/student/ProfileView.vue')
 
 // -------------------------
@@ -108,13 +114,19 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, roles: ['estudiante'] as Role[] },
     children: [
       { path: '', name: 'StudentDashboard', component: StudentDashboard },
-      { path: 'pacientes', name: 'Pacientes', component: Pacientes },
+      { path: 'patients', name: 'Pacientes', component: Pacientes },
       { path: 'cases', name: 'ClinicalCases', component: ClinicalCases },
+      { path: 'calendar', name: 'StudentCalendar', component: StudentCalendar },
+      { path: 'treatments', name: 'StudentTreatments', component: StudentTreatments },
+      { path: 'resources', name: 'StudentResources', component: StudentResources },
+      { path: 'tasks', name: 'StudentTasks', component: StudentTasks },
+      { path: 'requests', name: 'StudentRequests', component: StudentRequests },
+      { path: 'messages', name: 'StudentMessages', component: StudentMessages },
       { path: 'assignments', name: 'Assignments', component: AssignmentsView },
       { path: 'communication', name: 'Communication', component: CommunicationView },
-      { path: 'resources', name: 'StudentResources', component: StudentResources },
       { path: 'odontogram', name: 'Odontogram', component: OdontogramView },
-      { path: 'profile', name: 'StudentProfile', component: StudentProfile }
+      { path: 'profile', name: 'StudentProfile', component: StudentProfile },
+      { path: 'topografia-mucosa-oral', name: 'TopografiaMucosaOral', component: TopografiaMucosaOralView }
     ]
   },
 

@@ -1,275 +1,324 @@
 <template>
-  <div class="ccv">
+  <div class="container-fluid p-4">
     <!-- Header -->
-    <div class="ccv-header">
-      <div class="ccv-header__title">
-        <i class="fas fa-file-medical-alt"></i>
-        <h1>Casos Clínicos</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="h3 mb-1">Casos Clínicos</h2>
+        <p class="text-muted">Gestiona tus casos clínicos y su estado de aprobación</p>
       </div>
-      <button class="btn ccv-btn ccv-btn--add" @click="openCreateModal">
-        <i class="fas fa-plus"></i> Nuevo Caso
+      <button class="btn btn-primary" @click="crearNuevoCaso">
+        <i class="fas fa-plus me-2"></i>Nuevo Caso
       </button>
     </div>
 
-    <!-- Lista de casos -->
-    <div v-if="cases.length" class="ccv-grid">
-      <div v-for="c in cases" :key="c.id" class="ccv-card">
-        <div class="ccv-card__body">
-          <div class="ccv-card__header">
-            <h2>#{{ c.id }} - {{ c.patientName }}</h2>
-            <span class="ccv-badge" :class="badgeColor(c.status)">
-              {{ c.status }}
-            </span>
+    <!-- Filtros -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Filtrar por especialidad</label>
+            <select v-model="filtroEspecialidad" class="form-select">
+              <option value="">Todas las especialidades</option>
+              <option value="operatoria">Operatoria Dental</option>
+              <option value="endodoncia">Endodoncia</option>
+              <option value="periodoncia">Periodoncia</option>
+              <option value="cirugia">Cirugía Oral</option>
+              <option value="protesis">Prótesis</option>
+              <option value="ortodoncia">Ortodoncia</option>
+            </select>
           </div>
-          <p><strong>Motivo:</strong> {{ c.reason }}</p>
-          <p><strong>Creado:</strong> {{ new Date(c.createdAt).toLocaleString() }}</p>
-
-          <div class="ccv-card__actions">
-            <button class="ccv-btn ccv-btn--small" @click="openCase(c, 'desc')">
-              <i class="fas fa-eye"></i> Ver Descripción
-            </button>
-            <button class="ccv-btn ccv-btn--small" @click="openCase(c, 'treat')">
-              <i class="fas fa-tooth"></i> Tratamiento
-            </button>
-            <button class="ccv-btn ccv-btn--small" @click="openCase(c, 'rx')">
-              <i class="fas fa-pills"></i> Prescripción
-            </button>
-            <button class="ccv-btn ccv-btn--small" @click="openCase(c, 'appts')">
-              <i class="fas fa-calendar-plus"></i> Agendar Cita
-            </button>
+          <div class="col-md-4">
+            <label class="form-label">Estado</label>
+            <select v-model="filtroEstado" class="form-select">
+              <option value="">Todos los estados</option>
+              <option value="pendiente">Pendiente de aprobación</option>
+              <option value="aprobado">Aprobado</option>
+              <option value="en-tratamiento">En tratamiento</option>
+              <option value="cerrado">Cerrado</option>
+              <option value="rechazado">Rechazado</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Buscar</label>
+            <input 
+              v-model="busqueda" 
+              type="text" 
+              class="form-control" 
+              placeholder="Buscar por paciente o código..."
+            >
           </div>
         </div>
       </div>
     </div>
-    <div v-else class="ccv-empty">
-      <p>No hay casos clínicos registrados.</p>
+
+    <!-- Lista de casos -->
+    <div class="row">
+      <div v-for="caso in casosFiltrados" :key="caso.id" class="col-lg-6 col-xl-4 mb-4">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-0">{{ caso.paciente }}</h6>
+              <small class="text-muted">Código: {{ caso.codigo }}</small>
+            </div>
+            <span class="badge" :class="getEstadoBadgeClass(caso.estado)">
+              {{ getEstadoTexto(caso.estado) }}
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <strong>Especialidad:</strong> {{ caso.especialidad }}
+            </div>
+            <div class="mb-3">
+              <strong>Fecha creación:</strong> {{ formatearFecha(caso.fechaCreacion) }}
+            </div>
+            <div class="mb-3">
+              <strong>Motivo:</strong> {{ caso.motivoConsulta }}
+            </div>
+            <div v-if="caso.observaciones" class="mb-3">
+              <strong>Observaciones:</strong>
+              <p class="text-muted small mb-0">{{ caso.observaciones }}</p>
+            </div>
+          </div>
+          <div class="card-footer">
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-primary btn-sm" @click="verCaso(caso.id)">
+                <i class="fas fa-eye me-1"></i>Ver
+              </button>
+              <button class="btn btn-outline-info btn-sm" @click="editarCaso(caso.id)">
+                <i class="fas fa-edit me-1"></i>Editar
+              </button>
+              <button 
+                v-if="caso.estado === 'aprobado'" 
+                class="btn btn-outline-success btn-sm" 
+                @click="iniciarTratamiento(caso.id)"
+              >
+                <i class="fas fa-play me-1"></i>Iniciar
+              </button>
+              <div class="dropdown">
+                <button 
+                  class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                  data-bs-toggle="dropdown"
+                >
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#" @click="subirArchivos(caso.id)">
+                    <i class="fas fa-upload me-2"></i>Subir archivos
+                  </a></li>
+                  <li><a class="dropdown-item" href="#" @click="descargarPDF(caso.id)">
+                    <i class="fas fa-file-pdf me-2"></i>Exportar PDF
+                  </a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" href="#" @click="eliminarCaso(caso.id)">
+                    <i class="fas fa-trash me-2"></i>Eliminar
+                  </a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Detalle de caso -->
-    <CaseDetail
-      v-if="selectedCase"
-      :case-data="selectedCase"
-      :active-tab="activeTab"
-      @close="closeModal"
-    />
+    <!-- Estado vacío -->
+    <div v-if="casosFiltrados.length === 0" class="text-center py-5">
+      <i class="fas fa-file-medical fa-3x text-muted mb-3"></i>
+      <h5 class="text-muted">No hay casos clínicos</h5>
+      <p class="text-muted">Comienza creando tu primer caso clínico</p>
+      <button class="btn btn-primary" @click="crearNuevoCaso">
+        <i class="fas fa-plus me-2"></i>Crear primer caso
+      </button>
+    </div>
+  </div>
 
-    <!-- Modal de creación/edición -->
-    <div
-      class="ccv-modal-backdrop"
-      v-if="showCreateModal"
-      @click.self="closeCreateModal"
-    ></div>
-    <div class="ccv-modal" v-if="showCreateModal">
-      <div class="ccv-modal__header">
-        <h3>{{ editMode ? 'Editar Caso Clínico' : 'Nuevo Caso Clínico' }}</h3>
-        <button class="ccv-modal__close" @click="closeCreateModal">&times;</button>
-      </div>
-      <div class="ccv-modal__body">
-        <form @submit.prevent="saveCase">
-          <!-- Datos básicos -->
-          <div class="form-group mb-2">
-            <label>Paciente</label>
-            <input v-model="form.patientName" type="text" class="form-control" required />
-          </div>
-          <div class="form-group mb-2">
-            <label>Título</label>
-            <input v-model="form.title" type="text" class="form-control" required />
-          </div>
-          <div class="form-group mb-2">
-            <label>Etapa</label>
-            <select v-model="form.stage" class="form-select" required>
-              <option value="presentacion">Presentación</option>
-              <option value="diagnostico">Diagnóstico</option>
-              <option value="plan">Plan de Tratamiento</option>
-              <option value="procedimiento">Procedimiento</option>
-              <option value="seguimiento">Seguimiento</option>
+  <!-- Modal para subir archivos -->
+  <div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Subir Archivos</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Tipo de archivo</label>
+            <select v-model="tipoArchivo" class="form-select">
+              <option value="radiografia">Radiografía</option>
+              <option value="fotografia">Fotografía clínica</option>
+              <option value="documento">Documento</option>
+              <option value="consentimiento">Consentimiento informado</option>
             </select>
           </div>
-          <div class="form-group mb-2">
-            <label>Motivo</label>
-            <input v-model="form.reason" type="text" class="form-control" required />
+          <div class="mb-3">
+            <label class="form-label">Archivo</label>
+            <input type="file" class="form-control" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx">
           </div>
-          <div class="form-group mb-2">
-            <label>Síntomas</label>
-            <textarea v-model="form.symptoms" class="form-control" rows="2"></textarea>
+          <div class="mb-3">
+            <label class="form-label">Descripción</label>
+            <textarea v-model="descripcionArchivo" class="form-control" rows="3"></textarea>
           </div>
-
-          <!-- Procedimientos -->
-          <div class="form-group mb-2">
-            <label>Procedimientos</label>
-            <button type="button" @click="addProcedure" class="btn btn-sm btn-success mb-2">
-              + Añadir Procedimiento
-            </button>
-            <div v-for="(p, i) in form.procedures" :key="i" class="mb-2">
-              <input v-model="p.code" placeholder="Código" class="form-control mb-1" />
-              <input v-model="p.teeth" placeholder="Dientes" class="form-control mb-1" />
-              <input v-model="p.description" placeholder="Descripción" class="form-control mb-1" />
-            </div>
-          </div>
-
-          <!-- Prescripciones -->
-          <div class="form-group mb-2">
-            <label>Prescripciones</label>
-            <button type="button" @click="addPrescription" class="btn btn-sm btn-success mb-2">
-              + Añadir Prescripción
-            </button>
-            <div v-for="(r, i) in form.prescriptions" :key="i" class="mb-2">
-              <input v-model="r.drug" placeholder="Medicamento" class="form-control mb-1" />
-              <input v-model="r.dose" placeholder="Dosis" class="form-control mb-1" />
-            </div>
-          </div>
-
-          <!-- Citas -->
-          <div class="form-group mb-2">
-            <label>Citas</label>
-            <button type="button" @click="addAppointment" class="btn btn-sm btn-success mb-2">
-              + Añadir Cita
-            </button>
-            <div v-for="(a, i) in form.appointments" :key="i" class="mb-2">
-              <input v-model="a.date" type="datetime-local" class="form-control mb-1" />
-              <select v-model="a.status" class="form-select mb-1">
-                <option value="pendiente">Pendiente</option>
-                <option value="confirmada">Confirmada</option>
-                <option value="cancelada">Cancelada</option>
-              </select>
-              <input v-model="a.notes" placeholder="Notas (opcional)" class="form-control" />
-            </div>
-          </div>
-
-          <!-- Guardar -->
-          <div class="text-end mt-3">
-            <button class="btn btn-primary">{{ editMode ? 'Actualizar' : 'Guardar' }}</button>
-          </div>
-        </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" @click="confirmarSubida">Subir</button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import CaseDetail from '@/components/student/CaseDetail.vue'
-import {
-  fetchCasesMock,
-  saveCaseMock,
-  type ClinicalCase,
-  type ClinicalCaseStatus
-} from '@/mocks/student/clinicalCases'
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 
-// Estado
-const cases = ref<ClinicalCase[]>([])
-const selectedCase = ref<ClinicalCase | null>(null)
-const activeTab = ref<'desc'|'treat'|'rx'|'appts'>('desc')
-const showCreateModal = ref(false)
-const editMode = ref(false)
-
-// Formulario
-const form = ref<ClinicalCase>({
-  id: 0,
-  patientName: '',
-  title: '',
-  stage: 'presentacion',
-  reason: '',
-  symptoms: '',
-  notes: '',
-  specialist: '',
-  generalQuestions: [],
-  specialistQuestions: [],
-  procedures: [],
-  prescriptions: [],
-  appointments: [],
-  comments: [],
-  odontogram: [],
-  periodontogram: [],
-  status: 'pendiente_general',
-  createdAt: '',
-  updatedAt: ''
-})
-
-// Carga inicial
-async function loadCases() {
-  cases.value = await fetchCasesMock()
-}
-loadCases()
-
-// Abrir detalle
-function openCase(c: ClinicalCase, tab: typeof activeTab.value) {
-  selectedCase.value = c
-  activeTab.value = tab
-}
-function closeModal() {
-  selectedCase.value = null
+interface CasoClinico {
+  id: number;
+  codigo: string;
+  paciente: string;
+  especialidad: string;
+  estado: 'pendiente' | 'aprobado' | 'en-tratamiento' | 'cerrado' | 'rechazado';
+  fechaCreacion: Date;
+  motivoConsulta: string;
+  observaciones?: string;
 }
 
-// Abrir modal creación/edición
-function openCreateModal() {
-  editMode.value = false
-  Object.assign(form.value, {
-    id: 0,
-    patientName: '',
-    title: '',
-    stage: 'presentacion',
-    reason: '',
-    symptoms: '',
-    notes: '',
-    specialist: '',
-    generalQuestions: [],
-    specialistQuestions: [],
-    procedures: [],
-    prescriptions: [],
-    appointments: [],
-    comments: [],
-    odontogram: [],
-    periodontogram: [],
-    status: 'pendiente_general',
-    createdAt: '',
-    updatedAt: ''
-  })
-  showCreateModal.value = true
-}
-function closeCreateModal() {
-  showCreateModal.value = false
-}
+const router = useRouter();
 
-// Helpers para agregar ítems
-function addProcedure() {
-  form.value.procedures.push({ code: '', teeth: '', description: '' })
-}
-function addPrescription() {
-  form.value.prescriptions.push({ id: Date.now(), drug: '', dose: '' })
-}
-function addAppointment() {
-  form.value.appointments.push({
-    id: Date.now(),
-    date: '',
-    status: 'pendiente',
-    notes: ''
-  })
-}
+// Estados reactivos
+const filtroEspecialidad = ref('');
+const filtroEstado = ref('');
+const busqueda = ref('');
+const tipoArchivo = ref('radiografia');
+const descripcionArchivo = ref('');
 
-// Guardar caso (crea o actualiza)
-async function saveCase() {
-  const now = new Date().toISOString()
-  if (form.value.id && form.value.id > 0) {
-    form.value.updatedAt = now
-  } else {
-    form.value.createdAt = now
-    form.value.updatedAt = now
+// Datos de ejemplo
+const casos = ref<CasoClinico[]>([
+  {
+    id: 1,
+    codigo: 'CC-2025-001',
+    paciente: 'María García',
+    especialidad: 'Operatoria Dental',
+    estado: 'pendiente',
+    fechaCreacion: new Date('2025-01-15'),
+    motivoConsulta: 'Dolor en molar superior derecho',
+    observaciones: 'Paciente refiere dolor intenso al masticar'
+  },
+  {
+    id: 2,
+    codigo: 'CC-2025-002',
+    paciente: 'Carlos Mendoza',
+    especialidad: 'Endodoncia',
+    estado: 'aprobado',
+    fechaCreacion: new Date('2025-01-20'),
+    motivoConsulta: 'Tratamiento de conducto',
+  },
+  {
+    id: 3,
+    codigo: 'CC-2025-003',
+    paciente: 'Ana López',
+    especialidad: 'Periodoncia',
+    estado: 'en-tratamiento',
+    fechaCreacion: new Date('2025-02-01'),
+    motivoConsulta: 'Gingivitis crónica',
   }
-  await saveCaseMock(form.value)
-  await loadCases()
-  showCreateModal.value = false
-}
+]);
 
-// Mapea estado a clase CSS
-function badgeColor(status: ClinicalCaseStatus) {
-  return {
-    pendiente_general: 'ccv-badge--yellow',
-    pendiente_especialidad: 'ccv-badge--blue',
-    aprobado: 'ccv-badge--green',
-    completado: 'ccv-badge--gray'
-  }[status]!
-}
+// Computed para filtros
+const casosFiltrados = computed(() => {
+  return casos.value.filter(caso => {
+    const cumpleEspecialidad = !filtroEspecialidad.value || caso.especialidad.toLowerCase().includes(filtroEspecialidad.value.toLowerCase());
+    const cumpleEstado = !filtroEstado.value || caso.estado === filtroEstado.value;
+    const cumpleBusqueda = !busqueda.value || 
+      caso.paciente.toLowerCase().includes(busqueda.value.toLowerCase()) ||
+      caso.codigo.toLowerCase().includes(busqueda.value.toLowerCase());
+    
+    return cumpleEspecialidad && cumpleEstado && cumpleBusqueda;
+  });
+});
+
+// Métodos
+const getEstadoBadgeClass = (estado: string) => {
+  const clases = {
+    'pendiente': 'bg-warning',
+    'aprobado': 'bg-success',
+    'en-tratamiento': 'bg-info',
+    'cerrado': 'bg-secondary',
+    'rechazado': 'bg-danger'
+  };
+  return clases[estado as keyof typeof clases] || 'bg-secondary';
+};
+
+const getEstadoTexto = (estado: string) => {
+  const textos = {
+    'pendiente': 'Pendiente',
+    'aprobado': 'Aprobado',
+    'en-tratamiento': 'En tratamiento',
+    'cerrado': 'Cerrado',
+    'rechazado': 'Rechazado'
+  };
+  return textos[estado as keyof typeof textos] || estado;
+};
+
+const formatearFecha = (fecha: Date) => {
+  return fecha.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+const crearNuevoCaso = () => {
+  router.push('/student/patients');
+};
+
+const verCaso = (id: number) => {
+  console.log('Ver caso:', id);
+};
+
+const editarCaso = (id: number) => {
+  router.push('/student/patients');
+};
+
+const iniciarTratamiento = (id: number) => {
+  router.push('/student/treatments');
+};
+
+const subirArchivos = (id: number) => {
+  console.log('Subir archivos para caso:', id);
+  // Aquí se abriría el modal de subida
+};
+
+const descargarPDF = (id: number) => {
+  console.log('Descargar PDF del caso:', id);
+};
+
+const eliminarCaso = (id: number) => {
+  if (confirm('¿Estás seguro de que deseas eliminar este caso?')) {
+    casos.value = casos.value.filter(c => c.id !== id);
+  }
+};
+
+const confirmarSubida = () => {
+  console.log('Subiendo archivo:', tipoArchivo.value, descripcionArchivo.value);
+  // Cerrar modal
+  descripcionArchivo.value = '';
+};
+
+onMounted(() => {
+  console.log('Vista de casos clínicos cargada');
+});
 </script>
 
-<style scoped src="@/assets/css/pages/student/ClinicalCases.css"></style>
+<style scoped>
+.card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+.badge {
+  font-size: 0.75rem;
+}
+</style>

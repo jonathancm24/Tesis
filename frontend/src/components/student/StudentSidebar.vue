@@ -42,12 +42,15 @@ interface Link {
 }
 
 const links = ref<Link[]>([
-  { name: 'Dashboard', to: '/student',             icon: 'fas fa-tachometer-alt' },
-  { name: 'Historias Clínicas', to: '/student/histories', icon: 'fas fa-notes-medical' },
-  { name: 'Casos Clínicos',    to: '/student/cases',     icon: 'fas fa-file-medical' },
-  { name: 'Tareas',            to: '/student/assignments', icon: 'fas fa-tasks' },
-  { name: 'Odontograma',       to: '/student/odontogram',  icon: 'fas fa-tooth' },
-  { name: 'Mensajería',        to: '/student/messages',    icon: 'fas fa-envelope' }
+  { name: 'Inicio', to: '/student', icon: 'fas fa-home' },
+  { name: 'Gestión de Pacientes', to: '/student/patients', icon: 'fas fa-users' },
+  { name: 'Casos Clínicos', to: '/student/cases', icon: 'fas fa-file-medical' },
+  { name: 'Calendario', to: '/student/calendar', icon: 'fas fa-calendar-alt' },
+  { name: 'Tratamientos', to: '/student/treatments', icon: 'fas fa-procedures' },
+  { name: 'Recursos', to: '/student/resources', icon: 'fas fa-folder-open' },
+  { name: 'Tareas', to: '/student/tasks', icon: 'fas fa-tasks' },
+  { name: 'Solicitudes', to: '/student/requests', icon: 'fas fa-paper-plane' },
+  { name: 'Mensajes', to: '/student/messages', icon: 'fas fa-envelope' }
 ]);
 </script>
 

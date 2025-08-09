@@ -161,7 +161,7 @@ const menuItems = [
     icon: 'fas fa-user-check',
     to: { name: 'PatientAssignment' },
     color: 'info'
-  },
+  },/*
   {
     name: 'WeeklySchedule',
     label: 'Agenda Semanal',
@@ -182,7 +182,7 @@ const menuItems = [
     icon: 'fas fa-id-card', 
     to: { name: 'Affiliation' },
     color: 'danger'
-  }
+  }*/
 ]
 </script>
 
