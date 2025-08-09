@@ -1,8 +1,6 @@
 
 ## 2. Diagrama de Flujo de Caso Clínico
 
-```mermaid
-# Flujo Detallado de Caso Clínico
 
 ```mermaid
 graph TD

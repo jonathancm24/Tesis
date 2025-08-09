@@ -2,9 +2,6 @@
 ## 4. Diagrama de Flujo del Secretario
 
 ```mermaid
-# Flujo de Trabajo del Secretario
-
-```mermaid
 graph TD
     A[Secretario inicia sesión] --> B[Dashboard Secretario]
     B --> C[Gestión de Pacientes]

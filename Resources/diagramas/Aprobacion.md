@@ -2,9 +2,6 @@
 ## 3. Diagrama de Flujo de Aprobación por Profesor
 
 ```mermaid
-# Flujo de Aprobación por Profesor
-
-```mermaid
 graph TD
     A[Profesor inicia sesión] --> B[Dashboard Profesor]
     B --> C[Ver Solicitudes Pendientes]
