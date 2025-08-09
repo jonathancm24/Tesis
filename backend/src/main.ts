@@ -1,5 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
+import { GlobalValidationPipe } from './pipes/global-validation.pipe';
+import { GlobalExceptionFilter } from './filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,6 +15,12 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Validación global
+  app.useGlobalPipes(new GlobalValidationPipe());
+  
+  // Manejo global de errores
+  app.useGlobalFilters(new GlobalExceptionFilter());
+  
   await app.listen(3000);
   console.log('🚀 Servidor iniciado en http://localhost:3000');
   console.log('✅ CORS habilitado para frontend en puerto 5173');

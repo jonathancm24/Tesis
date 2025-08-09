@@ -22,7 +22,6 @@ model Usuario {
   nombre                      String
   apellido                    String
   email                       String                @unique
-  cedula                      String                @unique
   fechaNacimiento             DateTime              @map("fecha_nacimiento")
   password                    String
   telefono                    String?
@@ -32,6 +31,8 @@ model Usuario {
   parroquiaId                 Int?                  @map("parroquia_id")
   roleId                      Int                   @map("rol_id")
   activo                      Boolean               @default(true)
+  tipoDocumento               TipoDocumento
+  numeroDocumento             String                @unique
   archivosSubidos             Archivo[]             @relation("ArchivosSubidosPorUsuario")
   archivosrelacionados        ArchivoRelacion[]     @relation("ArchivosRelacionadosPorUsuario")
   casosclinicosComoEstudiante CasoClinico[]         @relation("CasosClinicosComoEstudiante")
@@ -121,31 +122,40 @@ model Parroquia {
   @@map("Parroquias")
 }
 
+enum TipoDocumentoRepresentante {
+  CEDULA
+  PASAPORTE
+  RUC
+  OTRO
+}
+
 model Paciente {
-  id               Int                @id @default(autoincrement())
-  nombre           String
-  apellido         String
-  fechaNacimiento  DateTime           @map("fecha_nacimiento")
-  telefono         String?
-  direccion        String?
-  genero           String?
-  Nacionalidad     String?
-  parroquiaId      Int                @map("parroquia_id")
-  activo           Boolean            @default(true)
-  cedula           String             @unique
-  cedulaRep        String?
-  email            String?
-  EmpresaLaboral   String?            @map("empresa_laboral")
-  estadoCivil      String?            @map("estado_civil")
-  fechaRegistro    DateTime           @default(now()) @map("fecha_registro")
-  ocupacion        String?
-  relacionRep      String?
-  representante    String?
-  telefonoRep      String?
-  casosClinicos    CasoClinico[]      @relation("CasosClinicosPorPaciente")
-  citas            Cita[]             @relation("CitasPorPaciente")
-  EncuestaTamizaje EncuestaTamizaje[]
-  parroquia        Parroquia          @relation(fields: [parroquiaId], references: [id])
+  id                 Int                         @id @default(autoincrement())
+  nombre             String
+  apellido           String
+  fechaNacimiento    DateTime                    @map("fecha_nacimiento")
+  telefono           String?
+  direccion          String?
+  genero             String?
+  Nacionalidad       String?
+  parroquiaId        Int                         @map("parroquia_id")
+  activo             Boolean                     @default(true)
+  tipoDocumentoRep   TipoDocumentoRepresentante?
+  numeroDocumentoRep String?                     @map("numero_documento_rep")
+  email              String?
+  EmpresaLaboral     String?                     @map("empresa_laboral")
+  estadoCivil        String?                     @map("estado_civil")
+  fechaRegistro      DateTime                    @default(now()) @map("fecha_registro")
+  ocupacion          String?
+  relacionRep        String?
+  representante      String?
+  telefonoRep        String?
+  tipoDocumento      TipoDocumento
+  numeroDocumento    String                      @unique
+  casosClinicos      CasoClinico[]               @relation("CasosClinicosPorPaciente")
+  citas              Cita[]                      @relation("CitasPorPaciente")
+  EncuestaTamizaje   EncuestaTamizaje[]
+  parroquia          Parroquia                   @relation(fields: [parroquiaId], references: [id])
 
   @@map("Pacientes")
 }
@@ -305,7 +315,7 @@ model RespuestaTamizaje {
   respuesta        String?
   detalle          String?
   pregunta         PreguntaTamizaje   @relation(fields: [preguntaId], references: [id])
-  EncuestaTamizaje EncuestaTamizaje[]
+  EncuestaTamizaje EncuestaTamizaje[] @relation("EncuestaTamizajeToRespuestaTamizaje")
 }
 
 model EncuestaTamizaje {
@@ -313,7 +323,7 @@ model EncuestaTamizaje {
   pacienteId        Int
   fecha             DateTime            @default(now())
   paciente          Paciente            @relation(fields: [pacienteId], references: [id])
-  RespuestaTamizaje RespuestaTamizaje[]
+  RespuestaTamizaje RespuestaTamizaje[] @relation("EncuestaTamizajeToRespuestaTamizaje")
 }
 
 model Cita {
@@ -517,6 +527,13 @@ model HorarioClinica {
   clinica      Clinica   @relation("HorariosPorClinica", fields: [clinicaId], references: [id])
 
   @@map("HorariosClinicas")
+}
+
+enum TipoDocumento {
+  CEDULA
+  PASAPORTE
+  RUC
+  OTRO
 }
 
 enum EstadoCasoClinico {

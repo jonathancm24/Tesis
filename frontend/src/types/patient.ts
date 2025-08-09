@@ -17,11 +17,48 @@ export interface Parroquia {
   };
 }
 
+// Tipos de documento disponibles
+export const TipoDocumento = {
+  CEDULA: 'CEDULA',
+  PASAPORTE: 'PASAPORTE',
+  RUC: 'RUC',
+  OTRO: 'OTRO'
+} as const;
+
+export type TipoDocumentoType = typeof TipoDocumento[keyof typeof TipoDocumento];
+
+// Tipos de documento para representante (mismos valores, pero separado por claridad)
+export const TipoDocumentoRepresentante = {
+  CEDULA: 'CEDULA',
+  PASAPORTE: 'PASAPORTE',
+  RUC: 'RUC',
+  OTRO: 'OTRO'
+} as const;
+
+export type TipoDocumentoRepresentanteType = typeof TipoDocumentoRepresentante[keyof typeof TipoDocumentoRepresentante];
+
+// Labels amigables para el usuario
+export const TipoDocumentoLabels = {
+  [TipoDocumento.CEDULA]: 'Cédula Ecuatoriana',
+  [TipoDocumento.PASAPORTE]: 'Pasaporte',
+  [TipoDocumento.RUC]: 'RUC',
+  [TipoDocumento.OTRO]: 'Otro Documento'
+} as const;
+
+// Labels para tipo de documento del representante (iguales pero separadas por claridad)
+export const TipoDocumentoRepresentanteLabels = {
+  [TipoDocumentoRepresentante.CEDULA]: 'Cédula Ecuatoriana',
+  [TipoDocumentoRepresentante.PASAPORTE]: 'Pasaporte',
+  [TipoDocumentoRepresentante.RUC]: 'RUC',
+  [TipoDocumentoRepresentante.OTRO]: 'Otro Documento'
+} as const;
+
 export interface RegistroPaciente {
   nombre: string;
   apellido: string;
   fechaNacimiento: string;
-  cedula: string;
+  tipoDocumento: TipoDocumentoType;
+  numeroDocumento: string;
   parroquiaId: number;
   telefono?: string;
   direccion?: string;
@@ -32,7 +69,8 @@ export interface RegistroPaciente {
   ocupacion?: string;
   EmpresaLaboral?: string;
   representante?: string;
-  cedulaRep?: string;
+  tipoDocumentoRep?: TipoDocumentoRepresentanteType;
+  numeroDocumentoRep?: string;
   relacionRep?: string;
   telefonoRep?: string;
 }
@@ -54,7 +92,8 @@ export interface PacienteBasico {
   activo: boolean;
   fechaRegistro: Date;
   representante?: string;
-  cedulaRep?: string;
+  tipoDocumentoRep?: string;
+  numeroDocumentoRep?: string;
   relacionRep?: string;
   telefonoRep?: string;
   parroquia: Parroquia;

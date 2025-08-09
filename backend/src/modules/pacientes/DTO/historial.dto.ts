@@ -13,7 +13,7 @@ export class PacienteBasicoDto {
   direccion?: string;
   genero?: string;
   Nacionalidad?: string;
-  cedula: string;
+  cedula: string; // Este campo mantiene el nombre por compatibilidad con frontend
   email?: string;
   estadoCivil?: string;
   ocupacion?: string;
@@ -23,6 +23,7 @@ export class PacienteBasicoDto {
   
   // Datos del representante
   representante?: string;
+  tipoDocumentoRep?: string; // TipoDocumentoRepresentante enum
   cedulaRep?: string;
   relacionRep?: string;
   telefonoRep?: string;

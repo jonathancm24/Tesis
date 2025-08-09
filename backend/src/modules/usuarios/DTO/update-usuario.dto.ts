@@ -3,7 +3,7 @@ import { RegisterDto } from './registro.dto';
 import { IsOptional, IsBoolean } from 'class-validator';
 
 export class UpdateUsuarioDto extends PartialType(
-  OmitType(RegisterDto, ['email', 'cedula'] as const)
+  OmitType(RegisterDto, ['email', 'numeroDocumento'] as const)
 ) {
   @IsOptional()
   @IsBoolean()

@@ -36,7 +36,7 @@ export interface IEncuestaTamizaje {
     id: number;
     nombre: string;
     apellido: string;
-    cedula: string;
+    cedula: string; // Se mantiene como 'cedula' para compatibilidad con frontend
     email?: string;
     genero?: string;
   };
@@ -77,7 +77,7 @@ export interface IAntecedentesMedicos {
     id: number;
     nombre: string;
     apellido: string;
-    cedula: string;
+    cedula: string; // Se mantiene como 'cedula' para compatibilidad con frontend
     genero?: string;
   };
   fechaEncuesta: Date;

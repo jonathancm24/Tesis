@@ -1,3 +1,13 @@
+// Tipos de documento disponibles
+export const TipoDocumento = {
+  CEDULA: 'CEDULA',
+  PASAPORTE: 'PASAPORTE',
+  RUC: 'RUC',
+  OTRO: 'OTRO'
+} as const;
+
+export type TipoDocumentoType = typeof TipoDocumento[keyof typeof TipoDocumento];
+
 // frontend/src/types/user.ts
 export type UserRole = 'admin' | 'profesor' | 'estudiante' | 'secretario' | 'paciente'
 
@@ -49,7 +59,8 @@ export interface CreateUserRequest {
   nombre: string
   apellido: string
   email: string
-  cedula: string
+  tipoDocumento: TipoDocumentoType
+  numeroDocumento: string
   fechaNacimiento: string // Se convertirá a Date en el backend
   password: string
   NotasAdicionales?: string
@@ -76,7 +87,8 @@ export interface FormUser {
   nombre: string
   apellido: string
   email: string
-  cedula: string
+  tipoDocumento: TipoDocumentoType
+  numeroDocumento: string
   fechaNacimiento: string
   password: string
   NotasAdicionales?: string

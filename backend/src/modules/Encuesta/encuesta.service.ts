@@ -117,7 +117,7 @@ export class EncuestaService {
         id: true,
         nombre: true,
         apellido: true,
-        cedula: true,
+        numeroDocumento: true,
         email: true,
         genero: true,
         activo: true
@@ -182,7 +182,10 @@ export class EncuestaService {
       id: encuestaCreada.id,
       pacienteId: encuestaCreada.pacienteId,
       fecha: encuestaCreada.fecha,
-      paciente,
+      paciente: {
+        ...paciente,
+        cedula: paciente.numeroDocumento // Mapear numeroDocumento a cedula para compatibilidad
+      },
       respuestas: encuestaCreada.respuestas.map(r => ({
         id: r.id,
         preguntaId: r.preguntaId,
@@ -220,7 +223,7 @@ export class EncuestaService {
             id: true,
             nombre: true,
             apellido: true,
-            cedula: true,
+            numeroDocumento: true,
             genero: true
           }
         },
@@ -241,7 +244,10 @@ export class EncuestaService {
     const antecedentesPorCategoria = this.agruparRespuestasPorCategoria(encuesta.RespuestaTamizaje);
 
     return {
-      paciente: encuesta.paciente,
+      paciente: {
+        ...encuesta.paciente,
+        cedula: encuesta.paciente.numeroDocumento // Mapear numeroDocumento a cedula para compatibilidad
+      },
       fechaEncuesta: encuesta.fecha,
       antecedentesPorCategoria
     };

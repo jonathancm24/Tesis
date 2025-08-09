@@ -1,5 +1,25 @@
-import { IsString, IsOptional, IsEmail, IsDateString, IsInt, IsBoolean, Length, Matches } from 'class-validator';
+import { IsString, IsOptional, IsEmail, IsDateString, IsInt, IsBoolean, Length, Matches, IsEnum } from 'class-validator';
 import { Transform } from 'class-transformer';
+
+/**
+ * Enum para tipos de documento
+ */
+export enum TipoDocumento {
+  CEDULA = 'CEDULA',
+  PASAPORTE = 'PASAPORTE', 
+  RUC = 'RUC',
+  OTRO = 'OTRO'
+}
+
+/**
+ * Enum para tipos de documento del representante
+ */
+export enum TipoDocumentoRepresentante {
+  CEDULA = 'CEDULA',
+  PASAPORTE = 'PASAPORTE',
+  RUC = 'RUC',
+  OTRO = 'OTRO'
+}
 
 /**
  * DTO para el registro de nuevos pacientes
@@ -17,9 +37,12 @@ export class RegistroPacienteDto {
   @IsDateString({}, { message: 'La fecha de nacimiento debe ser una fecha válida' })
   fechaNacimiento: string;
 
+  @IsEnum(TipoDocumento, { message: 'Tipo de documento inválido' })
+  tipoDocumento: TipoDocumento;
+
   @IsString()
-  @Matches(/^[0-9]{10}$/, { message: 'La cédula debe tener 10 dígitos' })
-  cedula: string;
+  @Length(5, 20, { message: 'El número de documento debe tener entre 5 y 20 caracteres' })
+  numeroDocumento: string;
 
   @IsInt({ message: 'Debe seleccionar una parroquia válida' })
   parroquiaId: number;
@@ -65,9 +88,13 @@ export class RegistroPacienteDto {
   representante?: string;
 
   @IsOptional()
+  @IsEnum(TipoDocumentoRepresentante, { message: 'Tipo de documento del representante inválido' })
+  tipoDocumentoRep?: TipoDocumentoRepresentante;
+
+  @IsOptional()
   @IsString()
-  @Matches(/^[0-9]{10}$/, { message: 'La cédula del representante debe tener 10 dígitos' })
-  cedulaRep?: string;
+  @Length(5, 20, { message: 'El número de documento del representante debe tener entre 5 y 20 caracteres' })
+  numeroDocumentoRep?: string;
 
   @IsOptional()
   @IsString()
@@ -132,9 +159,13 @@ export class ActualizarPacienteDto {
   representante?: string;
 
   @IsOptional()
+  @IsEnum(TipoDocumentoRepresentante, { message: 'Tipo de documento del representante inválido' })
+  tipoDocumentoRep?: TipoDocumentoRepresentante;
+
+  @IsOptional()
   @IsString()
-  @Matches(/^[0-9]{10}$/)
-  cedulaRep?: string;
+  @Length(5, 20, { message: 'El número de documento del representante debe tener entre 5 y 20 caracteres' })
+  numeroDocumentoRep?: string;
 
   @IsOptional()
   @IsString()

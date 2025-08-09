@@ -55,21 +55,43 @@
       </div>
     </div>
 
-    <!-- Cédula -->
+    <!-- Tipo de Documento -->
     <div class="col-12 col-md-6">
-      <label for="cedula" class="form-label">
-        <i class="fas fa-id-card me-1"></i> Cédula *
+      <label for="tipoDocumento" class="form-label">
+        <i class="fas fa-id-card me-1"></i> Tipo de Documento *
+      </label>
+      <select
+        id="tipoDocumento"
+        v-model="local.tipoDocumento"
+        class="form-select"
+        required
+      >
+        <option value="">Seleccione tipo...</option>
+        <option value="CEDULA">Cédula Ecuatoriana</option>
+        <option value="PASAPORTE">Pasaporte</option>
+        <option value="RUC">RUC</option>
+        <option value="OTRO">Otro Documento</option>
+      </select>
+      <div class="invalid-feedback">
+        El tipo de documento es obligatorio.
+      </div>
+    </div>
+
+    <!-- Número de Documento -->
+    <div class="col-12 col-md-6">
+      <label for="numeroDocumento" class="form-label">
+        <i class="fas fa-id-card me-1"></i> {{ getDocumentoLabel(local.tipoDocumento) }} *
       </label>
       <input
-        id="cedula"
-        v-model="local.cedula"
+        id="numeroDocumento"
+        v-model="local.numeroDocumento"
         type="text"
         class="form-control"
-        placeholder="1234567890"
+        :placeholder="getDocumentoPlaceholder(local.tipoDocumento)"
         required
       />
       <div class="invalid-feedback">
-        La cédula es obligatoria.
+        {{ getDocumentoError(local.tipoDocumento) }}
       </div>
     </div>
 
@@ -275,7 +297,8 @@ const local = ref<FormUser>({
   nombre: props.modelValue.nombre ?? '',
   apellido: props.modelValue.apellido ?? '',
   email: props.modelValue.email ?? '',
-  cedula: props.modelValue.cedula ?? '',
+  tipoDocumento: props.modelValue.tipoDocumento ?? 'CEDULA',
+  numeroDocumento: props.modelValue.numeroDocumento ?? '',
   fechaNacimiento: props.modelValue.fechaNacimiento ?? '',
   password: props.modelValue.password ?? '',
   NotasAdicionales: props.modelValue.NotasAdicionales ?? '',
@@ -361,7 +384,8 @@ watch(() => props.modelValue, (newValue) => {
       nombre: newValue.nombre ?? '',
       apellido: newValue.apellido ?? '',
       email: newValue.email ?? '',
-      cedula: newValue.cedula ?? '',
+      tipoDocumento: newValue.tipoDocumento ?? 'CEDULA',
+      numeroDocumento: newValue.numeroDocumento ?? '',
       fechaNacimiento: newValue.fechaNacimiento ?? '',
       password: newValue.password ?? '',
       NotasAdicionales: newValue.NotasAdicionales ?? '',
@@ -391,6 +415,34 @@ async function onSave() {
 function onParroquiaChange(parroquia: Parroquia | null) {
   console.log('Parroquia seleccionada:', parroquia)
   // Aquí puedes hacer validaciones adicionales si es necesario
+}
+
+// Funciones helper para tipos de documento
+function getDocumentoLabel(tipo: string): string {
+  switch (tipo) {
+    case 'CEDULA': return 'Cédula'
+    case 'PASAPORTE': return 'Pasaporte'
+    case 'RUC': return 'RUC'
+    default: return 'Número de Documento'
+  }
+}
+
+function getDocumentoPlaceholder(tipo: string): string {
+  switch (tipo) {
+    case 'CEDULA': return '1234567890'
+    case 'PASAPORTE': return 'A12345678'
+    case 'RUC': return '1234567890001'
+    default: return 'Ingrese documento'
+  }
+}
+
+function getDocumentoError(tipo: string): string {
+  switch (tipo) {
+    case 'CEDULA': return 'La cédula debe tener 10 dígitos'
+    case 'PASAPORTE': return 'Formato de pasaporte inválido'
+    case 'RUC': return 'El RUC debe tener 13 dígitos'
+    default: return 'El documento debe tener entre 5 y 20 caracteres'
+  }
 }
 </script>
 

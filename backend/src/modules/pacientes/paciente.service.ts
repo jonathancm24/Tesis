@@ -24,13 +24,13 @@ export class PacienteService {
    */
   async crearPaciente(data: RegistroPacienteDto) {
     try {
-      // Verificar que no exista un paciente con la misma cédula
+      // Verificar que no exista un paciente con el mismo documento
       const pacienteExistente = await this.prisma.paciente.findUnique({
-        where: { cedula: data.cedula }
+        where: { numeroDocumento: data.numeroDocumento }
       });
 
       if (pacienteExistente) {
-        throw new BadRequestException('Ya existe un paciente con esta cédula');
+        throw new BadRequestException('Ya existe un paciente con este número de documento');
       }
 
       // Verificar que la parroquia existe
@@ -48,7 +48,8 @@ export class PacienteService {
           nombre: data.nombre,
           apellido: data.apellido,
           fechaNacimiento: new Date(data.fechaNacimiento),
-          cedula: data.cedula,
+          tipoDocumento: data.tipoDocumento,
+          numeroDocumento: data.numeroDocumento,
           parroquiaId: data.parroquiaId,
           telefono: data.telefono,
           direccion: data.direccion,
@@ -59,7 +60,8 @@ export class PacienteService {
           ocupacion: data.ocupacion,
           EmpresaLaboral: data.EmpresaLaboral,
           representante: data.representante,
-          cedulaRep: data.cedulaRep,
+          tipoDocumentoRep: data.tipoDocumentoRep,
+          numeroDocumentoRep: data.numeroDocumentoRep,
           relacionRep: data.relacionRep,
           telefonoRep: data.telefonoRep,
           activo: true
@@ -118,7 +120,7 @@ export class PacienteService {
       id: paciente.id,
       nombre: paciente.nombre,
       apellido: paciente.apellido,
-      cedula: paciente.cedula,
+      cedula: paciente.numeroDocumento,
       telefono: paciente.telefono,
       email: paciente.email,
       fechaNacimiento: paciente.fechaNacimiento,
@@ -319,7 +321,7 @@ export class PacienteService {
         direccion: paciente.direccion,
         genero: paciente.genero,
         Nacionalidad: paciente.Nacionalidad,
-        cedula: paciente.cedula,
+        cedula: paciente.numeroDocumento,
         email: paciente.email,
         estadoCivil: paciente.estadoCivil,
         ocupacion: paciente.ocupacion,
@@ -327,7 +329,8 @@ export class PacienteService {
         activo: paciente.activo,
         fechaRegistro: paciente.fechaRegistro,
         representante: paciente.representante,
-        cedulaRep: paciente.cedulaRep,
+        tipoDocumentoRep: paciente.tipoDocumentoRep,
+        cedulaRep: paciente.numeroDocumentoRep,
         relacionRep: paciente.relacionRep,
         telefonoRep: paciente.telefonoRep,
         parroquia: paciente.parroquia
@@ -413,7 +416,7 @@ export class PacienteService {
             OR: [
               { nombre: { contains: termino, mode: 'insensitive' } },
               { apellido: { contains: termino, mode: 'insensitive' } },
-              { cedula: { contains: termino } }
+              { numeroDocumento: { contains: termino } }
             ]
           }
         ]
@@ -440,7 +443,7 @@ export class PacienteService {
       id: paciente.id,
       nombre: paciente.nombre,
       apellido: paciente.apellido,
-      cedula: paciente.cedula,
+      cedula: paciente.numeroDocumento,
       telefono: paciente.telefono,
       email: paciente.email,
       fechaNacimiento: paciente.fechaNacimiento,

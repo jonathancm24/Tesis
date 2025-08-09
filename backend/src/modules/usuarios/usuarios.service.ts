@@ -13,42 +13,49 @@ import { ChangePasswordDto } from "./DTO/change-password.dto";
 
 @Injectable()
 export class UsuariosService {
-  constructor(private prisma: PrismaService) {}
-   async register(data: RegisterDto): Promise<Usuario> {
-  const hashedPassword = await hash(data.password, 10);
-  const usuario = await this.prisma.usuario.create({
-    data: {
-      nombre: data.nombre,
-      apellido: data.apellido,
-      email: data.email,
-      cedula: data.cedula,
-      fechaNacimiento: new Date(data.fechaNacimiento), 
-      password: hashedPassword,
-      roleId: data.roleId,
-      parroquiaId: data.parroquiaId,
-    },
-  });
+  constructor(private prisma: PrismaService) { }
+  async register(data: RegisterDto): Promise<Usuario> {
+    // Verificar duplicados con mensajes específicos
+    const [existingEmail, existingDocumento] = await Promise.all([
+      this.prisma.usuario.findUnique({ where: { email: data.email } }),
+      this.prisma.usuario.findUnique({ where: { numeroDocumento: data.numeroDocumento } })
+    ]);
 
-  // Crear las relaciones en la tabla intermedia
-  await this.prisma.usuarioEspecialidad.createMany({
-    data: data.especialidadIds.map(especialidadId => ({
-      usuarioId: usuario.id,
-      especialidadId,
-    })),
-  });
-try {
-  return usuario;
-
-        } catch (error) {
-        if (error instanceof PrismaClientKnownRequestError) {
-            if (error.code === 'P2002') {
-            throw new Error('Email already exists');
-            }
-        }
-        throw error;
-        }
+    if (existingEmail) {
+      throw new ConflictException('Ya existe un usuario con este email');
     }
- // Método para obtener todos los usuarios
+
+    if (existingDocumento) {
+      throw new ConflictException('Ya existe un usuario con este número de documento');
+    }
+
+    const hashedPassword = await hash(data.password, 10);
+
+    const usuario = await this.prisma.usuario.create({
+      data: {
+        nombre: data.nombre,
+        apellido: data.apellido,
+        email: data.email,
+        tipoDocumento: data.tipoDocumento,
+        numeroDocumento: data.numeroDocumento,
+        fechaNacimiento: new Date(data.fechaNacimiento),
+        password: hashedPassword,
+        roleId: data.roleId,
+        parroquiaId: data.parroquiaId,
+      },
+    });
+    // Crear relaciones con especialidades
+    await this.prisma.usuarioEspecialidad.createMany({
+      data: data.especialidadIds.map(especialidadId => ({
+        usuarioId: usuario.id,
+        especialidadId,
+      })),
+    });
+
+    return usuario;
+  }
+
+  // Método para obtener todos los usuarios
   async findAll(): Promise<Usuario[]> {
     return this.prisma.usuario.findMany({
       include: {
@@ -58,11 +65,11 @@ try {
     });
   }
 
-// Método para actualizar un usuario
+  // Método para actualizar un usuario
   async update(id: number, data: UpdateUsuarioDto): Promise<Usuario> {
     // Verificar si el usuario existe
     const usuario = await this.findById(id);
-    
+
     // ✅ CREAR OBJETO DE ACTUALIZACIÓN SIN MODIFICAR LA CONTRASEÑA AUTOMÁTICAMENTE
     const updateData: any = {
       nombre: data.nombre,
@@ -103,11 +110,11 @@ try {
     });
   }
 
-// Método para encontrar un usuario por email
+  // Método para encontrar un usuario por email
   async findByEmail(email: string): Promise<Usuario | null> {
     const usuario = await this.prisma.usuario.findUnique({
       where: { email },
-       include: {
+      include: {
         role: {
           include: {
             permisos: {
@@ -131,9 +138,9 @@ try {
     }
     return usuario;
   }
- /**
-   * Obtener usuario por ID
-   */
+  /**
+    * Obtener usuario por ID
+    */
   async findById(id: number) {
     const usuario = await this.prisma.usuario.findUnique({
       where: { id },
@@ -170,7 +177,7 @@ try {
    */
   async toggleActive(id: number) {
     const usuario = await this.findById(id);
-    
+
     return this.prisma.usuario.update({
       where: { id },
       data: { activo: !usuario.activo },
@@ -190,7 +197,7 @@ try {
    */
   async remove(id: number) {
     await this.findById(id);
-    
+
     return this.prisma.usuario.update({
       where: { id },
       data: { activo: false }
@@ -201,93 +208,103 @@ try {
    * Obtener perfil completo del usuario
    */
   async getProfile(userId: number): Promise<IPerfilResponse> {
-        const usuario = await this.prisma.usuario.findUnique({
-            where: { id: userId },
-            include: {
-                parroquia: {
-                    include: {
-                        canton: {
-                            include: {
-                                provincia: {
-                                    include: {
-                                        pais: true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                role: true,
-                especialidades: {
-                    include: {
-                        especialidad: true
-                    }
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id: userId },
+      include: {
+        parroquia: {
+          include: {
+            canton: {
+              include: {
+                provincia: {
+                  include: {
+                    pais: true
+                  }
                 }
+              }
             }
-        });
-
-        if (!usuario) {
-            throw new NotFoundException('Usuario no encontrado');
+          }
+        },
+        role: true,
+        especialidades: {
+          include: {
+            especialidad: true
+          }
         }
+      }
+    });
 
-        const { password, ...usuarioSinPassword } = usuario;
-        return usuarioSinPassword as IPerfilResponse;
+    if (!usuario) {
+      throw new NotFoundException('Usuario no encontrado');
     }
+
+    const { password, ...usuarioSinPassword } = usuario;
+    // Mapear numeroDocumento a cedula para compatibilidad con frontend
+    const perfilResponse = {
+      ...usuarioSinPassword,
+      cedula: usuarioSinPassword.numeroDocumento
+    };
+    return perfilResponse as IPerfilResponse;
+  }
 
   /**
    * Actualizar perfil del usuario
    */
   async updateProfile(userId: number, data: PerfilDto): Promise<IPerfilResponse> {
-        // Verificar email único si se está actualizando
-        if (data.email) {
-            const existingUser = await this.prisma.usuario.findFirst({
-                where: {
-                    email: data.email,
-                    NOT: { id: userId }
-                }
-            });
-
-            if (existingUser) {
-                throw new ConflictException('El email ya está en uso por otro usuario');
-            }
+    // Verificar email único si se está actualizando
+    if (data.email) {
+      const existingUser = await this.prisma.usuario.findFirst({
+        where: {
+          email: data.email,
+          NOT: { id: userId }
         }
+      });
 
-        // Actualizar usuario
-        const updatedUser = await this.prisma.usuario.update({
-            where: { id: userId },
-            data: {
-                ...data,
-                fechaNacimiento: data.fechaNacimiento ? new Date(data.fechaNacimiento) : undefined
-            },
-            include: {
-                parroquia: {
-                    include: {
-                        canton: {
-                            include: {
-                                provincia: {
-                                    include: {
-                                        pais: true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                role: true,
-                especialidades: {
-                    include: {
-                        especialidad: true
-                    }
-                }
-            }
-        });
-
-        const { password, ...usuarioSinPassword } = updatedUser;
-        return usuarioSinPassword as IPerfilResponse;
+      if (existingUser) {
+        throw new ConflictException('El email ya está en uso por otro usuario');
+      }
     }
-      /**
-   * Cambiar contraseña del usuario con validaciones completas
-   */
+
+    // Actualizar usuario
+    const updatedUser = await this.prisma.usuario.update({
+      where: { id: userId },
+      data: {
+        ...data,
+        fechaNacimiento: data.fechaNacimiento ? new Date(data.fechaNacimiento) : undefined
+      },
+      include: {
+        parroquia: {
+          include: {
+            canton: {
+              include: {
+                provincia: {
+                  include: {
+                    pais: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        role: true,
+        especialidades: {
+          include: {
+            especialidad: true
+          }
+        }
+      }
+    });
+
+    const { password, ...usuarioSinPassword } = updatedUser;
+    // Mapear numeroDocumento a cedula para compatibilidad con frontend
+    const perfilResponse = {
+      ...usuarioSinPassword,
+      cedula: usuarioSinPassword.numeroDocumento
+    };
+    return perfilResponse as IPerfilResponse;
+  }
+  /**
+* Cambiar contraseña del usuario con validaciones completas
+*/
   async changePassword(userId: number, data: ChangePasswordDto): Promise<{ message: string }> {
     // 1. Obtener usuario actual
     const usuario = await this.prisma.usuario.findUnique({
@@ -321,7 +338,7 @@ try {
     // 6. Actualizar contraseña en la base de datos
     await this.prisma.usuario.update({
       where: { id: userId },
-      data: { 
+      data: {
         password: hashedNewPassword,
         // Opcionalmente puedes agregar un campo de última actualización de contraseña
         // passwordUpdatedAt: new Date()
