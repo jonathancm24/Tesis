@@ -89,8 +89,8 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { userService } from '@/services/userService'
-import type { Parroquia } from '@/types/user'
+import { pacienteService } from '@/services/pacienteService'
+import type { Parroquia } from '@/types/patient'
 // Props y Emits definidos
 interface Props {
   modelValue?: number | null
@@ -141,7 +141,7 @@ async function buscarParroquias() {
   
   loading.value = true
   try {
-    resultados.value = await userService.buscarParroquias(searchQuery.value)
+    resultados.value = await pacienteService.buscarParroquias(searchQuery.value)
   } catch (error) {
     console.error('Error al buscar parroquias:', error)
     resultados.value = []
@@ -178,8 +178,8 @@ watch(() => props.modelValue, async (newValue) => {
   if (newValue && !selectedParroquia.value) {
     // Cargar la parroquia si se proporciona un ID pero no tenemos la data
     try {
-      const parroquias = await userService.getParroquias()
-      const found = parroquias.find(p => p.id === newValue)
+      const parroquias = await pacienteService.obtenerParroquias()
+      const found = parroquias.find((p: Parroquia) => p.id === newValue)
       if (found) {
         selectedParroquia.value = found
         searchQuery.value = found.nombre

@@ -61,7 +61,7 @@ export class PacienteService {
           EmpresaLaboral: data.EmpresaLaboral,
           representante: data.representante,
           tipoDocumentoRep: data.tipoDocumentoRep,
-          numeroDocumentoRep: data.numeroDocumentoRep,
+          numero_documento_rep: data.numeroDocumentoRep,
           relacionRep: data.relacionRep,
           telefonoRep: data.telefonoRep,
           activo: true
@@ -330,7 +330,7 @@ export class PacienteService {
         fechaRegistro: paciente.fechaRegistro,
         representante: paciente.representante,
         tipoDocumentoRep: paciente.tipoDocumentoRep,
-        cedulaRep: paciente.numeroDocumentoRep,
+        cedulaRep: paciente.numero_documento_rep,
         relacionRep: paciente.relacionRep,
         telefonoRep: paciente.telefonoRep,
         parroquia: paciente.parroquia

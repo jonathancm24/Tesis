@@ -210,16 +210,33 @@
                 </div>
                 <div class="col-md-6">
                   <div class="form-floating">
+                    <select 
+                      class="form-select" 
+                      id="tipoDocumento" 
+                      v-model="formularioRegistro.tipoDocumento"
+                      required
+                    >
+                      <option value="">Seleccionar tipo</option>
+                      <option value="CEDULA">Cédula Ecuatoriana</option>
+                      <option value="PASAPORTE">Pasaporte</option>
+                      <option value="RUC">RUC</option>
+                      <option value="OTRO">Otro Documento</option>
+                    </select>
+                    <label for="tipoDocumento">Tipo de Documento *</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating">
                     <input
                       type="text"
                       class="form-control"
-                      id="cedula"
-                      v-model="formularioRegistro.cedula"
-                      placeholder="Cédula"
-                      maxlength="10"
+                      id="numeroDocumento"
+                      v-model="formularioRegistro.numeroDocumento"
+                      placeholder="Número de Documento"
+                      maxlength="20"
                       required
                     />
-                    <label for="cedula">Cédula *</label>
+                    <label for="numeroDocumento">Número de Documento *</label>
                   </div>
                 </div>
                 <div class="col-md-6">
@@ -399,15 +416,31 @@
                 </div>
                 <div v-if="necesitaRepresentante || esMenorDeEdad" class="col-md-6">
                   <div class="form-floating">
+                    <select 
+                      class="form-select" 
+                      id="tipoDocumentoRep" 
+                      v-model="formularioRegistro.tipoDocumentoRep"
+                    >
+                      <option value="">Seleccionar tipo</option>
+                      <option value="CEDULA">Cédula Ecuatoriana</option>
+                      <option value="PASAPORTE">Pasaporte</option>
+                      <option value="RUC">RUC</option>
+                      <option value="OTRO">Otro Documento</option>
+                    </select>
+                    <label for="tipoDocumentoRep">Tipo de Documento del Representante</label>
+                  </div>
+                </div>
+                <div v-if="necesitaRepresentante || esMenorDeEdad" class="col-md-6">
+                  <div class="form-floating">
                     <input
                       type="text"
                       class="form-control"
-                      id="cedulaRep"
-                      v-model="formularioRegistro.cedulaRep"
-                      placeholder="Cédula del Representante"
-                      maxlength="10"
+                      id="numeroDocumentoRep"
+                      v-model="formularioRegistro.numeroDocumentoRep"
+                      placeholder="Número de Documento del Representante"
+                      maxlength="20"
                     />
-                    <label for="cedulaRep">Cédula del Representante</label>
+                    <label for="numeroDocumentoRep">Número de Documento del Representante</label>
                   </div>
                 </div>
                 <div v-if="necesitaRepresentante || esMenorDeEdad" class="col-md-6">
@@ -676,9 +709,10 @@ import CasoClinicoForm from '@/components/student/CasoClinicoForm.vue';
 import type { 
   PacienteLista, 
   RegistroPaciente, 
-  HistorialCompleto 
+  HistorialCompleto
 } from '@/types/patient';
-import type { Parroquia } from '@/types/user';
+import { TipoDocumento } from '@/types/patient';
+import type { Parroquia } from '@/types/patient';
 
 // Estados reactivo
 const loading = ref(false);
@@ -703,7 +737,8 @@ const necesitaRepresentante = ref(false);
 const formularioRegistro = ref<RegistroPaciente>({
   nombre: '',
   apellido: '',
-  cedula: '',
+  tipoDocumento: TipoDocumento.CEDULA,
+  numeroDocumento: '',
   fechaNacimiento: '',
   genero: '',
   estadoCivil: '',
@@ -715,7 +750,8 @@ const formularioRegistro = ref<RegistroPaciente>({
   EmpresaLaboral: '',
   Nacionalidad: '',
   representante: '',
-  cedulaRep: '',
+  tipoDocumentoRep: undefined,
+  numeroDocumentoRep: '',
   relacionRep: '',
   telefonoRep: ''
 });
@@ -752,11 +788,22 @@ const esMenorDeEdad = computed(() => {
 });
 
 const formularioValido = computed(() => {
-  return formularioRegistro.value.nombre &&
-         formularioRegistro.value.apellido &&
-         formularioRegistro.value.cedula &&
-         formularioRegistro.value.fechaNacimiento &&
-         formularioRegistro.value.parroquiaId > 0;
+  const camposBasicos = formularioRegistro.value.nombre &&
+                       formularioRegistro.value.apellido &&
+                       formularioRegistro.value.numeroDocumento &&
+                       formularioRegistro.value.tipoDocumento &&
+                       formularioRegistro.value.fechaNacimiento &&
+                       formularioRegistro.value.parroquiaId > 0;
+
+  // Si necesita representante, validar sus campos también
+  if (necesitaRepresentante.value || esMenorDeEdad.value) {
+    return camposBasicos &&
+           formularioRegistro.value.representante &&
+           formularioRegistro.value.numeroDocumentoRep &&
+           formularioRegistro.value.tipoDocumentoRep;
+  }
+
+  return camposBasicos;
 });
 
 // Métodos de búsqueda y filtros
@@ -815,7 +862,8 @@ const resetearFormulario = () => {
   formularioRegistro.value = {
     nombre: '',
     apellido: '',
-    cedula: '',
+    tipoDocumento: TipoDocumento.CEDULA,
+    numeroDocumento: '',
     fechaNacimiento: '',
     genero: '',
     estadoCivil: '',
@@ -827,7 +875,8 @@ const resetearFormulario = () => {
     EmpresaLaboral: '',
     Nacionalidad: '',
     representante: '',
-    cedulaRep: '',
+    tipoDocumentoRep: undefined, // Se asignará cuando sea necesario
+    numeroDocumentoRep: '',
     relacionRep: '',
     telefonoRep: ''
   };
@@ -839,14 +888,31 @@ const registrarPaciente = async () => {
   try {
     guardandoPaciente.value = true;
     
-    const pacienteCreado = await pacienteService.crearPaciente(formularioRegistro.value);
+    // Limpiar datos de representante si no es necesario
+    const datosLimpios = { ...formularioRegistro.value };
+    
+    if (!necesitaRepresentante.value && !esMenorDeEdad.value) {
+      // Eliminar campos de representante si no son necesarios
+      delete datosLimpios.representante;
+      delete datosLimpios.tipoDocumentoRep;
+      delete datosLimpios.numeroDocumentoRep;
+      delete datosLimpios.relacionRep;
+      delete datosLimpios.telefonoRep;
+    } else {
+      // Si necesita representante, asegurar que tenga un tipo de documento válido
+      if (!datosLimpios.tipoDocumentoRep) {
+        datosLimpios.tipoDocumentoRep = 'CEDULA';
+      }
+    }
+    
+    const pacienteCreado = await pacienteService.crearPaciente(datosLimpios);
     
     // Convertir PacienteBasico a PacienteLista para la lista
     const nuevoPaciente: PacienteLista = {
       id: pacienteCreado.id,
       nombre: pacienteCreado.nombre,
       apellido: pacienteCreado.apellido,
-      cedula: pacienteCreado.cedula,
+      cedula: pacienteCreado.cedula, // El backend mapea numeroDocumento → cedula
       telefono: pacienteCreado.telefono,
       email: pacienteCreado.email,
       fechaNacimiento: pacienteCreado.fechaNacimiento,

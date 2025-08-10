@@ -128,6 +128,7 @@ class PacienteService {
    */
   async crearPaciente(data: RegistroPaciente): Promise<PacienteBasico> {
     try {
+      console.log('Datos a enviar al backend:', JSON.stringify(data, null, 2));
       const response = await api.post<PacienteBasico>(this.baseURL, data);
       return {
         ...response.data,
@@ -139,6 +140,7 @@ class PacienteService {
       
       // Manejar errores específicos del backend
       if (error.response?.status === 400) {
+        console.error('Detalles del error 400:', error.response.data);
         const message = error.response.data?.message || 'Datos inválidos';
         throw new Error(message);
       }

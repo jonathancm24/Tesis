@@ -222,6 +222,7 @@
             <select 
               id="tipoDocumentoRep" 
               v-model="form.tipoDocumentoRep"
+              :class="{ error: errors.tipoDocumentoRep }"
             >
               <option value="">Seleccionar...</option>
               <option 
@@ -232,6 +233,7 @@
                 {{ label }}
               </option>
             </select>
+            <span v-if="errors.tipoDocumentoRep" class="error-text">{{ errors.tipoDocumentoRep }}</span>
           </div>
           
           <div class="form-group">
@@ -408,7 +410,15 @@ const validateForm = (): boolean => {
   if (!form.fechaNacimiento) newErrors.fechaNacimiento = 'La fecha de nacimiento es requerida'
   if (!form.tipoDocumento) newErrors.tipoDocumento = 'El tipo de documento es requerido'
   if (!form.numeroDocumento.trim()) newErrors.numeroDocumento = 'El número de documento es requerido'
-  if (!form.parroquiaId) newErrors.parroquiaId = 'La parroquia es requerida'
+  if (!form.parroquiaId || form.parroquiaId === 0) newErrors.parroquiaId = 'La parroquia es requerida'
+
+  // Validación del documento principal (siempre validar)
+  if (form.numeroDocumento) {
+    validateDocument()
+    if (errors.numeroDocumento) {
+      newErrors.numeroDocumento = errors.numeroDocumento
+    }
+  }
 
   // Validación del email si se proporciona
   if (form.email && !/\S+@\S+\.\S+/.test(form.email)) {
@@ -426,28 +436,34 @@ const validateForm = (): boolean => {
   }
 
   // Validación del documento del representante si se proporciona
-  if (form.representante && form.numeroDocumentoRep && form.tipoDocumentoRep) {
-    switch (form.tipoDocumentoRep) {
-      case TipoDocumentoRepresentante.CEDULA:
-        if (!validateCedula(form.numeroDocumentoRep)) {
-          newErrors.numeroDocumentoRep = 'Cédula del representante inválida'
-        }
-        break
-      case TipoDocumentoRepresentante.RUC:
-        if (!validateRUC(form.numeroDocumentoRep)) {
-          newErrors.numeroDocumentoRep = 'RUC del representante inválido'
-        }
-        break
-      case TipoDocumentoRepresentante.PASAPORTE:
-        if (form.numeroDocumentoRep.length < 6 || form.numeroDocumentoRep.length > 20) {
-          newErrors.numeroDocumentoRep = 'El pasaporte debe tener entre 6 y 20 caracteres'
-        }
-        break
-      case TipoDocumentoRepresentante.OTRO:
-        if (form.numeroDocumentoRep.length < 5) {
-          newErrors.numeroDocumentoRep = 'El documento debe tener al menos 5 caracteres'
-        }
-        break
+  if (form.representante && form.numeroDocumentoRep) {
+    // Si hay representante y número de documento, el tipo es requerido
+    if (!form.tipoDocumentoRep) {
+      newErrors.tipoDocumentoRep = 'El tipo de documento del representante es requerido'
+    } else {
+      // Validar según el tipo
+      switch (form.tipoDocumentoRep) {
+        case TipoDocumentoRepresentante.CEDULA:
+          if (!validateCedula(form.numeroDocumentoRep)) {
+            newErrors.numeroDocumentoRep = 'Cédula del representante inválida'
+          }
+          break
+        case TipoDocumentoRepresentante.RUC:
+          if (!validateRUC(form.numeroDocumentoRep)) {
+            newErrors.numeroDocumentoRep = 'RUC del representante inválido'
+          }
+          break
+        case TipoDocumentoRepresentante.PASAPORTE:
+          if (form.numeroDocumentoRep.length < 6 || form.numeroDocumentoRep.length > 20) {
+            newErrors.numeroDocumentoRep = 'El pasaporte debe tener entre 6 y 20 caracteres'
+          }
+          break
+        case TipoDocumentoRepresentante.OTRO:
+          if (form.numeroDocumentoRep.length < 5) {
+            newErrors.numeroDocumentoRep = 'El documento debe tener al menos 5 caracteres'
+          }
+          break
+      }
     }
   }
 
@@ -499,12 +515,20 @@ watch(() => form.tipoDocumento, () => {
   }
 })
 
+watch(() => form.tipoDocumentoRep, () => {
+  clearError('numeroDocumentoRep')
+  clearError('tipoDocumentoRep')
+})
+
 watch(() => form.representante, (newValue) => {
   if (!newValue) {
     form.tipoDocumentoRep = undefined
     form.numeroDocumentoRep = ''
     form.relacionRep = ''
     form.telefonoRep = ''
+    clearError('tipoDocumentoRep')
+    clearError('numeroDocumentoRep')
+    clearError('telefonoRep')
   }
 })
 </script>
