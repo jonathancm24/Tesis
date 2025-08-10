@@ -1,250 +1,244 @@
 <!-- src/components/admin/UserForm.vue -->
 <template>
-  <form @submit.prevent="onSave" class="row g-3 needs-validation" novalidate>
+  <form @submit.prevent="onSubmit" class="row g-3">
     <!-- Nombre -->
     <div class="col-12 col-md-6">
-      <label for="nombre" class="form-label">
-        <i class="fas fa-user me-1"></i> Nombre *
-      </label>
-      <input
-        id="nombre"
-        v-model="local.nombre"
-        type="text"
-        class="form-control"
-        placeholder="Ingrese nombre"
-        required
-      />
-      <div class="invalid-feedback">
-        El nombre es obligatorio.
-      </div>
+      <FormField
+        label="Nombre"
+        :error="getFieldError('nombre')"
+        :required="true"
+      >
+        <input
+          v-model="local.nombre"
+          type="text"
+          :class="getFieldClass('nombre')"
+          placeholder="Ingrese nombre"
+          @blur="validateField('nombre', local.nombre, nameRules)"
+        />
+      </FormField>
     </div>
 
     <!-- Apellido -->
     <div class="col-12 col-md-6">
-      <label for="apellido" class="form-label">
-        <i class="fas fa-user me-1"></i> Apellido *
-      </label>
-      <input
-        id="apellido"
-        v-model="local.apellido"
-        type="text"
-        class="form-control"
-        placeholder="Ingrese apellido"
-        required
-      />
-      <div class="invalid-feedback">
-        El apellido es obligatorio.
-      </div>
+      <FormField
+        label="Apellido"
+        :error="getFieldError('apellido')"
+        :required="true"
+      >
+        <input
+          v-model="local.apellido"
+          type="text"
+          :class="getFieldClass('apellido')"
+          placeholder="Ingrese apellido"
+          @blur="validateField('apellido', local.apellido, nameRules)"
+        />
+      </FormField>
     </div>
 
     <!-- Email -->
     <div class="col-12 col-md-6">
-      <label for="email" class="form-label">
-        <i class="fas fa-envelope me-1"></i> Email *
-      </label>
-      <input
-        id="email"
-        v-model="local.email"
-        type="email"
-        class="form-control"
-        placeholder="usuario@dominio.com"
-        required
-      />
-      <div class="invalid-feedback">
-        Por favor introduce un email válido.
-      </div>
+      <FormField
+        label="Email"
+        :error="getFieldError('email')"
+        :isValidating="asyncValidating.email"
+        :required="true"
+      >
+        <input
+          v-model="local.email"
+          type="email"
+          :class="getFieldClass('email')"
+          placeholder="usuario@dominio.com"
+          @input="onEmailInput"
+          @blur="validateField('email', local.email, emailRules)"
+        />
+      </FormField>
     </div>
 
     <!-- Tipo de Documento -->
     <div class="col-12 col-md-6">
-      <label for="tipoDocumento" class="form-label">
-        <i class="fas fa-id-card me-1"></i> Tipo de Documento *
-      </label>
-      <select
-        id="tipoDocumento"
-        v-model="local.tipoDocumento"
-        class="form-select"
-        required
+      <FormField
+        label="Tipo de Documento"
+        :error="getFieldError('tipoDocumento')"
+        :required="true"
       >
-        <option value="">Seleccione tipo...</option>
-        <option value="CEDULA">Cédula Ecuatoriana</option>
-        <option value="PASAPORTE">Pasaporte</option>
-        <option value="RUC">RUC</option>
-        <option value="OTRO">Otro Documento</option>
-      </select>
-      <div class="invalid-feedback">
-        El tipo de documento es obligatorio.
-      </div>
+        <select
+          v-model="local.tipoDocumento"
+          :class="getFieldClass('tipoDocumento')"
+          @change="onDocumentTypeChange"
+          @blur="validateField('tipoDocumento', local.tipoDocumento, documentTypeRules)"
+        >
+          <option value="">Seleccione tipo...</option>
+          <option value="CEDULA">Cédula Ecuatoriana</option>
+          <option value="PASAPORTE">Pasaporte</option>
+          <option value="RUC">RUC</option>
+          <option value="OTRO">Otro Documento</option>
+        </select>
+      </FormField>
     </div>
 
     <!-- Número de Documento -->
     <div class="col-12 col-md-6">
-      <label for="numeroDocumento" class="form-label">
-        <i class="fas fa-id-card me-1"></i> {{ getDocumentoLabel(local.tipoDocumento) }} *
-      </label>
-      <input
-        id="numeroDocumento"
-        v-model="local.numeroDocumento"
-        type="text"
-        class="form-control"
-        :placeholder="getDocumentoPlaceholder(local.tipoDocumento)"
-        required
-      />
-      <div class="invalid-feedback">
-        {{ getDocumentoError(local.tipoDocumento) }}
-      </div>
+      <FormField
+        :label="getDocumentoLabel(local.tipoDocumento)"
+        :error="getFieldError('numeroDocumento')"
+        :isValidating="asyncValidating.numeroDocumento"
+        :required="true"
+      >
+        <input
+          v-model="local.numeroDocumento"
+          type="text"
+          :class="getFieldClass('numeroDocumento')"
+          :placeholder="getDocumentoPlaceholder(local.tipoDocumento)"
+          @input="onDocumentInput"
+          @blur="validateField('numeroDocumento', local.numeroDocumento, getDocumentRules())"
+        />
+      </FormField>
     </div>
 
     <!-- Fecha de Nacimiento -->
     <div class="col-12 col-md-6">
-      <label for="fechaNacimiento" class="form-label">
-        <i class="fas fa-calendar me-1"></i> Fecha de Nacimiento *
-      </label>
-      <input
-        id="fechaNacimiento"
-        v-model="local.fechaNacimiento"
-        type="date"
-        class="form-control"
-        required
-      />
-      <div class="invalid-feedback">
-        La fecha de nacimiento es obligatoria.
-      </div>
+      <FormField
+        label="Fecha de Nacimiento"
+        :error="getFieldError('fechaNacimiento')"
+        :required="true"
+      >
+        <input
+          v-model="local.fechaNacimiento"
+          type="date"
+          :class="getFieldClass('fechaNacimiento')"
+          @blur="validateField('fechaNacimiento', local.fechaNacimiento, dateRules)"
+        />
+      </FormField>
     </div>
 
     <!-- Contraseña -->
     <div class="col-12 col-md-6">
-      <label for="password" class="form-label">
-        <i class="fas fa-lock me-1"></i> Contraseña *
-      </label>
-      <input
-        id="password"
-        v-model="local.password"
-        type="password"
-        class="form-control"
-        placeholder="Mínimo 6 caracteres"
+      <FormField
+        label="Contraseña"
+        :error="getFieldError('password')"
         :required="!editMode"
-      />
-      <div class="invalid-feedback">
-        La contraseña debe tener al menos 6 caracteres.
-      </div>
-      <div v-if="editMode" class="form-text">
-        Deja en blanco para mantener la contraseña actual.
-      </div>
+        :helpText="editMode ? 'Deja en blanco para mantener la contraseña actual.' : ''"
+      >
+        <input
+          v-model="local.password"
+          type="password"
+          :class="getFieldClass('password')"
+          placeholder="Mínimo 6 caracteres"
+          @blur="validateField('password', local.password, getPasswordRules())"
+        />
+      </FormField>
     </div>
 
     <!-- Rol -->
     <div class="col-12 col-md-6">
-      <label for="role" class="form-label">
-        <i class="fas fa-user-tag me-1"></i> Rol *
-      </label>
-      <select
-        id="role"
-        v-model="local.role"
-        class="form-select"
-        :disabled="loadingRoles"
-        required
+      <FormField
+        label="Rol"
+        :error="getFieldError('role')"
+        :required="true"
       >
-        <option disabled value="">
-          {{ loadingRoles ? 'Cargando roles...' : 'Selecciona...' }}
-        </option>
-        <option 
-          v-for="role in availableRoles" 
-          :key="role.id"
-          :value="mapRoleNameToFrontend(role.nombre)"
+        <select
+          v-model="local.role"
+          :class="getFieldClass('role')"
+          @blur="validateField('role', local.role, roleRules)"
+          :disabled="loadingRoles"
         >
-          {{ getRoleLabel(role.nombre) }}
-        </option>
-      </select>
-      <div class="invalid-feedback">
-        Debes seleccionar un rol.
-      </div>
+          <option value="">Seleccione rol...</option>
+          <option 
+            v-for="role in availableRoles" 
+            :key="role.id" 
+            :value="mapRoleNameToFrontend(role.nombre)"
+          >
+            {{ getRoleLabel(role.nombre) }}
+          </option>
+        </select>
+        <div v-if="loadingRoles" class="form-text">
+          <i class="fas fa-spinner fa-spin me-1"></i> Cargando roles...
+        </div>
+      </FormField>
     </div>
 
     <!-- Parroquia -->
     <div class="col-12">
-      <AutocompleteParroquia
-        v-model="local.parroquiaId"
+      <FormField
         label="Parroquia"
-        placeholder="Buscar por nombre de parroquia o ciudad (ej: Manta, Quito, Guayaquil...)"
-        required
-        input-id="parroquia"
-        @change="onParroquiaChange"
-      />
+        :error="getFieldError('parroquiaId')"
+        :required="true"
+      >
+        <AutocompleteParroquia
+          :modelValue="local.parroquiaId"
+          @update:modelValue="(id) => local.parroquiaId = id || 0"
+          @change="onParroquiaChange"
+        />
+      </FormField>
     </div>
 
-    <!-- Especialidades (Selección múltiple) -->
-    <div class="col-12">
-      <label for="especialidades" class="form-label">
-        <i class="fas fa-stethoscope me-1"></i> Especialidades
-      </label>
-      <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
-        <div class="form-text mb-2">
-          Selecciona una o más especialidades (opcional para algunos roles)
-        </div>
-        <div v-if="loadingEspecialidades" class="text-center">
-          <div class="spinner-border spinner-border-sm" role="status"></div>
-          <span class="ms-2">Cargando especialidades...</span>
-        </div>
-        <div v-else class="row">
-          <div 
-            v-for="especialidad in availableEspecialidades" 
-            :key="especialidad.id"
-            class="col-12 col-md-6 mb-2"
-          >
-            <div class="form-check">
+    <!-- Especialidades (Solo para profesores) -->
+    <div v-if="local.role === 'profesor'" class="col-12">
+      <FormField
+        label="Especialidades"
+        :error="getFieldError('especialidadIds')"
+        :required="false"
+      >
+        <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+          <div v-if="loadingEspecialidades" class="text-center">
+            <i class="fas fa-spinner fa-spin me-1"></i> Cargando especialidades...
+          </div>
+          <div v-else-if="!availableEspecialidades.length" class="text-muted">
+            No hay especialidades disponibles
+          </div>
+          <div v-else class="form-check-group">
+            <div
+              v-for="esp in availableEspecialidades"
+              :key="esp.id"
+              class="form-check"
+            >
               <input
-                :id="`esp-${especialidad.id}`"
+                :id="`esp-${esp.id}`"
                 v-model="local.especialidadIds"
-                class="form-check-input"
                 type="checkbox"
-                :value="especialidad.id"
+                class="form-check-input"
+                :value="esp.id"
               />
-              <label 
-                :for="`esp-${especialidad.id}`" 
-                class="form-check-label"
-              >
-                {{ especialidad.nombre }}
-                <!--
-                <small v-if="especialidad.descripcion" class="text-muted d-block">
-                  {{ especialidad.descripcion }}
+              <label :for="`esp-${esp.id}`" class="form-check-label">
+                {{ esp.nombre }}
+                <small v-if="esp.descripcion" class="text-muted d-block">
+                  {{ esp.descripcion }}
                 </small>
-                -->
               </label>
             </div>
           </div>
         </div>
-      </div>
+      </FormField>
     </div>
 
     <!-- Notas Adicionales -->
     <div class="col-12">
-      <label for="notasAdicionales" class="form-label">
-        <i class="fas fa-sticky-note me-1"></i> Notas Adicionales
-      </label>
-      <textarea
-        id="notasAdicionales"
-        v-model="local.NotasAdicionales"
-        class="form-control"
-        rows="3"
-        placeholder="Observaciones o notas adicionales sobre el usuario..."
-      ></textarea>
-      <div class="form-text">
-        Campo opcional para información adicional.
-      </div>
+      <FormField
+        label="Notas Adicionales"
+        :error="getFieldError('NotasAdicionales')"
+        :required="false"
+        helpText="Observaciones o notas adicionales sobre el usuario..."
+      >
+        <textarea
+          v-model="local.NotasAdicionales"
+          :class="getFieldClass('NotasAdicionales')"
+          rows="3"
+          placeholder="Observaciones o notas adicionales sobre el usuario..."
+        ></textarea>
+      </FormField>
     </div>
 
-    <!-- Activo (switch) -->
+    <!-- Activo -->
     <div class="col-12">
       <div class="form-check form-switch">
         <input
           id="activo"
           v-model="local.activo"
-          class="form-check-input"
           type="checkbox"
+          class="form-check-input"
         />
-        <label class="form-check-label" for="activo">
-          <i class="fas fa-toggle-on me-1"></i> Usuario Activo
+        <label for="activo" class="form-check-label">
+          Usuario activo
         </label>
       </div>
     </div>
@@ -253,14 +247,26 @@
     <div class="col-12 d-flex justify-content-end mt-4">
       <button
         type="button"
-        class="btn btn-outline-secondary me-2"
+        class="btn btn-secondary me-2"
         @click="$emit('cancel')"
+        :disabled="isSubmitting"
       >
-        <i class="fas fa-times me-1"></i> Cancelar
+        Cancelar
       </button>
-      <button type="submit" class="btn btn-primary">
-        <i :class="editMode ? 'fas fa-save' : 'fas fa-user-plus'" class="me-1"></i>
-        {{ editMode ? 'Actualizar' : 'Crear' }}
+      <button 
+        type="submit" 
+        class="btn btn-primary"
+        :disabled="isSubmitting || isValidatingAsync || hasErrors"
+      >
+        <span v-if="isSubmitting">
+          <i class="fas fa-spinner fa-spin me-1"></i> Guardando...
+        </span>
+        <span v-else-if="isValidatingAsync">
+          <i class="fas fa-spinner fa-spin me-1"></i> Validando...
+        </span>
+        <span v-else>
+          {{ editMode ? 'Actualizar' : 'Crear' }} Usuario
+        </span>
       </button>
     </div>
   </form>
@@ -269,8 +275,12 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import type { FormUser, UserRole, Role, Especialidad, Parroquia } from '@/types/user'
+import type { ValidationRule } from '@/utils/formValidation'
 import { userService } from '@/services/userService'
-import AutocompleteParroquia from '@/components/common/AutocompleteParroquia.vue' // ✅ IMPORTAR
+import { useFormValidation } from '@/composables/useFormValidation'
+import { useAsyncValidation } from '@/services/validationService'
+import FormField from '@/components/common/FormField.vue'
+import AutocompleteParroquia from '@/components/common/AutocompleteParroquia.vue'
 
 interface Props {
   modelValue: Partial<FormUser>
@@ -291,6 +301,30 @@ const availableEspecialidades = ref<Especialidad[]>([])
 const loadingRoles = ref(false)
 const loadingEspecialidades = ref(false)
 
+// Sistema de validación
+const {
+  isSubmitting,
+  fieldErrors,
+  hasErrors,
+  asyncValidating,
+  isValidatingAsync,
+  validateField,
+  getFirstFieldError,
+  getFieldClass,
+  clearFieldError,
+  handleApiError
+} = useFormValidation({
+  asyncDebounceMs: 500
+})
+
+const { validateUnique } = useAsyncValidation()
+
+// Helper para convertir null a undefined para compatibilidad con FormField
+const getFieldError = (fieldName: string): string | undefined => {
+  const error = getFirstFieldError(fieldName)
+  return error === null ? undefined : error
+}
+
 // Formulario local
 const local = ref<FormUser>({
   id: props.modelValue.id,
@@ -308,6 +342,79 @@ const local = ref<FormUser>({
   parroquiaId: props.modelValue.parroquiaId ?? 0,
   activo: props.modelValue.activo ?? true
 })
+
+// Reglas de validación
+const nameRules: ValidationRule[] = [
+  { type: 'required', message: 'Este campo es obligatorio' },
+  { type: 'minLength', value: 2, message: 'Debe tener al menos 2 caracteres' },
+  { type: 'maxLength', value: 50, message: 'No puede tener más de 50 caracteres' }
+]
+
+const emailRules: ValidationRule[] = [
+  { type: 'required', message: 'El email es obligatorio' },
+  { type: 'email', message: 'Debe ser un email válido' }
+]
+
+const documentTypeRules: ValidationRule[] = [
+  { type: 'required', message: 'Debe seleccionar un tipo de documento' }
+]
+
+const dateRules: ValidationRule[] = [
+  { type: 'required', message: 'La fecha de nacimiento es obligatoria' },
+  { type: 'date', message: 'Debe ser una fecha válida' }
+]
+
+const roleRules: ValidationRule[] = [
+  { type: 'required', message: 'Debe seleccionar un rol' }
+]
+
+// Reglas dinámicas
+const getDocumentRules = (): ValidationRule[] => {
+  const baseRules: ValidationRule[] = [
+    { type: 'required', message: 'El número de documento es obligatorio' }
+  ]
+
+  switch (local.value.tipoDocumento) {
+    case 'CEDULA':
+      baseRules.push(
+        { type: 'minLength', value: 10, message: 'La cédula debe tener 10 dígitos' },
+        { type: 'maxLength', value: 10, message: 'La cédula debe tener 10 dígitos' },
+        { type: 'pattern', value: /^\d{10}$/, message: 'La cédula debe contener solo números' }
+      )
+      break
+    case 'PASAPORTE':
+      baseRules.push(
+        { type: 'minLength', value: 6, message: 'El pasaporte debe tener al menos 6 caracteres' },
+        { type: 'maxLength', value: 15, message: 'El pasaporte no puede tener más de 15 caracteres' }
+      )
+      break
+    case 'RUC':
+      baseRules.push(
+        { type: 'minLength', value: 13, message: 'El RUC debe tener 13 dígitos' },
+        { type: 'maxLength', value: 13, message: 'El RUC debe tener 13 dígitos' },
+        { type: 'pattern', value: /^\d{13}$/, message: 'El RUC debe contener solo números' }
+      )
+      break
+    default:
+      baseRules.push(
+        { type: 'minLength', value: 5, message: 'El documento debe tener al menos 5 caracteres' },
+        { type: 'maxLength', value: 20, message: 'El documento no puede tener más de 20 caracteres' }
+      )
+  }
+
+  return baseRules
+}
+
+const getPasswordRules = (): ValidationRule[] => {
+  if (props.editMode && !local.value.password) {
+    return [] // No validar si estamos editando y la contraseña está vacía
+  }
+  
+  return [
+    { type: 'required', message: 'La contraseña es obligatoria' },
+    { type: 'minLength', value: 6, message: 'La contraseña debe tener al menos 6 caracteres' }
+  ]
+}
 
 // Cargar datos al montar el componente
 onMounted(async () => {
@@ -351,6 +458,64 @@ async function loadEspecialidades() {
   } finally {
     loadingEspecialidades.value = false
   }
+}
+
+// Validaciones asíncronas con debounce
+const onEmailInput = async () => {
+  if (local.value.email && local.value.email.includes('@')) {
+    asyncValidating.value.email = true
+    
+    try {
+      const isUnique = await validateUnique(
+        local.value.email,
+        'email',
+        { excludeId: local.value.id }
+      )
+      
+      if (!isUnique) {
+        fieldErrors.email = ['Ya existe un usuario registrado con este email']
+      } else {
+        clearFieldError('email')
+      }
+    } catch (error) {
+      console.error('Error validating email:', error)
+    } finally {
+      asyncValidating.value.email = false
+    }
+  }
+}
+
+const onDocumentInput = async () => {
+  if (local.value.numeroDocumento && local.value.tipoDocumento) {
+    asyncValidating.value.numeroDocumento = true
+    
+    try {
+      const isUnique = await validateUnique(
+        local.value.numeroDocumento,
+        'document',
+        { 
+          tipoDocumento: local.value.tipoDocumento,
+          excludeId: local.value.id 
+        }
+      )
+      
+      if (!isUnique) {
+        fieldErrors.numeroDocumento = [`Ya existe un usuario registrado con este ${local.value.tipoDocumento.toLowerCase()}`]
+      } else {
+        clearFieldError('numeroDocumento')
+      }
+    } catch (error) {
+      console.error('Error validating document:', error)
+    } finally {
+      asyncValidating.value.numeroDocumento = false
+    }
+  }
+}
+
+const onDocumentTypeChange = () => {
+  // Limpiar validación del número de documento al cambiar tipo
+  clearFieldError('numeroDocumento')
+  local.value.numeroDocumento = ''
 }
 
 // Funciones de mapeo
@@ -398,23 +563,65 @@ watch(() => props.modelValue, (newValue) => {
   }
 }, { immediate: true })
 
-async function onSave() {
-  // Obtener el roleId correspondiente al rol seleccionado
-  const selectedRole = availableRoles.value.find(r => 
-    mapRoleNameToFrontend(r.nombre) === local.value.role
-  )
-  
-  const userData = {
-    ...local.value,
-    roleId: selectedRole?.id || 3
+async function onSubmit() {
+  // Primero validar todos los campos
+  const fieldsToValidate = [
+    { field: 'nombre', value: local.value.nombre, rules: nameRules },
+    { field: 'apellido', value: local.value.apellido, rules: nameRules },
+    { field: 'email', value: local.value.email, rules: emailRules },
+    { field: 'tipoDocumento', value: local.value.tipoDocumento, rules: documentTypeRules },
+    { field: 'numeroDocumento', value: local.value.numeroDocumento, rules: getDocumentRules() },
+    { field: 'fechaNacimiento', value: local.value.fechaNacimiento, rules: dateRules },
+    { field: 'password', value: local.value.password, rules: getPasswordRules() },
+    { field: 'role', value: local.value.role, rules: roleRules }
+  ]
+
+  // Validar todos los campos
+  let hasValidationErrors = false
+  for (const { field, value, rules } of fieldsToValidate) {
+    const isValid = await validateField(field, value, rules)
+    if (!isValid) {
+      hasValidationErrors = true
+    }
   }
-  
-  emit('save', userData)
+
+  // Validaciones asíncronas adicionales
+  await onEmailInput()
+  await onDocumentInput()
+
+  // Verificar si hay errores después de todas las validaciones
+  if (hasValidationErrors || hasErrors.value) {
+    console.log('Formulario tiene errores, no se puede enviar')
+    return
+  }
+
+  isSubmitting.value = true
+
+  try {
+    // Obtener el roleId correspondiente al rol seleccionado
+    const selectedRole = availableRoles.value.find(r => 
+      mapRoleNameToFrontend(r.nombre) === local.value.role
+    )
+    
+    const userData = {
+      ...local.value,
+      roleId: selectedRole?.id || 3,
+      parroquiaId: local.value.parroquiaId
+    }
+    
+    console.log('Enviando datos del usuario:', userData)
+    emit('save', userData)
+  } catch (error: any) {
+    console.error('Error al enviar formulario:', error)
+    handleApiError(error)
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
 function onParroquiaChange(parroquia: Parroquia | null) {
+  local.value.parroquiaId = parroquia?.id || 0
   console.log('Parroquia seleccionada:', parroquia)
-  // Aquí puedes hacer validaciones adicionales si es necesario
 }
 
 // Funciones helper para tipos de documento
@@ -433,15 +640,6 @@ function getDocumentoPlaceholder(tipo: string): string {
     case 'PASAPORTE': return 'A12345678'
     case 'RUC': return '1234567890001'
     default: return 'Ingrese documento'
-  }
-}
-
-function getDocumentoError(tipo: string): string {
-  switch (tipo) {
-    case 'CEDULA': return 'La cédula debe tener 10 dígitos'
-    case 'PASAPORTE': return 'Formato de pasaporte inválido'
-    case 'RUC': return 'El RUC debe tener 13 dígitos'
-    default: return 'El documento debe tener entre 5 y 20 caracteres'
   }
 }
 </script>

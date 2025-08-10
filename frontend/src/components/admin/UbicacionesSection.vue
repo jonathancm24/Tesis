@@ -562,7 +562,7 @@ import type {
   CreateProvinciaDTO,
   CreateCantonDTO,
   CreateParroquiaDTO
-} from '@/types/baseData'
+} from '../../types/baseData'
 
 // Props del componente
 interface Props {

@@ -89,8 +89,8 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { pacienteService } from '@/services/pacienteService'
-import type { Parroquia } from '@/types/patient'
+import { pacienteService } from '../../services/pacienteService'
+import type { Parroquia } from '../../types/patient'
 // Props y Emits definidos
 interface Props {
   modelValue?: number | null
