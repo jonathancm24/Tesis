@@ -1,6 +1,6 @@
 <!-- src/views/student/MessagesView.vue -->
 <template>
-  <div class="container-fluid p-4">
+  <div class="container-fluid p-4 messages-view">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
@@ -8,12 +8,14 @@
         <p class="text-muted">Comunicación con profesores y administración</p>
       </div>
       <button 
-        class="btn btn-primary" 
+        class="btn btn-primary btn-icon-text" 
         data-bs-toggle="modal" 
         data-bs-target="#modalNuevoMensaje"
         @click="nuevoMensaje"
+        aria-label="Crear nuevo mensaje"
       >
-        <i class="fas fa-plus me-2"></i>Nuevo Mensaje
+        <i class="fas fa-plus me-2" aria-hidden="true"></i>
+        <span>Nuevo Mensaje</span>
       </button>
     </div>
 
@@ -24,22 +26,31 @@
           <div class="card-header d-flex justify-content-between align-items-center">
             <h6 class="card-title mb-0">Conversaciones</h6>
             <div class="dropdown">
-              <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
-                <i class="fas fa-filter"></i>
+              <button class="btn btn-sm btn-outline-secondary btn-icon-text" data-bs-toggle="dropdown" aria-label="Filtrar conversaciones">
+                <i class="fas fa-filter me-2" aria-hidden="true"></i>
+                <span>Filtrar</span>
               </button>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#" @click="filtroConversacion = ''">
-                  <i class="fas fa-inbox me-2"></i>Todas
-                </a></li>
-                <li><a class="dropdown-item" href="#" @click="filtroConversacion = 'no_leido'">
-                  <i class="fas fa-envelope me-2"></i>No leídos
-                </a></li>
-                <li><a class="dropdown-item" href="#" @click="filtroConversacion = 'importante'">
-                  <i class="fas fa-star me-2"></i>Importantes
-                </a></li>
-                <li><a class="dropdown-item" href="#" @click="filtroConversacion = 'archivado'">
-                  <i class="fas fa-archive me-2"></i>Archivados
-                </a></li>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item" href="#" @click.prevent="filtroConversacion = ''">
+                    <i class="fas fa-inbox me-2"></i>Todas
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#" @click.prevent="filtroConversacion = 'no_leido'">
+                    <i class="fas fa-envelope me-2"></i>No leídos
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#" @click.prevent="filtroConversacion = 'importante'">
+                    <i class="fas fa-star me-2"></i>Importantes
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#" @click.prevent="filtroConversacion = 'archivado'">
+                    <i class="fas fa-archive me-2"></i>Archivados
+                  </a>
+                </li>
               </ul>
             </div>
           </div>
@@ -51,9 +62,11 @@
                 type="text" 
                 class="form-control" 
                 placeholder="Buscar conversaciones..."
+                aria-label="Buscar conversaciones"
               >
-              <button class="btn btn-outline-secondary" type="button">
-                <i class="fas fa-search"></i>
+              <button class="btn btn-outline-secondary btn-icon-text" type="button" @click="forzarBusqueda">
+                <i class="fas fa-search me-2" aria-hidden="true"></i>
+                <span>Buscar</span>
               </button>
             </div>
 
@@ -67,11 +80,13 @@
                   'unread': !conversacion.leido 
                 }"
                 @click="seleccionarConversacion(conversacion)"
+                role="button"
+                :aria-label="`Abrir conversación con ${conversacion.participante}`"
               >
                 <div class="d-flex align-items-start p-3">
                   <div class="avatar-container me-3">
                     <div class="avatar">
-                      <i class="fas fa-user"></i>
+                      <i class="fas fa-user" aria-hidden="true"></i>
                     </div>
                     <div v-if="!conversacion.leido" class="unread-indicator"></div>
                   </div>
@@ -87,7 +102,7 @@
                         {{ conversacion.ultimoMensaje.contenido }}
                       </p>
                       <div class="conversation-badges">
-                        <i v-if="conversacion.importante" class="fas fa-star text-warning"></i>
+                        <i v-if="conversacion.importante" class="fas fa-star text-warning" aria-label="Importante"></i>
                         <span v-if="conversacion.mensajesNoLeidos > 0" class="badge bg-primary rounded-pill">
                           {{ conversacion.mensajesNoLeidos }}
                         </span>
@@ -98,7 +113,7 @@
               </div>
 
               <div v-if="conversacionesFiltradas.length === 0" class="text-center p-4">
-                <i class="fas fa-comments fa-2x text-muted mb-2"></i>
+                <i class="fas fa-comments fa-2x text-muted mb-2" aria-hidden="true"></i>
                 <p class="text-muted">No hay conversaciones</p>
               </div>
             </div>
@@ -113,7 +128,7 @@
           <div v-if="conversacionSeleccionada" class="card-header d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
               <div class="avatar me-3">
-                <i class="fas fa-user"></i>
+                <i class="fas fa-user" aria-hidden="true"></i>
               </div>
               <div>
                 <h6 class="mb-0">{{ conversacionSeleccionada.participante }}</h6>
@@ -122,35 +137,44 @@
             </div>
             
             <div class="conversation-actions">
-              <div class="btn-group" role="group">
+              <div class="btn-group" role="group" aria-label="Acciones de conversación">
                 <button 
-                  class="btn btn-outline-secondary btn-sm"
+                  class="btn btn-outline-secondary btn-sm btn-icon-text"
                   @click="marcarImportante(conversacionSeleccionada)"
                   :class="{ active: conversacionSeleccionada.importante }"
                 >
-                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star me-2" aria-hidden="true"></i>
+                  <span>Importante</span>
                 </button>
                 <button 
-                  class="btn btn-outline-secondary btn-sm"
+                  class="btn btn-outline-secondary btn-sm btn-icon-text"
                   @click="archivarConversacion(conversacionSeleccionada)"
                 >
-                  <i class="fas fa-archive"></i>
+                  <i class="fas fa-archive me-2" aria-hidden="true"></i>
+                  <span>Archivar</span>
                 </button>
                 <div class="dropdown">
-                  <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="dropdown">
-                    <i class="fas fa-ellipsis-v"></i>
+                  <button class="btn btn-outline-secondary btn-sm btn-icon-text" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v me-2" aria-hidden="true"></i>
+                    <span>Más</span>
                   </button>
-                  <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#" @click="marcarComoLeido(conversacionSeleccionada)">
-                      <i class="fas fa-check me-2"></i>Marcar como leído
-                    </a></li>
-                    <li><a class="dropdown-item" href="#" @click="silenciarConversacion(conversacionSeleccionada)">
-                      <i class="fas fa-bell-slash me-2"></i>Silenciar
-                    </a></li>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#" @click.prevent="marcarComoLeido(conversacionSeleccionada)">
+                        <i class="fas fa-check me-2"></i>Marcar como leído
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="#" @click.prevent="silenciarConversacion(conversacionSeleccionada)">
+                        <i class="fas fa-bell-slash me-2"></i>Silenciar
+                      </a>
+                    </li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-danger" href="#" @click="eliminarConversacion(conversacionSeleccionada)">
-                      <i class="fas fa-trash me-2"></i>Eliminar
-                    </a></li>
+                    <li>
+                      <a class="dropdown-item text-danger" href="#" @click.prevent="eliminarConversacion(conversacionSeleccionada)">
+                        <i class="fas fa-trash me-2"></i>Eliminar
+                      </a>
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -160,7 +184,7 @@
           <!-- Área de mensajes -->
           <div class="card-body messages-container">
             <div v-if="!conversacionSeleccionada" class="d-flex flex-column align-items-center justify-content-center h-100 text-center">
-              <i class="fas fa-comments fa-4x text-muted mb-3"></i>
+              <i class="fas fa-comments fa-4x text-muted mb-3" aria-hidden="true"></i>
               <h5 class="text-muted">Selecciona una conversación</h5>
               <p class="text-muted">Elige una conversación del panel izquierdo para ver los mensajes</p>
             </div>
@@ -187,14 +211,14 @@
                         :key="archivo"
                         class="attachment-item"
                       >
-                        <i class="fas fa-paperclip me-1"></i>{{ archivo }}
+                        <i class="fas fa-paperclip me-1" aria-hidden="true"></i>{{ archivo }}
                       </div>
                     </div>
                     <div class="message-meta">
                       <small class="text-muted">
                         {{ formatearHoraCompleta(mensaje.fecha) }}
-                        <i v-if="mensaje.esPropio && mensaje.leido" class="fas fa-check-double text-primary ms-1"></i>
-                        <i v-else-if="mensaje.esPropio" class="fas fa-check text-muted ms-1"></i>
+                        <i v-if="mensaje.esPropio && mensaje.leido" class="fas fa-check-double text-primary ms-1" aria-label="Leído"></i>
+                        <i v-else-if="mensaje.esPropio" class="fas fa-check text-muted ms-1" aria-label="Enviado"></i>
                       </small>
                     </div>
                   </div>
@@ -209,10 +233,11 @@
               <div class="input-group">
                 <button 
                   type="button" 
-                  class="btn btn-outline-secondary"
+                  class="btn btn-outline-secondary btn-icon-text"
                   @click="adjuntarArchivo"
                 >
-                  <i class="fas fa-paperclip"></i>
+                  <i class="fas fa-paperclip me-2" aria-hidden="true"></i>
+                  <span>Adjuntar</span>
                 </button>
                 <textarea 
                   v-model="nuevoMensajeTexto"
@@ -221,13 +246,15 @@
                   rows="1"
                   @keydown.enter.prevent="enviarMensaje"
                   @input="ajustarAlturaTextarea"
+                  aria-label="Escribir mensaje"
                 ></textarea>
                 <button 
                   type="submit" 
-                  class="btn btn-primary"
+                  class="btn btn-primary btn-icon-text"
                   :disabled="!nuevoMensajeTexto.trim()"
                 >
-                  <i class="fas fa-paper-plane"></i>
+                  <i class="fas fa-paper-plane me-2" aria-hidden="true"></i>
+                  <span>Enviar</span>
                 </button>
               </div>
               
@@ -238,11 +265,12 @@
                     :key="index"
                     class="badge bg-light text-dark d-flex align-items-center"
                   >
-                    <i class="fas fa-paperclip me-1"></i>{{ archivo }}
+                    <i class="fas fa-paperclip me-1" aria-hidden="true"></i>{{ archivo }}
                     <button 
                       type="button" 
                       class="btn-close btn-close-sm ms-2"
                       @click="removerArchivoAdjunto(index)"
+                      :aria-label="`Quitar archivo ${archivo}`"
                     ></button>
                   </span>
                 </div>
@@ -255,12 +283,12 @@
   </div>
 
   <!-- Modal Nuevo Mensaje -->
-  <div class="modal fade" id="modalNuevoMensaje" tabindex="-1">
+  <div class="modal fade" id="modalNuevoMensaje" tabindex="-1" aria-labelledby="modalNuevoMensajeLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Nuevo Mensaje</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <h5 id="modalNuevoMensajeLabel" class="modal-title">Nuevo Mensaje</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
         <div class="modal-body">
           <form @submit.prevent="enviarNuevoMensaje">
@@ -317,11 +345,12 @@
                   :key="index"
                   class="badge bg-light text-dark d-flex align-items-center"
                 >
-                  <i class="fas fa-paperclip me-1"></i>{{ archivo }}
+                  <i class="fas fa-paperclip me-1" aria-hidden="true"></i>{{ archivo }}
                   <button 
                     type="button" 
                     class="btn-close btn-close-sm ms-2"
                     @click="removerArchivoNuevoMensaje(index)"
+                    :aria-label="`Quitar archivo ${archivo}`"
                   ></button>
                 </span>
               </div>
@@ -329,9 +358,13 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-primary" @click="enviarNuevoMensaje">
-            <i class="fas fa-paper-plane me-2"></i>Enviar
+          <button type="button" class="btn btn-secondary btn-icon-text" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2" aria-hidden="true"></i>
+            <span>Cancelar</span>
+          </button>
+          <button type="button" class="btn btn-primary btn-icon-text" @click="enviarNuevoMensaje">
+            <i class="fas fa-paper-plane me-2" aria-hidden="true"></i>
+            <span>Enviar</span>
           </button>
         </div>
       </div>
@@ -530,7 +563,7 @@ const conversacionesFiltradas = computed(() => {
   }
 
   // Ordenar por fecha del último mensaje
-  return filtradas.sort((a, b) => 
+  return [...filtradas].sort((a, b) => 
     b.ultimoMensaje.fecha.getTime() - a.ultimoMensaje.fecha.getTime()
   );
 });
@@ -616,7 +649,7 @@ const seleccionarConversacion = (conversacion: Conversacion) => {
   nextTick(() => {
     const messagesContainer = document.querySelector('.messages-list');
     if (messagesContainer) {
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      (messagesContainer as HTMLElement).scrollTop = (messagesContainer as HTMLElement).scrollHeight;
     }
   });
 };
@@ -646,7 +679,7 @@ const enviarMensaje = () => {
   nextTick(() => {
     const messagesContainer = document.querySelector('.messages-list');
     if (messagesContainer) {
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      (messagesContainer as HTMLElement).scrollTop = (messagesContainer as HTMLElement).scrollHeight;
     }
   });
 };
@@ -711,7 +744,7 @@ const enviarNuevoMensaje = () => {
     conversaciones.value.push(conversacion);
   }
   
-  const nuevoMensaje: Mensaje = {
+  const nuevoMensajeObj: Mensaje = {
     id: Date.now(),
     contenido: `${formNuevoMensaje.value.asunto}\n\n${formNuevoMensaje.value.contenido}`,
     fecha: new Date(),
@@ -720,12 +753,13 @@ const enviarNuevoMensaje = () => {
     archivos: formNuevoMensaje.value.archivos.length > 0 ? [...formNuevoMensaje.value.archivos] : undefined
   };
   
-  conversacion.mensajes.push(nuevoMensaje);
+  conversacion.mensajes.push(nuevoMensajeObj);
   conversacion.ultimoMensaje = {
     contenido: formNuevoMensaje.value.contenido,
-    fecha: nuevoMensaje.fecha
+    fecha: nuevoMensajeObj.fecha
   };
   
+  // opcional: cerrar modal vía Bootstrap (si usas instancia)
   console.log('Nuevo mensaje enviado');
 };
 
@@ -787,12 +821,25 @@ const eliminarConversacion = (conversacion: Conversacion) => {
   }
 };
 
+const forzarBusqueda = () => {
+  // No hace nada más allá de reaccionar al v-model.
+  // Puedes colocar aquí un fetch a API si luego conectas backend.
+  console.log('Buscar:', busquedaConversacion.value);
+};
+
 onMounted(() => {
   console.log('Vista de mensajes cargada');
 });
 </script>
 
 <style scoped>
+/* ----- Mejora de accesibilidad visual y consistencia ----- */
+.messages-view .btn-icon-text i + span {
+  /* asegura espacio consistente cuando hay icono + texto */
+  vertical-align: middle;
+}
+
+/* Lista de conversaciones */
 .conversations-list {
   max-height: 500px;
   overflow-y: auto;
@@ -863,6 +910,7 @@ onMounted(() => {
   gap: 0.5rem;
 }
 
+/* Área de mensajes */
 .messages-container {
   height: 500px;
   display: flex;
@@ -956,6 +1004,7 @@ onMounted(() => {
   text-align: left;
 }
 
+/* Input de mensaje */
 .message-input-form {
   position: relative;
 }
@@ -983,4 +1032,12 @@ onMounted(() => {
   border-color: #ffc107;
   color: #000;
 }
+
+/* Ajustes de botones ícono + texto para que se vean bien en sm/xs también */
+.btn-icon-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 </style>

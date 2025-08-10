@@ -1,0 +1,220 @@
+/* =========================================================
+   ProfessorDashboard — Estilos completos (icono + nombre SIEMPRE visibles)
+   ========================================================= */
+
+/* -------- Layout -------- */
+.prof-dash {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.prof-dash .header-bar {
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: .5rem;
+}
+
+/* -------- Botones (icono + texto) -------- */
+/* Mantienen el nombre SIEMPRE visible; no se ocultan en móvil */
+.prof-dash .btn-icon-text {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;                  /* espacio entre icono y texto */
+  padding: .48rem .9rem;
+  border-radius: 10px;
+  font-weight: 600;
+  line-height: 1.1;
+  transition: transform .12s ease, box-shadow .15s ease, filter .15s ease;
+  white-space: nowrap;         /* evita corte del nombre */
+}
+
+.prof-dash .btn-icon-text i {
+  font-size: .95rem;
+}
+
+.prof-dash .btn-icon-text:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.10);
+}
+
+.prof-dash .btn-icon-text:active {
+  transform: translateY(0);
+  filter: brightness(.98);
+}
+
+/* Botón solo-ícono (usado en la columna Acciones) */
+.prof-dash .btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; height: 40px;
+  padding: 0;
+  border-radius: 10px;
+  line-height: 1;
+  transition: transform .12s ease, box-shadow .15s ease, filter .15s ease;
+}
+.prof-dash .btn-icon-sm {
+  width: 34px; height: 34px; border-radius: 8px;
+}
+.prof-dash .btn-icon:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.10);
+}
+.prof-dash .btn-icon i { font-size: .95rem; }
+
+/* -------- Tarjetas de estadísticas -------- */
+.prof-dash .stat-card {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.08);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.prof-dash .stat-card::after {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(120px 80px at 10% 10%, rgba(255,255,255,.22), transparent 55%),
+    radial-gradient(120px 80px at 90% 90%, rgba(0,0,0,.06), transparent 55%);
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+.prof-dash .stat-icon {
+  width: 48px; height: 48px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(255,255,255,.22);
+  font-size: 18px;
+  color: inherit;
+}
+.prof-dash .stat-main { display: grid; align-content: center; }
+.prof-dash .stat-number { font-weight: 800; font-size: 1.5rem; letter-spacing: .2px; }
+.prof-dash .stat-label { font-size: .9rem; opacity: .95; }
+
+/* -------- Tarjetas comunes -------- */
+.prof-dash .card-elev {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.08);
+}
+.prof-dash .card-elev .card-header {
+  background: #f8f9fa;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+@media (prefers-color-scheme: dark) {
+  .prof-dash .card-elev .card-header { background: rgba(255,255,255,.05); }
+}
+
+/* -------- Tabla -------- */
+.prof-dash .table-responsive {
+  overflow-x: auto;           /* importante en móvil */
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+.prof-dash table {
+  min-width: 860px;           /* evita que se “apriete” la tabla */
+}
+
+.prof-dash .sticky-thead th {
+  position: sticky; top: 0; z-index: 1;
+}
+
+.prof-dash .table thead th {
+  border-bottom: 1px solid rgba(0,0,0,.08);
+  color: #6c757d;
+  font-weight: 800;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  font-size: .9rem;
+}
+
+.prof-dash .table tbody td {
+  vertical-align: middle;
+  padding: .75rem .9rem;
+}
+
+.prof-dash .table-hover tbody tr { transition: background-color .12s ease; }
+.prof-dash .table-hover tbody tr:hover td {
+  background-color: color-mix(in srgb, #ffffff, var(--bs-primary) 8%);
+}
+@media (prefers-color-scheme: dark) {
+  .prof-dash .table-hover tbody tr:hover td {
+    background-color: color-mix(in srgb, #111827, #0d6efd 12%);
+  }
+}
+
+/* Grupo de acciones de la tabla */
+.prof-dash .action-group .btn {
+  /* se hereda .btn-icon/btn-icon-sm si las usas */
+  border-radius: 8px;
+}
+
+/* -------- Avatares pequeños -------- */
+.prof-dash .mini-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px;
+}
+
+/* -------- Timeline -------- */
+.prof-dash .timeline { position: relative; padding-left: 10px; }
+.prof-dash .timeline::before {
+  content: ""; position: absolute; left: 16px; top: 0; bottom: 0; width: 2px;
+  background: rgba(0,0,0,.08);
+}
+.prof-dash .timeline-item { position: relative; display: flex; gap: .75rem; padding-left: 10px; }
+.prof-dash .timeline-marker { position: relative; margin-left: -10px; margin-right: 2px; }
+.prof-dash .timeline-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.12);
+}
+.prof-dash .timeline-content h6 { font-weight: 800; }
+.prof-dash .timeline-content .small { opacity: .85; }
+
+/* -------- Cards de cursos -------- */
+.prof-dash .course-stat-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid rgba(0,0,0,.08);
+  box-shadow: 0 4px 14px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark) {
+  .prof-dash .course-stat-card { background: rgba(255,255,255,.04); }
+}
+.prof-dash .progress.progress-thin { height: 8px; background: #e9ecef; }
+.prof-dash .progress-bar { background: var(--bs-primary); }
+
+/* -------- Estado vacío -------- */
+.prof-dash .empty-state .text-muted { opacity: .9; }
+
+/* -------- Responsive -------- */
+@media (max-width: 991.98px) {
+  .prof-dash .header-bar { gap: .75rem; }
+  .prof-dash .action-group .btn { min-width: 34px; min-height: 34px; }
+}
+
+@media (max-width: 575.98px) {
+  .prof-dash .header-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .prof-dash .header-bar .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  /* Mantener SIEMPRE visible el texto del botón también en móvil */
+  .prof-dash .btn-icon-text span {
+    display: inline !important;
+  }
+  /* Tabla más compacta en móvil */
+  .prof-dash table { min-width: 640px; }
+  .prof-dash .timeline::before { left: 12px; }
+}

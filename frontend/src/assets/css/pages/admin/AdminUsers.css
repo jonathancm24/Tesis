@@ -1,178 +1,302 @@
-/* src/assets/css/pages/admin/AdminUsers.css */
 
-/* Contenedor principal */
-.admin-users {
-  background: #f5f5f5;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 0 10px rgba(0,0,0,0.05);
-}
 
-/* Toolbar */
-.admin-users .toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-}
-
-.admin-users .toolbar .search-input {
-  flex: 1;
-  max-width: 300px;
+.admin-users{
+  /* Tokens */
+  --au-radius:14px;
+  --au-radius-sm:10px;
+  --au-shadow:0 8px 22px rgba(0,0,0,.08);
+  --au-shadow-hover:0 10px 28px rgba(0,0,0,.12);
+  --au-card:#fff;
+  --au-surface:#f8f9fa;
+  --au-bg:#f5f5f5;
+  --au-muted:#6c757d;
+  --au-divider:rgba(0,0,0,.08);
+  --au-input:#fff;
+  --au-input-border:#ced4da;
+  --au-focus:0 0 0 .15rem rgba(13,110,253,.25);
 }
 
-.admin-users .toolbar .search-input .form-control {
-  border-radius: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #ced4da;
-  transition: border-color .2s, box-shadow .2s;
-}
-.admin-users .toolbar .search-input .form-control:focus {
-  border-color: #b8ffae;
-  box-shadow: 0 0 0 0.2rem rgba(78,115,223,.25);
-}
-
-.admin-users .toolbar .btn-add {
-  background-color: #1cc88a;
-  border-color: #1cc88a;
-  color: #fff;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  transition: background-color .2s, transform .1s;
-}
-.admin-users .toolbar .btn-add:hover {
-  background-color: #17a673;
-  transform: translateY(-1px);
+@media (prefers-color-scheme:dark){
+  .admin-users{
+    --au-card:#111827;
+    --au-surface:#0b1220;
+    --au-bg:#0a0f1a;
+    --au-muted:#9ca3af;
+    --au-divider:rgba(255,255,255,.08);
+    --au-input:#0b1220;
+    --au-input-border:#263043;
+  }
 }
 
-/* Tabla */
-.admin-users .table-responsive {
-  margin-top: 1.5rem;
+/* ===== Contenedor ===== */
+.admin-users{
+  background:var(--au-bg);
+  padding:1.25rem;
+  border-radius:.5rem;
 }
-.admin-users table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  border: 1px solid #e3e6f0;
-  border-radius: 0.375rem;
-  overflow: hidden;
+
+/* ===== Toolbar (soporta tu d-flex o .toolbar custom) ===== */
+.admin-users .toolbar,
+.admin-users .d-flex.justify-content-between.align-items-center{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  align-items:center;
+  gap:.85rem 1rem;
 }
-.admin-users thead {
-  background-color: #f8f9fc;
+
+.admin-users .toolbar .search-input{ flex:1; max-width:320px; }
+.admin-users .toolbar .search-input .form-control,
+.admin-users .d-flex.align-items-center .form-control{
+  background:var(--au-input);
+  border:1px solid var(--au-input-border);
+  border-radius:10px;
+  padding:.5rem .75rem;
+  box-shadow:none;
+  transition:border-color .15s, box-shadow .15s, background-color .15s;
 }
-.admin-users thead th {
-  color: #5a5c69;
-  font-weight: 600;
-  padding: 0.75rem 1rem;
-  border-bottom: none;
+.admin-users .toolbar .search-input .form-control::placeholder,
+.admin-users .d-flex.align-items-center .form-control::placeholder{
+  color:var(--au-muted);
+  opacity:.9;
 }
-.admin-users tbody tr {
-  transition: background-color .15s ease-in-out;
+.admin-users .toolbar .search-input .form-control:focus,
+.admin-users .d-flex.align-items-center .form-control:focus{
+  border-color:#86b7fe;
+  box-shadow:var(--au-focus);
 }
-.admin-users tbody tr:hover:not(.table-secondary) {
-  background-color: #f2f2f2;
+
+/* Botón Añadir */
+.admin-users .toolbar .btn-add,
+.admin-users .btn.btn-success{
+  border-radius:10px;
+  padding:.5rem .9rem;
+  box-shadow:var(--au-shadow);
+  transition:transform .15s, box-shadow .15s, filter .15s;
+}
+.admin-users .toolbar .btn-add:hover,
+.admin-users .btn.btn-success:hover{
+  transform:translateY(-1px);
+  box-shadow:var(--au-shadow-hover);
+  filter:brightness(.98);
+}
+
+/* ===== Tabla ===== */
+.admin-users .table-responsive{
+  margin-top:1.25rem;
+  border-radius:var(--au-radius);
+  box-shadow:var(--au-shadow);
+  background:var(--au-card);
+  /* FIX: permitir scroll horizontal en móvil */
+  overflow-x:auto;
+  overflow-y:visible;
+  -webkit-overflow-scrolling:touch;
+}
+
+.admin-users table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  /* FIX: ancho mínimo para que no “desaparezcan” columnas en móvil */
+  min-width:680px;
+}
+
+.admin-users thead th{
+  position:sticky; top:0; z-index:2;
+  background:var(--au-surface);
+  border-bottom:1px solid var(--au-divider);
+  color:var(--au-muted);
+  font-weight:700;
+  font-size:.92rem;
+  text-transform:uppercase;
+  letter-spacing:.02em;
+  padding:.75rem 1rem;
+}
+
+.admin-users tbody td{
+  vertical-align:middle;
+  background:var(--au-card);
+  border-color:var(--au-divider);
+  padding:.7rem 1rem;
+}
+
+/* Stripe suave */
+.admin-users tbody tr:nth-child(odd) td{
+  background:color-mix(in srgb, var(--au-card), var(--au-surface) 12%);
+}
+@media (prefers-color-scheme:dark){
+  .admin-users tbody tr:nth-child(odd) td{
+    background:color-mix(in srgb, var(--au-card), #0f172a 14%);
+  }
+}
+
+/* Hover con tinte */
+.admin-users .table-hover tbody tr{ transition:background-color .12s ease, filter .12s ease; }
+.admin-users .table-hover tbody tr:hover td{
+  background-color:color-mix(in srgb, var(--au-card), #0d6efd 6%);
+}
+@media (prefers-color-scheme:dark){
+  .admin-users .table-hover tbody tr:hover td{
+    background-color:color-mix(in srgb, var(--au-card), #0d6efd 9%);
+  }
 }
 
 /* Fila inactiva */
-.admin-users tbody tr.table-secondary {
-  opacity: 0.6;
+.admin-users tbody tr.table-secondary{
+  opacity:.85;
+}
+.admin-users tbody tr.table-secondary td{
+  color:var(--au-muted);
+  filter:saturate(.85);
 }
 
-/* Badges de rol */
-.admin-users .badge {
-  font-size: 0.85rem;
-  text-transform: capitalize;
+/* ===== Columna Activo (fallback por posición + utilidad opcional .col-activo) ===== */
+.admin-users td:nth-child(5),
+.admin-users td.col-activo{
+  text-align:center;
+  font-weight:600;
+  color:#4e73df;
 }
 
-/* Columna 'Activo' */
-.admin-users td:nth-child(5) {
-  text-align: center;
-  font-weight: 500;
-  color: #4e73df;
+/* ===== Badges de rol ===== */
+.admin-users .badge{
+  font-size:.86rem;
+  text-transform:capitalize;
+  font-weight:700;
+  border-radius:999px;
+  padding:.4em .65em;
+  letter-spacing:.2px;
 }
 
-/* Acciones */
-.admin-users td.actions {
-  text-align: center;
+/* ===== Acciones (compatible con tu markup: td.text-center o .actions) ===== */
+.admin-users td.text-center,
+.admin-users td.actions{
+  /* Desktop: en una línea */
+  white-space:nowrap;
 }
 
-.admin-users td.actions .btn {
-  margin: 0 0.25rem 0.25rem 0;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
-  border-radius: 0.375rem;
-  transition: background-color .2s, transform .1s;
-}
-.admin-users td.actions .btn-primary {
-  background-color: #4e73df;
-  border-color: #4e73df;
-  color: #fff;
-}
-.admin-users td.actions .btn-primary:hover {
-  background-color: #2e59d9;
-  transform: translateY(-1px);
-}
-.admin-users td.actions .btn-warning {
-  background-color: #f6c23e;
-  border-color: #f6c23e;
-  color: #212529;
-}
-.admin-users td.actions .btn-warning:hover {
-  background-color: #dda20a;
-  transform: translateY(-1px);
-}
-.admin-users td.actions .btn-danger {
-  background-color: #e74a3b;
-  border-color: #e74a3b;
-  color: #fff;
-}
-.admin-users td.actions .btn-danger:hover {
-  background-color: #c82333;
-  transform: translateY(-1px);
+/* Botones */
+.admin-users td.text-center .btn,
+.admin-users td.actions .btn{
+  margin:0 .25rem .25rem 0;
+  padding:.38rem .62rem;
+  font-size:.82rem;
+  border-radius:8px;
+  transition:background-color .15s, transform .1s, color .15s, box-shadow .15s;
+  display:inline-flex; align-items:center; gap:.45rem;
 }
 
-/* Modal */
-.admin-users .modal-content {
-  border-radius: 0.5rem;
-  overflow: hidden;
+/* Botón Primario (Editar) */
+.admin-users td.text-center .btn.btn-primary,
+.admin-users td.actions .btn.btn-primary{
+  border:1px solid #0d6efd; background:#0d6efd; color:#fff;
 }
-.admin-users .modal-header {
-  background-color: #c8f6be;
-  border-bottom: none;
-}
-.admin-users .modal-header .modal-title {
-  color: #fff;
-  font-weight: 600;
-}
-.admin-users .modal-header .btn-close-white {
-  filter: invert(1);
+.admin-users td.text-center .btn.btn-primary:hover,
+.admin-users td.actions .btn.btn-primary:hover{
+  background:#0b5ed7; box-shadow:0 6px 18px rgba(13,110,253,.25); transform:translateY(-1px);
 }
 
-/* Fade transition */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity .2s;
+/* Warning (Activar/Desactivar) */
+.admin-users td.text-center .btn.btn-warning,
+.admin-users td.actions .btn.btn-warning{
+  border:1px solid #ffc107; background:#ffc107; color:#212529;
 }
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+.admin-users td.text-center .btn.btn-warning:hover,
+.admin-users td.actions .btn.btn-warning:hover{
+  background:#ffca2c; box-shadow:0 6px 18px rgba(255,193,7,.25); transform:translateY(-1px);
 }
 
-/* Responsive */
-@media (max-width: 576px) {
-  .admin-users .toolbar {
-    flex-direction: column;
-    align-items: stretch;
+/* Danger (Eliminar) */
+.admin-users td.text-center .btn.btn-danger,
+.admin-users td.actions .btn.btn-danger{
+  border:1px solid #dc3545; background:#dc3545; color:#fff;
+}
+.admin-users td.text-center .btn.btn-danger:hover,
+.admin-users td.actions .btn.btn-danger:hover{
+  background:#bb2d3b; box-shadow:0 6px 18px rgba(220,53,69,.25); transform:translateY(-1px);
+}
+
+/* ===== Estados / Mensajes ===== */
+.admin-users .spinner-border{ width:2.25rem; height:2.25rem; }
+.admin-users .alert{ border-radius:var(--au-radius-sm); box-shadow:var(--au-shadow); }
+
+/* ===== Modal (contraste correcto) ===== */
+.admin-users .modal-content{
+  border:none;
+  border-radius:var(--au-radius);
+  background:var(--au-card);
+  box-shadow:var(--au-shadow-hover);
+  overflow:hidden;
+  transform:translateY(6px);
+  animation:au-modal-in 180ms ease-out both;
+}
+@keyframes au-modal-in{
+  from{ opacity:0; transform:translateY(8px) scale(.995); }
+  to{ opacity:1; transform:translateY(0) scale(1); }
+}
+.admin-users .modal-header{
+  background:#0d6efd; color:#fff;
+  border-bottom:1px solid var(--au-divider);
+  padding:.8rem 1rem;
+}
+.admin-users .modal-title{ font-weight:800; letter-spacing:.2px; }
+.admin-users .modal-body{ padding:1rem; }
+/* Backdrop */
+.admin-users .modal-backdrop.fade.show{
+  position:fixed; inset:0; background:rgba(17,24,39,.55); backdrop-filter:blur(1px); z-index:1040;
+}
+.admin-users .modal.d-block{
+  position:fixed; inset:0; z-index:1050; display:grid; place-items:center;
+}
+.admin-users .modal-dialog{ max-width:560px; width:min(560px, calc(100% - 2rem)); }
+
+/* ===== Fade (para backdrops y modal) ===== */
+.fade-enter-active,.fade-leave-active{ transition:opacity .2s; }
+.fade-enter-from,.fade-leave-to{ opacity:0; }
+
+/* ===== Accesibilidad ===== */
+.admin-users .btn:focus,
+.admin-users .form-control:focus,
+.admin-users .btn:focus-visible{
+  outline:none; box-shadow:var(--au-focus);
+}
+
+/* ===== Responsive ===== */
+@media (max-width:991.98px){
+  /* compactar acciones en tablet */
+  .admin-users td.text-center .btn,
+  .admin-users td.actions .btn{ padding:.35rem .55rem; font-size:.8rem; }
+}
+
+@media (max-width:575.98px){
+  /* Toolbar en stack */
+  .admin-users .toolbar,
+  .admin-users .d-flex.justify-content-between.align-items-center{
+    flex-direction:column; align-items:stretch;
   }
-  .admin-users .toolbar .btn-add {
-    width: 100%;
-    justify-content: center;
+  .admin-users .toolbar .btn-add,
+  .admin-users .btn.btn-success{ width:100%; justify-content:center; }
+  .admin-users .d-flex.align-items-center > .form-control{ max-width:100%; }
+
+  /* FIX: en móvil, permitir salto de línea en acciones y apilar botones */
+  .admin-users td.text-center,
+  .admin-users td.actions{
+    white-space:normal;    /* antes: nowrap */
   }
-  .admin-users td.actions .btn {
-    width: 100%;
-    text-align: center;
-    margin-bottom: 0.5rem;
+  .admin-users td.text-center .btn,
+  .admin-users td.actions .btn{
+    width:100%;
+    text-align:center;
+    margin:.35rem 0;
   }
+  /* Si usas .btn-group, haz que sea columna */
+  .admin-users .btn-group{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:.35rem;
+  }
+
+  /* Opcional: ocultar columna ID para ganar espacio */
+  .admin-users table thead th:nth-child(1),
+  .admin-users table tbody td:nth-child(1){ display:none; }
 }

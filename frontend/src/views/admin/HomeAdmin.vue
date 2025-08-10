@@ -1,57 +1,39 @@
-<!-- Ruta: /admin  - Archivo: src/views/admin/HomeAdmin.vue -->
+<!--
+  Vista: HomeAdmin (Panel de Administración)
+  Ruta: /admin
+  CSS asociado: src/assets/css/pages/admin/HomeAdmin.css
+-->
 <template>
   <div class="admin-home">
+    <!-- Encabezado -->
     <div class="welcome-section">
-      <h1 class="h3 mb-4">Panel de Administración</h1>
-      <p class="text-muted">Bienvenido al panel de control administrativo del sistema</p>
+      <h1 class="h3 mb-1">Panel de Administración</h1>
+      <p class="text-muted mb-0">Bienvenido al panel de control administrativo del sistema</p>
     </div>
 
-    <!-- Cards de estadísticas mejoradas -->
+    <!-- Estado de carga / error -->
+    <div v-if="loading || error" class="my-3">
+      <div v-if="loading" class="alert alert-info d-flex align-items-center gap-2">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Cargando datos...</span>
+      </div>
+      <div v-else class="alert alert-danger d-flex align-items-center gap-2">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>{{ error }}</span>
+        <button class="btn btn-sm btn-outline-light ms-auto" @click="reload">Reintentar</button>
+      </div>
+    </div>
+
+    <!-- Cards de estadísticas -->
     <div class="row g-4 mb-5">
-      <div class="col-xl-3 col-md-6">
-        <div class="stat-card bg-primary">
+      <div v-for="card in statCards" :key="card.key" class="col-xl-3 col-md-6">
+        <div class="stat-card" :class="card.bgClass">
           <div class="stat-icon">
-            <i class="fas fa-users"></i>
+            <i :class="card.icon"></i>
           </div>
           <div class="stat-content">
-            <div class="stat-number">{{ stats?.activeUsers || 0 }}/{{ stats?.totalUsers || 0 }}</div>
-            <div class="stat-label">Usuarios Activos</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-xl-3 col-md-6">
-        <div class="stat-card bg-success">
-          <div class="stat-icon">
-            <i class="fas fa-calendar-check"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-number">{{ stats?.pendingAppointments || 0 }}/{{ stats?.totalAppointments || 0 }}</div>
-            <div class="stat-label">Citas Pendientes</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-xl-3 col-md-6">
-        <div class="stat-card bg-info">
-          <div class="stat-icon">
-            <i class="fas fa-user-injured"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-number">{{ stats?.recentPatients || 0 }}/{{ stats?.totalPatients || 0 }}</div>
-            <div class="stat-label">Pacientes Nuevos</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-xl-3 col-md-6">
-        <div class="stat-card bg-warning">
-          <div class="stat-icon">
-            <i class="fas fa-exclamation-triangle"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-number">{{ stats?.pendingReports || 0 }}/{{ stats?.totalReports || 0 }}</div>
-            <div class="stat-label">Reportes Pendientes</div>
+            <div class="stat-number">{{ card.value }}</div>
+            <div class="stat-label">{{ card.label }}</div>
           </div>
         </div>
       </div>
@@ -64,6 +46,10 @@
           <div class="card-header d-flex align-items-center">
             <i class="fas fa-chart-bar me-2"></i>
             <h5 class="mb-0">Resumen del Sistema</h5>
+            <button class="btn btn-sm btn-outline-primary ms-auto" @click="reload" :disabled="loading">
+              <i class="fas fa-sync-alt me-1" :class="{ 'fa-spin': loading }"></i>
+              Actualizar
+            </button>
           </div>
           <div class="card-body">
             <div class="row g-4">
@@ -76,19 +62,19 @@
                   </h6>
                   <div class="overview-stats">
                     <div class="stat-item">
-                      <span class="stat-value text-success">{{ systemOverview?.clinicas.activas || 0 }}</span>
+                      <span class="stat-value text-success">{{ o.clinicas.activas }}</span>
                       <span class="stat-text">Activas</span>
                     </div>
                     <div class="stat-item">
-                      <span class="stat-value text-primary">{{ systemOverview?.clinicas.enRuta || 0 }}</span>
+                      <span class="stat-value text-primary">{{ o.clinicas.enRuta }}</span>
                       <span class="stat-text">En Ruta</span>
                     </div>
                     <div class="stat-item">
-                      <span class="stat-value text-warning">{{ systemOverview?.clinicas.enMantenimiento || 0 }}</span>
+                      <span class="stat-value text-warning">{{ o.clinicas.enMantenimiento }}</span>
                       <span class="stat-text">Mantenimiento</span>
                     </div>
                     <div class="stat-item">
-                      <span class="stat-value text-muted">{{ systemOverview?.clinicas.inactivas || 0 }}</span>
+                      <span class="stat-value text-muted">{{ o.clinicas.inactivas }}</span>
                       <span class="stat-text">Inactivas</span>
                     </div>
                   </div>
@@ -104,19 +90,19 @@
                   </h6>
                   <div class="overview-stats">
                     <div class="stat-item">
-                      <span class="stat-value text-info">{{ systemOverview?.casosClinicosHoy.nuevos || 0 }}</span>
+                      <span class="stat-value text-info">{{ o.casosClinicosHoy.nuevos }}</span>
                       <span class="stat-text">Nuevos</span>
                     </div>
                     <div class="stat-item">
-                      <span class="stat-value text-warning">{{ systemOverview?.casosClinicosHoy.enRevision || 0 }}</span>
+                      <span class="stat-value text-warning">{{ o.casosClinicosHoy.enRevision }}</span>
                       <span class="stat-text">En Revisión</span>
                     </div>
                     <div class="stat-item">
-                      <span class="stat-value text-success">{{ systemOverview?.casosClinicosHoy.aprobados || 0 }}</span>
+                      <span class="stat-value text-success">{{ o.casosClinicosHoy.aprobados }}</span>
                       <span class="stat-text">Aprobados</span>
                     </div>
                     <div class="stat-item">
-                      <span class="stat-value text-primary">{{ systemOverview?.casosClinicosHoy.enTratamiento || 0 }}</span>
+                      <span class="stat-value text-primary">{{ o.casosClinicosHoy.enTratamiento }}</span>
                       <span class="stat-text">En Tratamiento</span>
                     </div>
                   </div>
@@ -132,19 +118,19 @@
                   </h6>
                   <div class="overview-stats">
                     <div class="stat-item">
-                      <span class="stat-value text-primary">{{ systemOverview?.citasHoy.programadas || 0 }}</span>
+                      <span class="stat-value text-primary">{{ o.citasHoy.programadas }}</span>
                       <span class="stat-text">Programadas</span>
                     </div>
                     <div class="stat-item">
-                      <span class="stat-value text-success">{{ systemOverview?.citasHoy.completadas || 0 }}</span>
+                      <span class="stat-value text-success">{{ o.citasHoy.completadas }}</span>
                       <span class="stat-text">Completadas</span>
                     </div>
                     <div class="stat-item">
-                      <span class="stat-value text-warning">{{ systemOverview?.citasHoy.canceladas || 0 }}</span>
+                      <span class="stat-value text-warning">{{ o.citasHoy.canceladas }}</span>
                       <span class="stat-text">Canceladas</span>
                     </div>
                     <div class="stat-item">
-                      <span class="stat-value text-danger">{{ systemOverview?.citasHoy.noAsistio || 0 }}</span>
+                      <span class="stat-value text-danger">{{ o.citasHoy.noAsistio }}</span>
                       <span class="stat-text">No Asistió</span>
                     </div>
                   </div>
@@ -155,25 +141,27 @@
               <div class="col-lg-3 col-md-6">
                 <div class="overview-section">
                   <h6 class="overview-title">
-                    <i class="fas fa-activity me-2"></i>
+                    <!-- 'fa-activity' no existe; usamos 'fa-chart-line' -->
+                    <i class="fas fa-chart-line me-2"></i>
                     Actividad
                   </h6>
                   <div class="overview-stats">
                     <div class="stat-item">
-                      <span class="stat-value text-success">{{ systemOverview?.actividad.usuariosConectados || 0 }}</span>
+                      <span class="stat-value text-success">{{ o.actividad.usuariosConectados }}</span>
                       <span class="stat-text">Conectados</span>
                     </div>
                     <div class="stat-item">
-                      <span class="stat-value text-info">{{ systemOverview?.actividad.sesionesHoy || 0 }}</span>
+                      <span class="stat-value text-info">{{ o.actividad.sesionesHoy }}</span>
                       <span class="stat-text">Sesiones Hoy</span>
                     </div>
                     <div class="stat-item text-center" style="grid-column: span 2;">
                       <div class="text-muted small">Última actividad:</div>
-                      <div class="fw-bold">{{ formatLastActivity(systemOverview?.actividad.ultimaActividad || '') }}</div>
+                      <div class="fw-bold">{{ formatLastActivity(o.actividad.ultimaActividad) }}</div>
                     </div>
                   </div>
                 </div>
               </div>
+              <!-- /Actividad -->
             </div>
           </div>
         </div>
@@ -204,7 +192,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="request in requests.slice(0, 5)" :key="request.id">
+                  <tr v-for="request in topRequests" :key="request.id">
                     <td>
                       <div class="fw-bold">{{ request.title }}</div>
                       <small class="text-muted">{{ request.type }}</small>
@@ -214,33 +202,39 @@
                       <small class="text-muted">{{ request.userRole }}</small>
                     </td>
                     <td>
-                      <span :class="['badge', getRequestStatusClass(request.status)]">
-                        {{ getRequestStatusText(request.status) }}
+                      <span :class="['badge', requestStatusClass(request.status)]">
+                        {{ requestStatusText(request.status) }}
                       </span>
                     </td>
                     <td>
                       <div class="btn-group btn-group-sm">
-                        <button 
+                        <button
                           v-if="request.status === 'pendiente'"
-                          @click="updateRequestStatus(request.id, 'aprobado')"
+                          @click="onUpdateRequest(request.id, 'aprobado')"
                           class="btn btn-outline-success"
-                          title="Aprobar">
+                          title="Aprobar"
+                        >
                           <i class="fas fa-check"></i>
+                          Aprobar
                         </button>
-                        <button 
+                        <button
                           v-if="request.status === 'pendiente'"
-                          @click="updateRequestStatus(request.id, 'rechazado')"
+                          @click="onUpdateRequest(request.id, 'rechazado')"
                           class="btn btn-outline-danger"
-                          title="Rechazar">
+                          title="Rechazar"
+                        >
                           <i class="fas fa-times"></i>
+                          Rechazar
                         </button>
-                        <button 
-                          class="btn btn-outline-primary"
-                          title="Ver detalles">
+                        <button class="btn btn-outline-primary" title="Ver detalles">
                           <i class="fas fa-eye"></i>
+                          Ver
                         </button>
                       </div>
                     </td>
+                  </tr>
+                  <tr v-if="!requests.length">
+                    <td colspan="4" class="text-center text-muted py-4">Sin solicitudes</td>
                   </tr>
                 </tbody>
               </table>
@@ -257,7 +251,7 @@
               <i class="fas fa-bug me-2"></i>
               <h5 class="mb-0">Reportes de Errores</h5>
             </div>
-            <span class="badge bg-danger">{{ errorReports.filter(r => r.status === 'pendiente').length }}</span>
+            <span class="badge bg-danger">{{ pendingErrorCount }}</span>
           </div>
           <div class="card-body p-0">
             <div class="table-responsive">
@@ -271,7 +265,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="report in errorReports.slice(0, 5)" :key="report.id">
+                  <tr v-for="report in topErrorReports" :key="report.id">
                     <td>
                       <div class="fw-bold">{{ report.title }}</div>
                       <small class="text-muted">{{ report.category }}</small>
@@ -281,33 +275,39 @@
                       <small class="text-muted">{{ report.userRole }}</small>
                     </td>
                     <td>
-                      <span :class="['badge', getPriorityClass(report.priority)]">
+                      <span :class="['badge', priorityClass(report.priority)]">
                         {{ report.priority.toUpperCase() }}
                       </span>
                     </td>
                     <td>
                       <div class="btn-group btn-group-sm">
-                        <button 
+                        <button
                           v-if="report.status === 'pendiente'"
-                          @click="updateErrorReportStatus(report.id, 'en_proceso')"
+                          @click="onUpdateError(report.id, 'en_proceso')"
                           class="btn btn-outline-warning"
-                          title="En proceso">
+                          title="En proceso"
+                        >
                           <i class="fas fa-play"></i>
+                          En proceso
                         </button>
-                        <button 
+                        <button
                           v-if="report.status !== 'resuelto'"
-                          @click="updateErrorReportStatus(report.id, 'resuelto')"
+                          @click="onUpdateError(report.id, 'resuelto')"
                           class="btn btn-outline-success"
-                          title="Resolver">
+                          title="Resolver"
+                        >
                           <i class="fas fa-check"></i>
+                          Resolver
                         </button>
-                        <button 
-                          class="btn btn-outline-primary"
-                          title="Ver detalles">
+                        <button class="btn btn-outline-primary" title="Ver detalles">
                           <i class="fas fa-eye"></i>
+                          Ver
                         </button>
                       </div>
                     </td>
+                  </tr>
+                  <tr v-if="!errorReports.length">
+                    <td colspan="4" class="text-center text-muted py-4">Sin reportes</td>
                   </tr>
                 </tbody>
               </table>
@@ -315,102 +315,183 @@
           </div>
         </div>
       </div>
+      <!-- /Reportes -->
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+/**
+ * HomeAdmin.vue — Panel de administración
+ * Notas:
+ * - Usa valores por defecto para evitar ?. en plantilla
+ * - Carga en paralelo y manejo de estado (loading/error)
+ * - Acciones optimistas (sin recargar toda la lista)
+ */
+import { ref, computed, onMounted } from 'vue'
 import type { Stats, SystemOverview, ErrorReport, Request } from '@/mocks/admin/api'
-import { 
-  fetchStatsMock, 
-  fetchSystemOverviewMock, 
-  fetchErrorReportsMock, 
+import {
+  fetchStatsMock,
+  fetchSystemOverviewMock,
+  fetchErrorReportsMock,
   fetchRequestsMock,
   updateErrorReportStatusMock,
   updateRequestStatusMock
 } from '@/mocks/admin/api'
 
+/* Estado */
 const stats = ref<Stats | null>(null)
 const systemOverview = ref<SystemOverview | null>(null)
 const errorReports = ref<ErrorReport[]>([])
 const requests = ref<Request[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
 
-onMounted(async () => {
-  await loadData()
-})
-
+/* Carga de datos (en paralelo) */
 const loadData = async () => {
+  loading.value = true
+  error.value = null
   try {
-    stats.value = await fetchStatsMock()
-    systemOverview.value = await fetchSystemOverviewMock()
-    errorReports.value = await fetchErrorReportsMock()
-    requests.value = await fetchRequestsMock()
-  } catch (error) {
-    console.error('Error al cargar datos:', error)
+    const [s, o, errs, reqs] = await Promise.all([
+      fetchStatsMock(),
+      fetchSystemOverviewMock(),
+      fetchErrorReportsMock(),
+      fetchRequestsMock()
+    ])
+    stats.value = s
+    systemOverview.value = o
+    errorReports.value = errs
+    requests.value = reqs
+  } catch (e) {
+    console.error(e)
+    error.value = 'No se pudieron cargar los datos. Intenta nuevamente.'
+  } finally {
+    loading.value = false
   }
 }
 
+const reload = () => loadData()
+onMounted(loadData)
+
+/* Valores por defecto */
+const defaultStats: Stats = {
+  activeUsers: 0,
+  totalUsers: 0,
+  pendingAppointments: 0,
+  totalAppointments: 0,
+  recentPatients: 0,
+  totalPatients: 0,
+  pendingReports: 0,
+  totalReports: 0
+}
+
+const defaultOverview: SystemOverview = {
+  clinicas: { activas: 0, enRuta: 0, enMantenimiento: 0, inactivas: 0 },
+  casosClinicosHoy: { nuevos: 0, enRevision: 0, aprobados: 0, enTratamiento: 0 },
+  citasHoy: { programadas: 0, completadas: 0, canceladas: 0, noAsistio: 0 },
+  actividad: { usuariosConectados: 0, sesionesHoy: 0, ultimaActividad: '' }
+}
+
+const s = computed(() => stats.value ?? defaultStats)
+const o = computed(() => systemOverview.value ?? defaultOverview)
+
+/* Cards (evita repetición en la plantilla) */
+const statCards = computed(() => [
+  {
+    key: 'users',
+    icon: 'fas fa-users',
+    bgClass: 'bg-primary',
+    label: 'Usuarios Activos',
+    value: `${s.value.activeUsers}/${s.value.totalUsers}`
+  },
+  {
+    key: 'appointments',
+    icon: 'fas fa-calendar-check',
+    bgClass: 'bg-success',
+    label: 'Citas Pendientes',
+    value: `${s.value.pendingAppointments}/${s.value.totalAppointments}`
+  },
+  {
+    key: 'patients',
+    icon: 'fas fa-user-injured',
+    bgClass: 'bg-info',
+    label: 'Pacientes Nuevos',
+    value: `${s.value.recentPatients}/${s.value.totalPatients}`
+  },
+  {
+    key: 'reports',
+    icon: 'fas fa-exclamation-triangle',
+    bgClass: 'bg-warning',
+    label: 'Reportes Pendientes',
+    value: `${s.value.pendingReports}/${s.value.totalReports}`
+  }
+])
+
+/* Derivados de tablas */
+const topRequests = computed(() => requests.value.slice(0, 5))
+const topErrorReports = computed(() => errorReports.value.slice(0, 5))
+const pendingErrorCount = computed(
+  () => errorReports.value.filter(r => r.status === 'pendiente').length
+)
+
+/* Mapeos reutilizables */
+const STATUS_CLASS: Record<Request['status'] | 'en_proceso', string> = {
+  pendiente: 'bg-warning',
+  aprobado: 'bg-success',
+  rechazado: 'bg-danger',
+  en_proceso: 'bg-info'
+}
+const STATUS_TEXT: Record<Request['status'] | 'en_proceso', string> = {
+  pendiente: 'Pendiente',
+  aprobado: 'Aprobado',
+  rechazado: 'Rechazado',
+  en_proceso: 'En Proceso'
+}
+const PRIORITY_CLASS: Record<ErrorReport['priority'] | 'critica', string> = {
+  baja: 'bg-secondary',
+  media: 'bg-warning',
+  alta: 'bg-danger',
+  critica: 'bg-dark'
+}
+
+/* Helpers UI */
 const formatLastActivity = (dateString: string) => {
   if (!dateString) return 'N/A'
   const now = new Date()
   const activityDate = new Date(dateString)
-  const diffMinutes = Math.floor((now.getTime() - activityDate.getTime()) / (1000 * 60))
-  
+  const diffMinutes = Math.floor((now.getTime() - activityDate.getTime()) / 60000)
   if (diffMinutes < 1) return 'Ahora mismo'
   if (diffMinutes < 60) return `Hace ${diffMinutes} min`
-  
   const diffHours = Math.floor(diffMinutes / 60)
   if (diffHours < 24) return `Hace ${diffHours} h`
-  
   return activityDate.toLocaleDateString('es-ES')
 }
 
-const getRequestStatusClass = (status: string) => {
-  const statusClasses: Record<string, string> = {
-    pendiente: 'bg-warning',
-    aprobado: 'bg-success',
-    rechazado: 'bg-danger',
-    en_proceso: 'bg-info'
-  }
-  return statusClasses[status] || 'bg-secondary'
-}
+const requestStatusClass = (status: Request['status'] | 'en_proceso') =>
+  STATUS_CLASS[status] || 'bg-secondary'
+const requestStatusText = (status: Request['status'] | 'en_proceso') =>
+  STATUS_TEXT[status] || status
+const priorityClass = (priority: ErrorReport['priority'] | 'critica') =>
+  PRIORITY_CLASS[priority] || 'bg-secondary'
 
-const getRequestStatusText = (status: string) => {
-  const statusTexts: Record<string, string> = {
-    pendiente: 'Pendiente',
-    aprobado: 'Aprobado',
-    rechazado: 'Rechazado',
-    en_proceso: 'En Proceso'
-  }
-  return statusTexts[status] || status
-}
-
-const getPriorityClass = (priority: string) => {
-  const priorityClasses: Record<string, string> = {
-    baja: 'bg-secondary',
-    media: 'bg-warning',
-    alta: 'bg-danger',
-    critica: 'bg-dark'
-  }
-  return priorityClasses[priority] || 'bg-secondary'
-}
-
-const updateRequestStatus = async (id: number, status: Request['status']) => {
+/* Acciones (optimistas) */
+const onUpdateRequest = async (id: number, status: Request['status']) => {
   try {
     await updateRequestStatusMock(id, status)
-    await loadData() // Recargar datos
-  } catch (error) {
-    console.error('Error al actualizar solicitud:', error)
+    const idx = requests.value.findIndex(r => r.id === id)
+    if (idx !== -1) requests.value[idx] = { ...requests.value[idx], status }
+  } catch (e) {
+    console.error('Error al actualizar solicitud:', e)
   }
 }
 
-const updateErrorReportStatus = async (id: number, status: ErrorReport['status']) => {
+const onUpdateError = async (id: number, status: ErrorReport['status']) => {
   try {
     await updateErrorReportStatusMock(id, status)
-    await loadData() // Recargar datos
-  } catch (error) {
-    console.error('Error al actualizar reporte:', error)
+    const idx = errorReports.value.findIndex(r => r.id === id)
+    if (idx !== -1) errorReports.value[idx] = { ...errorReports.value[idx], status }
+  } catch (e) {
+    console.error('Error al actualizar reporte:', e)
   }
 }
 </script>
