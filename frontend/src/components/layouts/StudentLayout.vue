@@ -15,8 +15,8 @@
         <Sidebar
           :items="navItems"
           :logoSrc="logoSrc"
-          title="DentApp"
-          subtitle="Panel Estudiante"
+          title="Uleam"
+          subtitle="Facultad de Odontología"
           :is-mobile="isMobile"
           @close-sidebar="closeSidebar"
         />

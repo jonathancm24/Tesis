@@ -1,111 +1,139 @@
-/* src/assets/css/pages/admin/AdminSettings.css */
+/* ==============================================
+   AdminSettings — UI limpia, modular y responsive
+   ============================================== */
 
-/* Contenedor principal */
 .admin-settings {
-  background: #ffffff;
-  padding: 2rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
-  max-width: 900px;
-  margin: 0 auto;
+  --as-radius: 14px;
+  --as-shadow: 0 8px 24px rgba(0,0,0,.08);
+  --as-shadow-sm: 0 6px 18px rgba(0,0,0,.06);
+  --as-divider: rgba(0,0,0,.08);
+  --as-muted: #6c757d;
 }
 
-/* Título */
-.admin-settings h1 {
-  font-weight: 700;
-  color: #4e73df;
-  text-align: center;
-  margin-bottom: 1.5rem;
+@media (prefers-color-scheme: dark) {
+  .admin-settings {
+    --as-divider: rgba(255,255,255,.1);
+    --as-muted: #9ca3af;
+  }
 }
 
-/* Formulario */
-.admin-settings form {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
+/* Header */
+.admin-settings .page-header .btn {
+  border-radius: 10px;
 }
 
-/* Labels */
-.admin-settings .form-label {
-  font-weight: 600;
-  color: #5a5c69;
-}
-
-/* Inputs y textarea */
-.admin-settings .form-control {
-  border-radius: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #ced4da;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.admin-settings .form-control:focus {
-  border-color: #a8ffaa;
-  box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
-}
-
-/* Placeholder */
-.admin-settings ::placeholder {
-  color: #a1a1a1;
-  opacity: 1;
-}
-
-/* File input */
-.admin-settings input[type="file"] {
-  padding: 0.375rem 0.75rem;
-}
-
-.admin-settings input[type="file"]::file-selector-button {
-  background-color: #4e73df;
-  color: #fff;
+/* Tarjetas */
+.admin-settings .settings-card {
   border: none;
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.375rem;
+  border-radius: var(--as-radius);
+  box-shadow: var(--as-shadow-sm);
+  overflow: hidden;
+}
+
+.admin-settings .settings-card + .settings-card {
+  margin-top: 1rem;
+}
+
+.admin-settings .settings-card .card-header {
+  background: #f8f9fa;
+  border-bottom: 1px solid var(--as-divider);
+  padding: .8rem 1rem;
+  font-weight: 700;
+}
+
+@media (prefers-color-scheme: dark) {
+  .admin-settings .settings-card .card-header {
+    background: rgba(255,255,255,.05);
+  }
+}
+
+.admin-settings .settings-card .card-body {
+  padding: 1rem;
+}
+
+/* Inputs */
+.admin-settings .form-control,
+.admin-settings .form-select {
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.admin-settings .form-control:focus,
+.admin-settings .form-select:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 .15rem rgba(13,110,253,.15);
+}
+
+/* Preview lateral */
+.admin-settings .preview-card {
+  border: none;
+  border-radius: var(--as-radius);
+  box-shadow: var(--as-shadow);
+  top: 1rem; /* sticky-lg-top */
+}
+
+.admin-settings .preview-card .card-header {
+  background: #f8f9fa;
+  border-bottom: 1px solid var(--as-divider);
+  font-weight: 700;
+  padding: .6rem .9rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .admin-settings .preview-card .card-header {
+    background: rgba(255,255,255,.05);
+  }
+}
+
+.admin-settings .preview-card .card-body {
+  padding: 1rem;
+}
+
+.admin-settings .preview-brand .logo-wrapper {
+  width: 56px; height: 56px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--as-divider);
+  display: grid; place-items: center;
+  background: #fff;
+}
+
+.admin-settings .preview-brand .logo-wrapper img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+
+/* Switches y checks */
+.admin-settings .form-check-input {
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
+}
+.admin-settings .form-check-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 .15rem rgba(25,135,84,.15);
 }
 
-.admin-settings input[type="file"]::file-selector-button:hover {
-  background-color: #2e59d9;
-  transform: translateY(-1px);
+/* Alertas compactas en preview */
+.admin-settings .alert {
+  padding: .5rem .6rem;
+  border-radius: 10px;
 }
 
-/* Botón guardar */
-.admin-settings .btn-primary {
-  background-color: #4e73df;
-  border-color: #4e73df;
-  padding: 0.6rem 1.2rem;
-  font-weight: 600;
-  border-radius: 0.375rem;
-  transition: background-color 0.2s, transform 0.1s;
+/* Botón guardar en preview */
+.admin-settings .preview-card .btn {
+  border-radius: 10px;
 }
 
-.admin-settings .btn-primary:hover {
-  background-color: #2e59d9;
-  transform: translateY(-1px);
-}
-
-/* Validación Bootstrap */
-.admin-settings .needs-validation .form-control:invalid {
-  border-color: #e74a3b;
-  box-shadow: 0 0 0 0.2rem rgba(231, 74, 59, 0.25);
-}
-
-/* Responsive: dos columnas en pantallas medianas */
-@media (min-width: 768px) {
-  .admin-settings form {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  /* Botón en la derecha */
-  .admin-settings .btn-primary {
-    justify-self: end;
+/* Responsive */
+@media (max-width: 991.98px) {
+  .admin-settings .preview-card {
+    position: static !important;
   }
 }
 
-/* Ajuste para textarea y full-width elements */
-@media (min-width: 768px) {
-  .admin-settings textarea,
-  .admin-settings .form-control[type="file"] {
-    grid-column: span 2;
+@media (max-width: 575.98px) {
+  .admin-settings .settings-card .card-body {
+    padding: .85rem;
+  }
+  .admin-settings .preview-card .card-body {
+    padding: .85rem;
   }
 }

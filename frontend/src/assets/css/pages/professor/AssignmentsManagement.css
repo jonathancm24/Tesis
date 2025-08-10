@@ -1,0 +1,86 @@
+/* Paleta */
+:root{
+  --brand:#6c63ff;
+  --brand-dark:#3f3d56;
+  --bg:#f4f6f8;
+}
+
+/* Layout */
+.clinical-management{ background:var(--bg); min-height:100vh; }
+
+/* Títulos / botones principales */
+.text-primary{ color:var(--brand) !important; }
+.btn-primary{ background:var(--brand); border-color:var(--brand); }
+.btn-primary:hover{ background:#5a52ff; border-color:#5a52ff; }
+.text-brand{ color:var(--brand); }
+
+/* Cards KPI */
+.kpi-card{
+  border: none;
+  border-radius: .6rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,.06);
+  transition: transform .18s ease, box-shadow .2s ease;
+}
+.kpi-card:hover{ transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.08); }
+.kpi-card .card-body{ padding:1.25rem 1.1rem; }
+
+/* Tabla */
+.table thead th{
+  font-weight:700; font-size:.9rem;
+  border-bottom:2px solid #dee2e6;
+  background:#e9ecf1; color:#4a4a4a;
+  text-transform:uppercase; letter-spacing:.02em;
+}
+.table td{ vertical-align:middle; padding:1rem .75rem; }
+.table-hover tbody tr:hover{ background-color:rgba(108,99,255,.08); }
+.table thead th:last-child, .table tbody td:last-child{ width: 360px; }
+
+/* Avatar */
+.avatar{ object-fit:cover; }
+
+/* Badges */
+.badge{ font-size:.75rem; font-weight:700; border-radius:.45rem; }
+
+/* Botones icono + texto */
+.btn-icon-text{
+  display:inline-flex; align-items:center; gap:.45rem;
+  padding:.45rem .7rem; border-radius:.55rem; font-weight:600;
+  transition: transform .1s ease, box-shadow .15s ease, filter .15s ease;
+  white-space: nowrap;
+}
+.btn-icon-text i{ font-size:.95rem; }
+.btn-icon-text:hover{ transform: translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,.10); }
+
+.action-group{ gap:.35rem; }
+.action-group .btn{ width:auto; height:auto; }
+
+/* Outline con paleta */
+.btn-outline-primary{ color:var(--brand); border-color:var(--brand); }
+.btn-outline-primary:hover{ background:var(--brand); color:#fff; }
+.btn-outline-success{ color:#2ecc71; border-color:#2ecc71; }
+.btn-outline-success:hover{ background:#2ecc71; color:#fff; }
+.btn-outline-danger{ color:#e74c3c; border-color:#e74c3c; }
+.btn-outline-danger:hover{ background:#e74c3c; color:#fff; }
+.btn-outline-info{ color:#3498db; border-color:#3498db; }
+.btn-outline-info:hover{ background:#3498db; color:#fff; }
+
+/* Modales con branding */
+.modal-header-brand{ background:var(--brand); color:#fff; }
+.modal-header-brand .btn-close{ filter: invert(1) grayscale(1); }
+
+/* Forms focus */
+.form-select:focus, .form-control:focus{
+  border-color:var(--brand);
+  box-shadow:0 0 0 .2rem rgba(108,99,255,.25);
+}
+
+/* Responsive */
+@media (max-width: 991.98px){
+  .table thead th:last-child, .table tbody td:last-child{ width: 300px; }
+}
+@media (max-width: 767.98px){
+  .table thead th:last-child, .table tbody td:last-child{ width:auto; }
+  .action-group{ justify-content:center; }
+  .btn-icon-text{ width:100%; justify-content:center; }
+  .btn-icon-text span{ display:inline !important; }
+}
