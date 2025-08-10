@@ -276,10 +276,14 @@ const verCaso = (id: number) => {
 };
 
 const editarCaso = (id: number) => {
+  // TODO: Implementar edición del caso específico
+  console.log('Editando caso:', id);
   router.push('/student/patients');
 };
 
 const iniciarTratamiento = (id: number) => {
+  // TODO: Implementar inicio de tratamiento para el caso específico
+  console.log('Iniciando tratamiento para caso:', id);
   router.push('/student/treatments');
 };
 

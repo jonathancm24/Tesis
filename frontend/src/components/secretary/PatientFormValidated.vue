@@ -115,12 +115,12 @@
               { 
                 type: 'custom',
                 message: 'La fecha no puede ser en el futuro',
-                validator: (value) => value ? new Date(value) <= new Date() : true
+                validator: (value: string | number | Date) => value ? new Date(value) <= new Date() : true
               },
               {
                 type: 'custom',
                 message: 'La edad debe ser menor a 120 años',
-                validator: (value) => {
+                validator: (value: string | number | Date) => {
                   if (!value) return true;
                   const birthDate = new Date(value);
                   const ageDiff = Date.now() - birthDate.getTime();

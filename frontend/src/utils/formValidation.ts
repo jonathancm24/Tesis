@@ -31,10 +31,11 @@ export const DEFAULT_ERROR_MESSAGES: ErrorMessages = {
  * Reglas de validación
  */
 export interface ValidationRule {
-  type: 'required' | 'email' | 'minLength' | 'maxLength' | 'pattern' | 'numeric' | 'date' | 'phone' | 'cedula' | 'custom';
+  type: 'required' | 'email' | 'minLength' | 'maxLength' | 'pattern' | 'numeric' | 'date' | 'phone' | 'cedula' | 'custom' | 'async';
   value?: any;
   message?: string;
   validator?: (value: any, formData?: any) => boolean;
+  asyncValidator?: (value: any, formData?: any) => Promise<boolean>;
 }
 
 export interface FieldValidation {
@@ -86,6 +87,42 @@ export class FormValidator {
     });
 
     return fieldErrors;
+  }
+
+  /**
+   * Valida un campo individual (ahora soporta async)
+   */
+  async validateFieldAsync(fieldName: string, value: any, rules: ValidationRule[], formData?: any): Promise<ValidationError[]> {
+    const fieldErrors: ValidationError[] = [];
+
+    for (const rule of rules) {
+      const error = await this.applyRuleAsync(fieldName, value, rule, formData);
+      if (error) {
+        fieldErrors.push(error);
+      }
+    }
+
+    return fieldErrors;
+  }
+
+  /**
+   * Aplica una regla de validación (versión async)
+   */
+  private async applyRuleAsync(fieldName: string, value: any, rule: ValidationRule, formData?: any): Promise<ValidationError | null> {
+    if (rule.type === 'async' && rule.asyncValidator) {
+      const isValid = await rule.asyncValidator(value, formData);
+      if (!isValid) {
+        return {
+          field: fieldName,
+          message: rule.message || 'Validación asíncrona falló',
+          value
+        };
+      }
+      return null;
+    }
+    
+    // Para reglas síncronas, usar el método existente
+    return this.applyRule(fieldName, value, rule, formData);
   }
 
   /**

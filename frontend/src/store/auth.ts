@@ -1,7 +1,7 @@
 // src/store/auth.ts
 import { defineStore } from 'pinia'
 import { authService } from '@/services/authService'
-import type { FrontendUser, AuthState } from '@/types/auth'
+import type { AuthState } from '@/types/auth'
 
 // Store para manejar la autenticación
 export const useAuthStore = defineStore('auth', { 

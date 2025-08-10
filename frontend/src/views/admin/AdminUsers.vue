@@ -136,7 +136,7 @@
 import { ref, computed, onMounted } from 'vue'
 import UserForm from '@/components/admin/UserForm.vue'
 import { userService } from '@/services/userService'
-import type { User, FormUser, UserRole } from '@/types/user'
+import type { User, FormUser, UserRole, TipoDocumentoType } from '@/types/user'
 
 // Estados
 const users = ref<User[]>([])
@@ -189,9 +189,12 @@ function openModal(user?: User) {
         email: '', 
         role: 'estudiante' as UserRole,
         activo: true,
-        cedula: '',
+        tipoDocumento: 'CEDULA' as TipoDocumentoType,
+        numeroDocumento: '',
         password: '',
-        fechaNacimiento: ''
+        fechaNacimiento: '',
+        especialidadIds: [],
+        parroquiaId: 1
       }
   isModalOpen.value = true
 }

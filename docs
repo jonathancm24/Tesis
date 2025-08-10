@@ -1,0 +1,385 @@
+# Sistema de Validación Completo para Frontend
+
+Este documento explica cómo usar el sistema completo de validación de formularios implementado en el frontend.
+
+## Características Principales
+
+### ✅ Validaciones Síncronas
+- Campos requeridos
+- Validación de email
+- Longitud mínima/máxima  
+- Validación de números de teléfono
+- Validación de cédulas ecuatorianas
+- Validaciones personalizadas
+
+### ✅ Validaciones Asíncronas
+- Verificación de documentos únicos
+- Verificación de emails únicos
+- Validaciones personalizadas con debounce
+
+### ✅ Manejo Inteligente de Errores
+- Mapeo automático de errores del backend
+- Mensajes de error específicos por campo
+- Notificaciones toast para feedback inmediato
+- Estados de validación visual
+
+## Componentes del Sistema
+
+### 1. `types/errors.ts`
+Define todos los tipos de errores que puede manejar el sistema.
+
+### 2. `utils/errorHandler.ts` 
+Mapea códigos de error del backend a mensajes amigables.
+
+### 3. `utils/formValidation.ts`
+Contiene las reglas de validación síncrona y asíncrona.
+
+### 4. `services/validationService.ts`
+Servicio para realizar validaciones asíncronas contra el backend.
+
+### 5. `composables/useFormValidation.ts`
+Hook principal para usar validación en componentes Vue.
+
+### 6. `components/FormField.vue`
+Componente reutilizable para campos de formulario.
+
+## Uso Básico
+
+### 1. Configurar Validación en un Componente
+
+```vue
+<script setup lang="ts">
+import { reactive } from 'vue';
+import { useFormValidation } from '@/composables/useFormValidation';
+import type { ValidationRule } from '@/utils/formValidation';
+
+// Datos del formulario
+const formData = reactive({
+  numeroDocumento: '',
+  tipoDocumento: 'CEDULA',
+  email: ''
+});
+
+// Configurar validación
+const {
+  isSubmitting,
+  hasErrors,
+  asyncValidating,
+  isValidatingAsync,
+  validateField,
+  validateUniqueDocument,
+  getFirstFieldError,
+  getFieldClass,
+  handleSubmit,
+  handleApiError
+} = useFormValidation({
+  asyncDebounceMs: 500 // Debounce para validaciones asíncronas
+});
+
+// Reglas de validación
+const documentRules: ValidationRule[] = [
+  { type: 'required', message: 'El documento es obligatorio' },
+  { type: 'cedula', message: 'Cédula inválida' }
+];
+</script>
+```
+
+### 2. Usar en el Template
+
+```vue
+<template>
+  <form @submit.prevent="handleSubmit(onSubmit)">
+    <FormField
+      label="Número de Documento"
+      :error="getFirstFieldError('numeroDocumento')"
+      :isValidating="asyncValidating.numeroDocumento"
+      :required="true"
+    >
+      <input
+        v-model="formData.numeroDocumento"
+        :class="getFieldClass('numeroDocumento')"
+        @input="onDocumentInput"
+        @blur="validateField('numeroDocumento', formData.numeroDocumento, documentRules)"
+      />
+    </FormField>
+    
+    <button 
+      type="submit" 
+      :disabled="isSubmitting || isValidatingAsync || hasErrors"
+    >
+      Guardar
+    </button>
+  </form>
+</template>
+```
+
+## Validaciones Específicas
+
+### Documento Único
+
+Para validar que un documento no esté registrado:
+
+```javascript
+const onDocumentInput = () => {
+  if (formData.numeroDocumento && formData.tipoDocumento) {
+    validateUniqueDocument(
+      'numeroDocumento',
+      formData.numeroDocumento,
+      formData.tipoDocumento,
+      patientId // Opcional: para excluir en edición
+    );
+  }
+};
+```
+
+### Email Único
+
+```javascript
+import { createAsyncValidationRules } from '@/services/validationService';
+
+const emailRules: ValidationRule[] = [
+  { type: 'required', message: 'Email requerido' },
+  { type: 'email', message: 'Email inválido' },
+  createAsyncValidationRules.uniqueEmail()
+];
+```
+
+### Validación Personalizada
+
+```javascript
+const customRules: ValidationRule[] = [
+  {
+    type: 'custom',
+    message: 'Las contraseñas no coinciden',
+    validator: (value, formData) => {
+      return value === formData.password;
+    }
+  }
+];
+```
+
+## Manejo de Errores del Backend
+
+### 1. Errores Automáticos
+
+El sistema mapea automáticamente errores comunes:
+
+```javascript
+// El backend envía:
+{
+  statusCode: 409,
+  message: "CEDULA_ALREADY_EXISTS",
+  error: "Conflict"
+}
+
+// Se convierte automáticamente a:
+"Ya existe un paciente registrado con esta cédula"
+```
+
+### 2. Errores Específicos por Campo
+
+```javascript
+const onSubmit = async () => {
+  try {
+    await savePatient(formData);
+  } catch (error) {
+    handleApiError(error); // Maneja automáticamente los errores
+  }
+};
+```
+
+## Estados de Validación
+
+### Indicadores Visuales
+
+```vue
+<template>
+  <!-- Validando -->
+  <div v-if="asyncValidating.numeroDocumento">
+    <i class="fas fa-spinner fa-spin"></i> Verificando...
+  </div>
+  
+  <!-- Estado del botón -->
+  <button :disabled="isSubmitting || isValidatingAsync || hasErrors">
+    <span v-if="isSubmitting">Guardando...</span>
+    <span v-else-if="isValidatingAsync">Validando...</span>
+    <span v-else>Guardar</span>
+  </button>
+</template>
+```
+
+### Clases CSS Automáticas
+
+```vue
+<input :class="getFieldClass('email')" />
+<!-- Genera: form-control is-invalid o form-control is-valid -->
+```
+
+## Configuración del Backend
+
+Para que las validaciones asíncronas funcionen, el backend debe tener endpoints:
+
+### Validar Documento
+
+```typescript
+// GET /pacientes/validate/document?numeroDocumento=1234567890&tipoDocumento=CEDULA
+// Respuesta:
+// - 200: Documento disponible
+// - 409: Documento ya existe
+```
+
+### Validar Email
+
+```typescript
+// GET /usuarios/validate/email?email=test@example.com
+// Respuesta:
+// - 200: Email disponible  
+// - 409: Email ya existe
+```
+
+## Mejores Prácticas
+
+### 1. Debounce para Validaciones Asíncronas
+
+```javascript
+// Usar debounce para evitar muchas llamadas al servidor
+const { validateUniqueDocument } = useFormValidation({
+  asyncDebounceMs: 500 // 500ms de retraso
+});
+```
+
+### 2. Validar Solo Después del Primer Envío
+
+```javascript
+// El sistema automáticamente solo valida después de hasSubmitted = true
+@blur="validateField('field', value, rules)" // Solo validará después del primer submit
+```
+
+### 3. Limpiar Validaciones al Cambiar Contexto
+
+```javascript
+watch(() => formData.tipoDocumento, () => {
+  // Limpiar validación al cambiar tipo de documento
+  clearFieldError('numeroDocumento');
+});
+```
+
+### 4. Manejo de Estados de Carga
+
+```vue
+<template>
+  <button 
+    :disabled="!canSubmit"
+    :class="{ 
+      'loading': isSubmitting,
+      'validating': isValidatingAsync 
+    }"
+  >
+    <LoadingSpinner v-if="isSubmitting || isValidatingAsync" />
+    Guardar
+  </button>
+</template>
+
+<script>
+const canSubmit = computed(() => 
+  !hasErrors.value && 
+  !isValidatingAsync.value && 
+  !isSubmitting.value
+);
+</script>
+```
+
+## Mensajes de Error Personalizados
+
+### Configurar Mensajes Globales
+
+```javascript
+// En utils/formValidation.ts
+const customMessages = {
+  'CEDULA_ALREADY_EXISTS': 'Este número de cédula ya está registrado en el sistema',
+  'EMAIL_ALREADY_EXISTS': 'Ya existe una cuenta con este email',
+  'INVALID_CEDULA_FORMAT': 'El formato de la cédula no es válido'
+};
+```
+
+### Mensajes Específicos por Campo
+
+```javascript
+const rules: ValidationRule[] = [
+  { 
+    type: 'required', 
+    message: 'El nombre del paciente es obligatorio' 
+  },
+  { 
+    type: 'minLength', 
+    value: 2, 
+    message: 'El nombre debe tener al menos 2 caracteres' 
+  }
+];
+```
+
+## Integración con Notificaciones
+
+```javascript
+const onSubmit = async () => {
+  try {
+    await saveData();
+    showToast('Datos guardados exitosamente', 'success');
+  } catch (error) {
+    handleApiError(error); // Muestra automáticamente toast de error
+  }
+};
+```
+
+## Ejemplos Completos
+
+Ver los siguientes archivos para ejemplos completos:
+
+- `components/PatientFormWithAsyncValidation.vue` - Formulario completo de paciente
+- `components/UserFormValidated.vue` - Formulario de usuario  
+- `components/PatientFormValidated.vue` - Formulario simple de paciente
+
+## Depuración
+
+### Console Logs Útiles
+
+```javascript
+// Ver estado de validación
+console.log('Field errors:', fieldErrors);
+console.log('Is validating:', asyncValidating);
+console.log('Has errors:', hasErrors.value);
+```
+
+### Verificar Red
+
+```javascript
+// En browser dev tools -> Network
+// Buscar llamadas a /validate endpoints
+// Verificar códigos de respuesta (200 vs 409)
+```
+
+## Extensión del Sistema
+
+### Agregar Nueva Validación Asíncrona
+
+```javascript
+// En services/validationService.ts
+async checkCustomUnique(value: string): Promise<boolean> {
+  try {
+    await api.get('/custom/validate', { params: { value } });
+    return false; // No existe
+  } catch (error) {
+    return error.response?.status === 409; // Existe
+  }
+}
+```
+
+### Agregar Nueva Regla de Validación
+
+```javascript
+// En utils/formValidation.ts
+case 'custom-rule':
+  return this.validateCustomRule(fieldName, value, rule.customParam);
+```
+
+Este sistema proporciona una base sólida y extensible para manejar todas las validaciones y errores en el frontend de manera consistente y user-friendly.

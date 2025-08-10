@@ -151,7 +151,7 @@
               { 
                 type: 'custom', 
                 message: 'Las contraseñas no coinciden',
-                validator: (value) => value === formData.password
+                validator: (value: string) => value === formData.password
               }
             ]"
             @validate="validateField"

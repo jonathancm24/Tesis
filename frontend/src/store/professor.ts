@@ -1,8 +1,6 @@
 // src/store/professor.ts
 import { defineStore } from 'pinia';
-import type { ProfessorAssignment } from '../mocks/professor/assignments';
-import type { StudentProgress }     from '../mocks/professor/progress';
-import type { StudentInfo }         from '../mocks/professor/studentsByCourse';
+import type { ProfessorAssignment, StudentProgress, StudentInfo } from '../mocks/api';
 import {
   fetchProfessorAssignmentsMock,
   saveProfessorAssignmentMock,

@@ -69,6 +69,16 @@ export const ERROR_MESSAGES: Record<string, DomainError> = {
     message: 'Datos de paciente inválidos',
     userMessage: 'Los datos del paciente contienen errores. Por favor, verifique la información.'
   },
+  'DOCUMENT_ALREADY_EXISTS': {
+    code: 'DOCUMENT_ALREADY_EXISTS',
+    message: 'Documento ya registrado',
+    userMessage: 'Ya existe un paciente registrado con este número de documento.'
+  },
+  'NUMERO_DOCUMENTO_ALREADY_EXISTS': {
+    code: 'NUMERO_DOCUMENTO_ALREADY_EXISTS',
+    message: 'Número de documento ya registrado',
+    userMessage: 'Ya existe un paciente registrado con este número de documento.'
+  },
 
   // Errores de encuestas
   'SURVEY_ALREADY_EXISTS': {
@@ -203,6 +213,29 @@ const extractErrorCode = (message: string): string => {
     if (match) {
       return match[1];
     }
+  }
+
+  // Buscar patrones específicos de documentos duplicados
+  if (message.toLowerCase().includes('cedula') && 
+      (message.toLowerCase().includes('already') || 
+       message.toLowerCase().includes('existe') || 
+       message.toLowerCase().includes('duplicat'))) {
+    return 'CEDULA_ALREADY_EXISTS';
+  }
+
+  if ((message.toLowerCase().includes('numero') || 
+       message.toLowerCase().includes('document')) && 
+      (message.toLowerCase().includes('already') || 
+       message.toLowerCase().includes('existe') || 
+       message.toLowerCase().includes('duplicat'))) {
+    return 'NUMERO_DOCUMENTO_ALREADY_EXISTS';
+  }
+
+  if (message.toLowerCase().includes('email') && 
+      (message.toLowerCase().includes('already') || 
+       message.toLowerCase().includes('existe') || 
+       message.toLowerCase().includes('duplicat'))) {
+    return 'EMAIL_ALREADY_EXISTS';
   }
 
   // Si no se encuentra patrón, buscar en el mensaje completo

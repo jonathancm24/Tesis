@@ -7,15 +7,18 @@ import type { AppError } from '@/types/errors';
 import { FormValidator, type FieldValidation } from '@/utils/formValidation';
 import { processBackendError, getUserFriendlyMessage } from '@/utils/errorHandler';
 import { useToast } from '@/composables/useToast';
+import { validationService } from '@/services/validationService';
 
 export interface UseFormValidationOptions {
   validationRules?: FieldValidation[];
   showToastOnError?: boolean;
   resetOnSuccess?: boolean;
+  // Tiempo de debounce para validaciones asíncronas (en milisegundos)
+  asyncDebounceMs?: number;
 }
 
 export function useFormValidation(options: UseFormValidationOptions = {}) {
-  const { showToastOnError = true, resetOnSuccess = false } = options;
+  const { showToastOnError = true, resetOnSuccess = false, asyncDebounceMs = 500 } = options;
   
   // Estados reactivos
   const isSubmitting = ref(false);
@@ -24,10 +27,19 @@ export function useFormValidation(options: UseFormValidationOptions = {}) {
   const apiError = ref<AppError | null>(null);
   const validator = new FormValidator();
   const { showToast } = useToast();
+  
+  // Estados para validación asíncrona
+  const asyncValidating = ref<Record<string, boolean>>({});
+  const debounceTimers = ref<Record<string, number>>({});
 
   // Estado computado
   const hasErrors = computed(() => {
     return Object.keys(fieldErrors).some(field => fieldErrors[field].length > 0) || apiError.value !== null;
+  });
+  
+  // Verifica si algún campo está validando de forma asíncrona
+  const isValidatingAsync = computed(() => {
+    return Object.values(asyncValidating.value).some(validating => validating);
   });
 
   const isValid = computed(() => {
@@ -84,18 +96,70 @@ export function useFormValidation(options: UseFormValidationOptions = {}) {
     const processedError = processBackendError(error);
     apiError.value = processedError;
     
+    // Manejar errores específicos de campos duplicados
+    if (processedError.code) {
+      switch (processedError.code) {
+        case 'CEDULA_ALREADY_EXISTS':
+        case 'NUMERO_DOCUMENTO_ALREADY_EXISTS':
+        case 'DOCUMENT_ALREADY_EXISTS':
+          // Agregar error específico al campo numeroDocumento o cedula
+          if (!fieldErrors['numeroDocumento']) {
+            fieldErrors['numeroDocumento'] = [];
+          }
+          if (!fieldErrors['cedula']) {
+            fieldErrors['cedula'] = [];
+          }
+          fieldErrors['numeroDocumento'].push(processedError.message);
+          fieldErrors['cedula'].push(processedError.message);
+          break;
+          
+        case 'EMAIL_ALREADY_EXISTS':
+          // Agregar error específico al campo email
+          if (!fieldErrors['email']) {
+            fieldErrors['email'] = [];
+          }
+          fieldErrors['email'].push(processedError.message);
+          break;
+      }
+    }
+    
     if (showToastOnError) {
       const message = getUserFriendlyMessage(processedError);
       showToast(message, 'error');
     }
 
-    // Si el error incluye errores de validación específicos por campo
+    // Si el error incluye errores de validación específicos por campo del backend
     if (error.response?.data?.details?.fieldErrors) {
       const backendFieldErrors = error.response.data.details.fieldErrors;
       Object.keys(backendFieldErrors).forEach(field => {
         fieldErrors[field] = Array.isArray(backendFieldErrors[field]) 
           ? backendFieldErrors[field] 
           : [backendFieldErrors[field]];
+      });
+    }
+    
+    // Buscar errores de validación en el mensaje del backend
+    if (error.response?.data?.message) {
+      const messages = Array.isArray(error.response.data.message) 
+        ? error.response.data.message 
+        : [error.response.data.message];
+        
+      messages.forEach((msg: string) => {
+        // Detectar errores específicos de campos en el mensaje
+        if (typeof msg === 'string') {
+          if (msg.toLowerCase().includes('cedula') || msg.toLowerCase().includes('numero')) {
+            if (!fieldErrors['numeroDocumento']) {
+              fieldErrors['numeroDocumento'] = [];
+            }
+            fieldErrors['numeroDocumento'].push(getUserFriendlyMessage(processedError));
+          }
+          if (msg.toLowerCase().includes('email')) {
+            if (!fieldErrors['email']) {
+              fieldErrors['email'] = [];
+            }
+            fieldErrors['email'].push(getUserFriendlyMessage(processedError));
+          }
+        }
       });
     }
   };
@@ -235,6 +299,89 @@ export function useFormValidation(options: UseFormValidationOptions = {}) {
     };
   };
 
+  /**
+   * Valida un campo de forma asíncrona con debounce
+   */
+  const validateFieldAsync = async (
+    fieldName: string,
+    value: any,
+    rules: FieldValidation['rules'],
+    formData?: any
+  ): Promise<void> => {
+    // Limpiar timer anterior
+    if (debounceTimers.value[fieldName]) {
+      clearTimeout(debounceTimers.value[fieldName]);
+    }
+
+    // Configurar nuevo timer con debounce
+    debounceTimers.value[fieldName] = setTimeout(async () => {
+      try {
+        asyncValidating.value[fieldName] = true;
+        
+        // Primero hacer validación síncrona
+        const syncErrors = validator.validateField(fieldName, value, rules, formData);
+        fieldErrors[fieldName] = syncErrors.map(error => error.message);
+        
+        // Si no hay errores síncronos, proceder con validación asíncrona
+        if (syncErrors.length === 0) {
+          const asyncErrors = await validator.validateFieldAsync(fieldName, value, rules, formData);
+          fieldErrors[fieldName] = [...syncErrors, ...asyncErrors].map(error => error.message);
+        }
+        
+      } catch (error) {
+        console.error(`Error validating field ${fieldName}:`, error);
+        fieldErrors[fieldName] = ['Error de validación'];
+      } finally {
+        asyncValidating.value[fieldName] = false;
+      }
+    }, asyncDebounceMs);
+  };
+
+  /**
+   * Valida documentos únicos de forma asíncrona
+   */
+  const validateUniqueDocument = async (
+    fieldName: string,
+    numeroDocumento: string,
+    tipoDocumento: string = 'CEDULA',
+    excludeId?: number
+  ): Promise<void> => {
+    if (!numeroDocumento || numeroDocumento.trim() === '') {
+      clearFieldError(fieldName);
+      return;
+    }
+
+    try {
+      asyncValidating.value[fieldName] = true;
+      
+      const exists = await validationService.checkDocumentExists(
+        numeroDocumento.trim(),
+        tipoDocumento,
+        excludeId
+      );
+      
+      if (exists) {
+        fieldErrors[fieldName] = [`Ya existe un paciente registrado con este ${tipoDocumento.toLowerCase()}`];
+      } else {
+        clearFieldError(fieldName);
+      }
+      
+    } catch (error) {
+      console.error(`Error validating unique document:`, error);
+      // No mostrar error de red al usuario en validación asíncrona
+      clearFieldError(fieldName);
+    } finally {
+      asyncValidating.value[fieldName] = false;
+    }
+  };
+
+  /**
+   * Helper para validar cédula única
+   */
+  const validateUniqueCedula = (fieldName: string, cedula: string, excludeId?: number) => {
+    return validateUniqueDocument(fieldName, cedula, 'CEDULA', excludeId);
+  };
+
   return {
     // Estados
     isSubmitting,
@@ -243,11 +390,16 @@ export function useFormValidation(options: UseFormValidationOptions = {}) {
     apiError,
     hasErrors,
     isValid,
+    asyncValidating,
+    isValidatingAsync,
 
     // Métodos de validación
     validateForm,
     validateField,
     validateOnInput,
+    validateFieldAsync,
+    validateUniqueDocument,
+    validateUniqueCedula,
 
     // Manejo de errores
     handleApiError,
