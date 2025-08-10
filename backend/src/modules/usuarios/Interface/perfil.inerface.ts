@@ -1,4 +1,10 @@
-// 📁 backend/src/modules/usuarios/Interface/perfil.interface.ts
+/*
+ Las interfaces en este archivo definen la estructura de los datos
+ relacionados con el perfil de usuario en la aplicación, de esta forma
+ se asegura la consistencia y claridad en el manejo de la información.
+*/
+
+// Interface para la respuesta del perfil de usuario
 export interface IPerfilResponse {
     id: number;
     nombre: string;

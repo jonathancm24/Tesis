@@ -297,7 +297,7 @@ import {
   EstadosCiviles, 
   RelacionesRepresentante 
 } from '@/types/patient'
-import { validateCedula, validateRUC } from '@/utils/validators'
+import { validateCedula, validateRUC } from '@//utils/validators'
 import AutocompleteParroquia from '@/components/common/AutocompleteParroquia.vue'
 
 // Props
