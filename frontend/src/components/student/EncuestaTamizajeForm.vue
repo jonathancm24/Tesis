@@ -78,11 +78,16 @@
 
                 <!-- Preguntas de la categoría -->
                 <div class="preguntas-container">
-                  <div 
-                    v-for="pregunta in categoria.preguntas" 
-                    :key="pregunta.id"
-                    class="pregunta-item mb-3"
-                  >
+                  <div class="preguntas-grid">
+                    <div 
+                      v-for="pregunta in categoria.preguntas" 
+                      :key="pregunta.id"
+                      class="pregunta-item"
+                      :class="{ 
+                        'pregunta-con-detalle': pregunta.requiereDetalle && respuestas[pregunta.id] === 'SI',
+                        'pregunta-completa': pregunta.requiereDetalle && respuestas[pregunta.id] === 'SI'
+                      }"
+                    >
                     <div class="pregunta-content">
                       <!-- Texto de la pregunta -->
                       <label :for="`pregunta-${pregunta.id}`" class="pregunta-label">
@@ -165,6 +170,7 @@
                           ></textarea>
                         </div>
                       </div>
+                    </div>
                     </div>
                   </div>
                 </div>
@@ -470,7 +476,7 @@ onMounted(() => {
 /* Modal dialog */
 .encuesta-modal-dialog {
   width: 100% !important;
-  max-width: 900px !important;
+  max-width: 1400px !important;
   max-height: 95vh !important;
   margin: 0 auto !important;
   display: flex !important;
@@ -708,15 +714,31 @@ onMounted(() => {
   padding-top: 0.5rem !important;
 }
 
+/* Grid de preguntas - NUEVA IMPLEMENTACIÓN */
+.preguntas-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
+  gap: 1rem !important;
+  width: 100% !important;
+}
+
+/* Ajuste para preguntas que requieren detalle */
+.pregunta-con-detalle {
+  grid-column: 1 / -1 !important; /* Ocupa toda la fila cuando necesita detalle */
+}
+
 /* Items de preguntas */
 .pregunta-item {
   background: white !important;
   border-radius: 0.5rem !important;
-  padding: 1.25rem !important;
+  padding: 1rem !important;
   border: 1px solid #e9ecef !important;
   transition: all 0.2s ease !important;
-  margin-bottom: 1rem !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  height: fit-content !important;
+  min-height: 120px !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .pregunta-item:hover {
@@ -725,27 +747,42 @@ onMounted(() => {
   transform: translateY(-1px) !important;
 }
 
-.pregunta-item:last-child {
-  margin-bottom: 0 !important;
+/* Preguntas que necesitan detalles ocupan toda la fila */
+.pregunta-item.pregunta-con-detalle {
+  min-height: auto !important;
+  grid-column: 1 / -1 !important;
+}
+
+.pregunta-content {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
 }
 
 .pregunta-label {
   font-weight: 600 !important;
   color: #495057 !important;
-  margin-bottom: 0 !important;
-  line-height: 1.5 !important;
+  margin-bottom: 0.5rem !important;
+  line-height: 1.4 !important;
   display: block !important;
+  font-size: 0.9rem !important;
+  flex-shrink: 0 !important;
 }
 
 .respuesta-container {
-  margin-top: 0.75rem !important;
+  margin-top: 0.5rem !important;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
 }
 
 /* Opciones de respuesta */
 .respuesta-opciones {
   display: flex !important;
-  gap: 1.5rem !important;
+  gap: 1rem !important;
   align-items: center !important;
+  justify-content: center !important;
   flex-wrap: wrap !important;
 }
 
@@ -757,9 +794,9 @@ onMounted(() => {
 
 .form-check-input {
   margin-top: 0 !important;
-  margin-right: 0.5rem !important;
-  width: 1.2rem !important;
-  height: 1.2rem !important;
+  margin-right: 0.4rem !important;
+  width: 1.1rem !important;
+  height: 1.1rem !important;
 }
 
 .form-check-label {
@@ -767,22 +804,29 @@ onMounted(() => {
   color: #495057 !important;
   cursor: pointer !important;
   margin-bottom: 0 !important;
+  font-size: 0.9rem !important;
 }
 
 /* Campos de texto y número */
 .respuesta-texto .form-control,
 .respuesta-numero .form-control {
   border: 2px solid #e9ecef !important;
-  border-radius: 0.5rem !important;
-  padding: 0.75rem !important;
-  font-size: 0.95rem !important;
+  border-radius: 0.4rem !important;
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.85rem !important;
   transition: all 0.2s ease !important;
+  min-height: 38px !important;
+}
+
+.respuesta-texto .form-control {
+  resize: vertical !important;
+  min-height: 60px !important;
 }
 
 .respuesta-texto .form-control:focus,
 .respuesta-numero .form-control:focus {
   border-color: #0d6efd !important;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1) !important;
+  box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.1) !important;
 }
 
 /* Container de detalles */
@@ -792,24 +836,44 @@ onMounted(() => {
   padding: 0.75rem !important;
   border-left: 3px solid #ffc107 !important;
   margin-top: 0.75rem !important;
+  width: 100% !important;
 }
 
 .detalle-container .form-label {
   font-weight: 600 !important;
   margin-bottom: 0.5rem !important;
   color: #856404 !important;
-  font-size: 0.85rem !important;
+  font-size: 0.8rem !important;
 }
 
 .detalle-container .form-control {
   border: 1px solid #ffeaa7 !important;
   background: #fff !important;
-  font-size: 0.9rem !important;
+  font-size: 0.85rem !important;
+  padding: 0.5rem !important;
+  resize: vertical !important;
+  min-height: 60px !important;
 }
 
 .detalle-container .form-control:focus {
   border-color: #ffc107 !important;
-  box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.1) !important;
+  box-shadow: 0 0 0 0.15rem rgba(255, 193, 7, 0.1) !important;
+}
+
+/* Expansión automática para preguntas con detalles activos */
+.pregunta-item.pregunta-con-detalle {
+  animation: expandir 0.3s ease-out !important;
+}
+
+@keyframes expandir {
+  from {
+    transform: scale(0.98) !important;
+    opacity: 0.8 !important;
+  }
+  to {
+    transform: scale(1) !important;
+    opacity: 1 !important;
+  }
 }
 
 /* Separadores */
@@ -847,6 +911,22 @@ onMounted(() => {
    RESPONSIVE DESIGN
 ======================================== */
 
+/* Pantallas grandes - 4 columnas */
+@media (min-width: 1400px) {
+  .preguntas-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+    gap: 1.25rem !important;
+  }
+}
+
+/* Pantallas extra grandes - hasta 5 columnas */
+@media (min-width: 1600px) {
+  .preguntas-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+    gap: 1.25rem !important;
+  }
+}
+
 /* Tablets */
 @media (max-width: 992px) {
   .encuesta-modal-dialog {
@@ -869,6 +949,12 @@ onMounted(() => {
   
   .pregunta-item {
     padding: 1rem !important;
+  }
+  
+  /* Grid responsive para tablets */
+  .preguntas-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+    gap: 0.875rem !important;
   }
 }
 
@@ -925,7 +1011,13 @@ onMounted(() => {
   
   .pregunta-item {
     padding: 0.875rem !important;
-    margin-bottom: 0.75rem !important;
+    min-height: 100px !important;
+  }
+  
+  /* Grid para móviles - 2 columnas en pantallas medianas */
+  .preguntas-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+    gap: 0.75rem !important;
   }
   
   .pregunta-label {
@@ -998,6 +1090,16 @@ onMounted(() => {
   .alert {
     padding: 0.75rem !important;
     font-size: 0.85rem !important;
+  }
+  
+  /* Grid para móviles pequeños - una sola columna */
+  .preguntas-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+  
+  .pregunta-item {
+    min-height: 90px !important;
   }
 }
 

@@ -2,11 +2,13 @@
 <template>
   <div id="app">
     <router-view/>
+    <!-- Contenedor de notificaciones toast -->
+    <ToastContainer />
   </div>
 </template>
 
 <script setup lang="ts">
-// Sin lógica aquí: todo se monta vía layout / vistas hijas
+import ToastContainer from '@/components/common/ToastContainer.vue';
 </script>
 
 <style>
