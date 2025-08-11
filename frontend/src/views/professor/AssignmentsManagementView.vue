@@ -1,3 +1,4 @@
+<!-- src/views/professor/AssignmentsManagementView.vue -->
 <template>
   <section class="clinical-management container py-4">
     <!-- Header -->
@@ -73,11 +74,12 @@
             <label class="form-label">Especialidad</label>
             <select v-model="selectedSpecialty" class="form-select">
               <option value="">Todas las especialidades</option>
-              <option value="operatoria">Operatoria Dental</option>
-              <option value="endodoncia">Endodoncia</option>
-              <option value="periodoncia">Periodoncia</option>
-              <option value="cirugia">Cirugía Oral</option>
-              <option value="protesis">Prótesis</option>
+              <!-- valores exactos a los datos (con tildes) -->
+              <option value="Operatoria Dental">Operatoria Dental</option>
+              <option value="Endodoncia">Endodoncia</option>
+              <option value="Periodoncia">Periodoncia</option>
+              <option value="Cirugía Oral">Cirugía Oral</option>
+              <option value="Prótesis">Prótesis</option>
             </select>
           </div>
           <div class="col-md-3">
@@ -158,10 +160,11 @@
                   <div class="action-group d-flex flex-wrap justify-content-center">
                     <button
                       class="btn btn-outline-primary btn-icon-text me-1 mb-1"
-                      @click="viewCaseDetails(clinicalCase.id)"
+                      @click="openDetails(clinicalCase.id)"
                     >
                       <i class="bi bi-eye"></i><span>Ver</span>
                     </button>
+
                     <button
                       v-if="clinicalCase.status === 'pendiente'"
                       class="btn btn-outline-success btn-icon-text me-1 mb-1"
@@ -169,13 +172,15 @@
                     >
                       <i class="bi bi-check-lg"></i><span>Aprobar</span>
                     </button>
+
                     <button
                       v-if="clinicalCase.status === 'pendiente'"
                       class="btn btn-outline-danger btn-icon-text me-1 mb-1"
-                      @click="rejectCase(clinicalCase.id)"
+                      @click="openReject(clinicalCase.id)"
                     >
                       <i class="bi bi-x-lg"></i><span>Rechazar</span>
                     </button>
+
                     <button
                       class="btn btn-outline-info btn-icon-text mb-1"
                       @click="editAssignment(clinicalCase.id)"
@@ -185,6 +190,7 @@
                   </div>
                 </td>
               </tr>
+
               <tr v-if="filteredCases.length === 0">
                 <td colspan="7" class="text-center text-muted py-4">
                   No se encontraron casos clínicos que coincidan con los filtros.
@@ -196,13 +202,13 @@
       </div>
     </div>
 
-    <!-- Modal: Detalles del Caso -->
-    <div class="modal fade" id="caseDetailsModal" tabindex="-1">
+    <!-- ========== MODAL: Detalles del Caso (Vue-controlled) ========== -->
+    <div class="modal fade show d-block" tabindex="-1" v-if="ui.detailsOpen" @click.self="closeDetails">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header modal-header-brand">
             <h5 class="modal-title">Detalles del Caso Clínico</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <button type="button" class="btn-close btn-close-white" @click="closeDetails"></button>
           </div>
           <div class="modal-body">
             <div v-if="selectedCase" class="row">
@@ -238,19 +244,25 @@
             </div>
           </div>
           <div class="modal-footer border-0">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn btn-secondary" @click="closeDetails">Cerrar</button>
+            <button type="button" class="btn btn-outline-success" v-if="selectedCase?.status==='pendiente'" @click="approveCase(selectedCase!.id)">
+              <i class="bi bi-check-lg me-1"></i> Aprobar
+            </button>
+            <button type="button" class="btn btn-outline-danger" v-if="selectedCase?.status==='pendiente'" @click="openReject(selectedCase!.id)">
+              <i class="bi bi-x-lg me-1"></i> Rechazar
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal: Nueva Asignación -->
-    <div class="modal fade" id="newAssignmentModal" tabindex="-1">
+    <!-- ========== MODAL: Nueva/Editar Asignación (Vue-controlled) ========== -->
+    <div class="modal fade show d-block" tabindex="-1" v-if="ui.formOpen" @click.self="closeForm">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header modal-header-brand">
-            <h5 class="modal-title">Nueva Asignación Clínica</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <h5 class="modal-title">{{ editMode ? 'Editar Asignación Clínica' : 'Nueva Asignación Clínica' }}</h5>
+            <button type="button" class="btn-close btn-close-white" @click="closeForm"></button>
           </div>
           <div class="modal-body">
             <form @submit.prevent="saveAssignment" novalidate>
@@ -308,12 +320,39 @@
             </form>
           </div>
           <div class="modal-footer border-0">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="button" class="btn btn-primary" @click="saveAssignment">Crear Asignación</button>
+            <button type="button" class="btn btn-secondary" @click="closeForm">Cancelar</button>
+            <button type="button" class="btn btn-primary" @click="saveAssignment">
+              {{ editMode ? 'Actualizar Asignación' : 'Crear Asignación' }}
+            </button>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- ========== MODAL: Rechazar con motivo (Vue-controlled) ========== -->
+    <div class="modal fade show d-block" tabindex="-1" v-if="ui.rejectOpen" @click.self="closeReject">
+      <div class="modal-dialog">
+        <form class="modal-content" @submit.prevent="confirmReject">
+          <div class="modal-header modal-header-brand">
+            <h5 class="modal-title">Rechazar caso</h5>
+            <button type="button" class="btn-close btn-close-white" @click="closeReject"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-2">Indica el motivo del rechazo:</p>
+            <textarea v-model.trim="rejectReason" class="form-control" rows="3" required placeholder="Motivo del rechazo"></textarea>
+          </div>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-secondary" @click="closeReject">Cancelar</button>
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-x-lg me-1"></i> Confirmar rechazo
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Backdrop (cuando cualquier modal está abierto) -->
+    <div class="modal-backdrop fade show" v-if="anyModalOpen"></div>
   </section>
 </template>
 
@@ -368,6 +407,19 @@ const newAssignment = ref<NewAssignment>({
   notes: ''
 })
 
+const editMode = ref(false)
+const editId = ref<number | null>(null)
+
+/* UI Modals */
+const ui = ref({
+  detailsOpen: false,
+  formOpen: false,
+  rejectOpen: false
+})
+const anyModalOpen = computed(() => ui.value.detailsOpen || ui.value.formOpen || ui.value.rejectOpen)
+const rejectTargetId = ref<number | null>(null)
+const rejectReason = ref('')
+
 /* Datos simulados */
 const availableStudents = ref<Student[]>([
   { id: 1, name: 'Ana Rodríguez' },
@@ -409,7 +461,7 @@ const students      = computed(() => Array.from(new Set(clinicalCases.value.map(
 const filteredCases = computed(() => {
   return clinicalCases.value.filter(c => {
     const statusOK  = !selectedStatus.value || c.status === selectedStatus.value
-    const specOK    = !selectedSpecialty.value || c.specialty.toLowerCase().includes(selectedSpecialty.value.toLowerCase())
+    const specOK    = !selectedSpecialty.value || c.specialty === selectedSpecialty.value
     const studentOK = !selectedStudent.value || c.studentName === selectedStudent.value
     const q         = searchTerm.value.trim().toLowerCase()
     const searchOK  = !q || c.patientName.toLowerCase().includes(q) || c.diagnosis.toLowerCase().includes(q) || c.treatment.toLowerCase().includes(q)
@@ -438,25 +490,55 @@ function getStatusText (status: ClinicalCase['status']) {
   }[status] || 'Desconocido'
 }
 
-/* Acciones */
-function viewCaseDetails (caseId: number) {
+/* ----- Acciones (100% funcionales) ----- */
+// Ver
+function openDetails (caseId: number) {
   selectedCase.value = clinicalCases.value.find(c => c.id === caseId) || null
-  const modal = new (window as any).bootstrap.Modal(document.getElementById('caseDetailsModal'))
-  modal.show()
+  ui.value.detailsOpen = true
 }
+function closeDetails () {
+  ui.value.detailsOpen = false
+  selectedCase.value = null
+}
+
+// Aprobar
 function approveCase (caseId: number) {
   const c = clinicalCases.value.find(x => x.id === caseId)
-  if (c) c.status = 'aprobado'
+  if (c && confirm(`¿Aprobar el caso de ${c.patientName}?`)) {
+    c.status = 'aprobado'
+    // si se está viendo en modal, actualiza visualmente
+    if (selectedCase.value?.id === c.id) selectedCase.value = { ...c }
+  }
 }
-function rejectCase (caseId: number) {
-  const c = clinicalCases.value.find(x => x.id === caseId)
-  if (c) c.status = 'rechazado'
+
+// Rechazar (abre modal con motivo)
+function openReject (caseId: number) {
+  rejectTargetId.value = caseId
+  rejectReason.value = ''
+  ui.value.rejectOpen = true
 }
-function editAssignment (caseId: number) {
-  // Aquí podrías abrir el mismo modal prellenado
-  console.log('Editar asignación', caseId)
+function closeReject () {
+  ui.value.rejectOpen = false
+  rejectTargetId.value = null
+  rejectReason.value = ''
 }
+function confirmReject () {
+  const id = rejectTargetId.value
+  const reason = rejectReason.value.trim()
+  if (!id || !reason) return
+  const c = clinicalCases.value.find(x => x.id === id)
+  if (c) {
+    c.status = 'rechazado'
+    c.notes = c.notes ? `${c.notes}\n[Rechazo] ${reason}` : `[Rechazo] ${reason}`
+    if (selectedCase.value?.id === c.id) selectedCase.value = { ...c }
+  }
+  closeReject()
+}
+
+// Crear / Editar
 function createNewAssignment () {
+  editMode.value = false
+  editId.value = null
   newAssignment.value = {
     studentId: '',
     patientId: '',
@@ -466,9 +548,33 @@ function createNewAssignment () {
     treatment: '',
     notes: ''
   }
-  const modal = new (window as any).bootstrap.Modal(document.getElementById('newAssignmentModal'))
-  modal.show()
+  ui.value.formOpen = true
 }
+
+function editAssignment (caseId: number) {
+  const c = clinicalCases.value.find(x => x.id === caseId)
+  if (!c) return
+  editMode.value = true
+  editId.value = c.id
+  // Mapear a formulario
+  const student = availableStudents.value.find(s => s.name === c.studentName)
+  const patient = availablePatients.value.find(p => p.name === c.patientName)
+  newAssignment.value = {
+    studentId: student?.id ?? '',
+    patientId: patient?.id ?? '',
+    specialty: c.specialty,
+    priority: 'media',
+    diagnosis: c.diagnosis,
+    treatment: c.treatment,
+    notes: c.notes || ''
+  }
+  ui.value.formOpen = true
+}
+
+function closeForm () {
+  ui.value.formOpen = false
+}
+
 function saveAssignment () {
   // Validación mínima
   if (!newAssignment.value.studentId || !newAssignment.value.patientId || !newAssignment.value.specialty || !newAssignment.value.diagnosis || !newAssignment.value.treatment) {
@@ -479,26 +585,41 @@ function saveAssignment () {
   const student = availableStudents.value.find(s => s.id === newAssignment.value.studentId)!
   const patient = availablePatients.value.find(p => p.id === newAssignment.value.patientId)!
 
-  const lastCase = clinicalCases.value.length > 0 ? clinicalCases.value[clinicalCases.value.length - 1] : null
-  const nextId = (lastCase?.id ?? 0) + 1
-  clinicalCases.value.unshift({
-    id: nextId,
-    patientName: patient.name,
-    patientAge: patient.age,
-    patientGender: '—',
-    studentName: student.name,
-    studentAvatar: student.avatar || DEFAULT_AVATAR,
-    specialty: newAssignment.value.specialty,
-    diagnosis: newAssignment.value.diagnosis,
-    treatment: newAssignment.value.treatment,
-    status: 'pendiente',
-    assignedDate: new Date().toISOString(),
-    notes: newAssignment.value.notes || ''
-  })
+  if (editMode.value && editId.value) {
+    const idx = clinicalCases.value.findIndex(c => c.id === editId.value)
+    if (idx !== -1) {
+      clinicalCases.value[idx] = {
+        ...clinicalCases.value[idx],
+        patientName: patient.name,
+        patientAge: patient.age,
+        studentName: student.name,
+        studentAvatar: student.avatar || DEFAULT_AVATAR,
+        specialty: newAssignment.value.specialty,
+        diagnosis: newAssignment.value.diagnosis,
+        treatment: newAssignment.value.treatment,
+        notes: newAssignment.value.notes
+      }
+    }
+  } else {
+    const lastCase = clinicalCases.value.length > 0 ? clinicalCases.value[0] : null
+    const nextId = (lastCase?.id ?? 0) + 1
+    clinicalCases.value.unshift({
+      id: nextId,
+      patientName: patient.name,
+      patientAge: patient.age,
+      patientGender: '—',
+      studentName: student.name,
+      studentAvatar: student.avatar || DEFAULT_AVATAR,
+      specialty: newAssignment.value.specialty,
+      diagnosis: newAssignment.value.diagnosis,
+      treatment: newAssignment.value.treatment,
+      status: 'pendiente',
+      assignedDate: new Date().toISOString(),
+      notes: newAssignment.value.notes || ''
+    })
+  }
 
-  // Cerrar modal
-  const modal = (window as any).bootstrap.Modal.getInstance(document.getElementById('newAssignmentModal'))
-  modal?.hide()
+  closeForm()
 }
 </script>
 
