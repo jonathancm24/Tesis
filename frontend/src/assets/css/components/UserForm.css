@@ -1,0 +1,229 @@
+/* ===============================
+   UserForm (Formulario de Usuario)
+   =============================== */
+
+.user-form {
+  /* Variables coherentes con AdminLayout */
+  --primary-green: #81c784;      /* Verde suave principal */
+  --soft-green: #c8e6c9;        /* Verde muy claro */
+  --soft-blue: #bbdefb;         /* Azul suave */
+  --primary-white: #ffffff;     /* Blanco puro */
+  --light-gray: #fafafa;        /* Gris muy claro */
+  --medium-gray: #9e9e9e;       /* Gris medio */
+  --dark-gray: #424242;         /* Gris oscuro */
+  --border-light: #dee2e6;      /* Borde claro */
+  
+  /* Variables de diseño */
+  --uf-radius: 8px;
+  --uf-radius-sm: 6px;
+  --uf-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --uf-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --uf-card-bg: var(--primary-white);
+  --uf-surface: var(--light-gray);
+  --uf-muted: var(--medium-gray);
+  --uf-text-primary: var(--dark-gray);
+  --uf-divider: var(--border-light);
+  --uf-input-bg: var(--primary-white);
+  --uf-input-border: var(--border-light);
+  --uf-focus: 0 0 0 .15rem rgba(129, 199, 132, .15);
+  
+  background: var(--uf-card-bg);
+  color: var(--uf-text-primary);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ===== Campos de formulario ===== */
+.user-form .form-label {
+  font-weight: 600;
+  color: var(--uf-text-primary);
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.user-form .form-label i {
+  color: var(--primary-green);
+  margin-right: 0.25rem;
+}
+
+.user-form .form-control,
+.user-form .form-select {
+  background: var(--uf-input-bg);
+  border: 1px solid var(--uf-input-border);
+  border-radius: var(--uf-radius-sm);
+  padding: 0.625rem 0.75rem;
+  color: var(--uf-text-primary);
+  font-size: 0.875rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.user-form .form-control::placeholder {
+  color: var(--uf-muted);
+  opacity: 0.8;
+}
+
+.user-form .form-control:focus,
+.user-form .form-select:focus {
+  border-color: var(--primary-green);
+  box-shadow: var(--uf-focus);
+  outline: none;
+}
+
+/* Estados de validación */
+.user-form .form-control.is-valid,
+.user-form .form-select.is-valid {
+  border-color: var(--primary-green);
+  background-image: none;
+}
+
+.user-form .form-control.is-invalid,
+.user-form .form-select.is-invalid {
+  border-color: #ffab91;
+  background-image: none;
+}
+
+.user-form .invalid-feedback {
+  color: #c62828;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.user-form .valid-feedback {
+  color: var(--primary-green);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+/* ===== Textarea ===== */
+.user-form textarea.form-control {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* ===== Switch ===== */
+.user-form .form-check-input {
+  background-color: var(--uf-surface);
+  border: 1px solid var(--uf-input-border);
+  cursor: pointer;
+}
+
+.user-form .form-check-input:checked {
+  background-color: var(--primary-green);
+  border-color: var(--primary-green);
+}
+
+.user-form .form-check-input:focus {
+  box-shadow: var(--uf-focus);
+}
+
+.user-form .form-check-label {
+  cursor: pointer;
+  color: var(--uf-text-primary);
+  font-weight: 500;
+}
+
+/* ===== Botones ===== */
+.user-form .btn {
+  border-radius: var(--uf-radius-sm);
+  padding: 0.625rem 1.25rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  border: 1px solid;
+}
+
+.user-form .btn-primary {
+  background: var(--primary-green);
+  border-color: var(--primary-green);
+  color: white;
+}
+
+.user-form .btn-primary:hover:not(:disabled) {
+  background: #66bb6a;
+  border-color: #66bb6a;
+  transform: translateY(-1px);
+  box-shadow: var(--uf-shadow-hover);
+}
+
+.user-form .btn-secondary {
+  background: var(--uf-surface);
+  border-color: var(--uf-input-border);
+  color: var(--uf-text-primary);
+}
+
+.user-form .btn-secondary:hover:not(:disabled) {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.user-form .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ===== Loading states ===== */
+.user-form .spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15em;
+}
+
+/* ===== Checkbox lists ===== */
+.user-form .form-check {
+  margin-bottom: 0.5rem;
+}
+
+.user-form .form-check .form-check-input {
+  margin-top: 0.125rem;
+}
+
+.user-form .form-check .form-check-label {
+  margin-left: 0.25rem;
+  font-size: 0.875rem;
+}
+
+/* ===== Help text ===== */
+.user-form .form-text {
+  color: var(--uf-muted);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .user-form .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  .user-form .d-flex.justify-content-end {
+    flex-direction: column-reverse;
+  }
+  
+  .user-form .d-flex.justify-content-end .btn {
+    margin-right: 0 !important;
+  }
+}
+
+/* ===== Validación en tiempo real ===== */
+.user-form .field-validating {
+  position: relative;
+}
+
+.user-form .field-validating::after {
+  content: "";
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--primary-green);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: translateY(-50%) rotate(360deg); }
+}

@@ -1,6 +1,6 @@
 <!-- src/components/admin/UserForm.vue -->
 <template>
-  <form @submit.prevent="onSubmit" class="row g-3">
+  <form @submit.prevent="onSubmit" class="user-form row g-3">
     <!-- Nombre -->
     <div class="col-12 col-md-6">
       <FormField
@@ -644,17 +644,4 @@ function getDocumentoPlaceholder(tipo: string): string {
 }
 </script>
 
-<style scoped>
-.form-label {
-  font-weight: 600;
-}
-.form-label i {
-  color: var(--bs-primary);
-}
-.form-check-input {
-  cursor: pointer;
-}
-.form-check-label {
-  cursor: pointer;
-}
-</style>
+<style src="@/assets/css/components/UserForm.css" scoped></style>
