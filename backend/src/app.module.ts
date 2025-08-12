@@ -16,6 +16,12 @@ import { PermisosInicializadorService } from './modules/permisos/permisos-inicia
 import { PrismaModule } from './prisma/prisma.module';
 import { PacienteModule } from './modules/pacientes/paciente.module'; // Módulo de pacientes
 import { EncuestaModule } from './modules/Encuesta/encuesta.module'; // Módulo de encuestas de tamizaje
+import { TratamientoModule } from './modules/tratamientos/tratamiento.module'; // Módulo de tratamientos clínicos
+import { PreguntasClinicasModule } from './modules/preguntasClinicas/preguntas-clinicas.module'; // Módulo de preguntas por especialidad
+import { CasosClinicosModule } from './modules/CasosClinicos/casos-clinicos.module'; // Módulo de casos clínicos
+import { PrescripcionModule } from './modules/Prescripciones/prescripcion.module'; // Módulo de prescripciones médicas
+import { ObservacionModule } from './modules/Observaciones/observacion.module'; // Módulo de observaciones del sistema
+
 
 /**
  * Módulo principal de la aplicación
@@ -41,11 +47,16 @@ import { EncuestaModule } from './modules/Encuesta/encuesta.module'; // Módulo 
     PermisosUsuariosModule,
     PacienteModule,        // ← Módulo de gestión de pacientes
     EncuestaModule,        // ← Módulo de encuestas de tamizaje
+    TratamientoModule,     // ← Módulo de gestión de tratamientos clínicos
+    PreguntasClinicasModule, // ← Módulo de preguntas clínicas por especialidad
+    CasosClinicosModule,   // ← Módulo de gestión de casos clínicos odontológicos
+    PrescripcionModule,    // ← Módulo de gestión de prescripciones médicas
+    ObservacionModule,     // ← Módulo de observaciones para seguimiento y retroalimentación
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    PermisosInicializadorService, // ✅ MANTENER SOLO ESTE
+    PermisosInicializadorService, // Para inicializar permisos de usuario
   ],
 })
 export class AppModule {}
