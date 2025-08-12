@@ -21,6 +21,15 @@ import { PreguntasClinicasModule } from './modules/preguntasClinicas/preguntas-c
 import { CasosClinicosModule } from './modules/CasosClinicos/casos-clinicos.module'; // Módulo de casos clínicos
 import { PrescripcionModule } from './modules/Prescripciones/prescripcion.module'; // Módulo de prescripciones médicas
 import { ObservacionModule } from './modules/Observaciones/observacion.module'; // Módulo de observaciones del sistema
+import { SolicitudModule } from './modules/Solicitudes/solicitud.module'; // Módulo de solicitudes académicas
+import { OdontogramaModule } from './modules/Odontograma/odontograma.module'; // Módulo de odontogramas
+import { HallazgoClinicoModule } from './modules/HallazgosClinico/hallazgo-clinico.module'; // Módulo de hallazgos clínicos
+import { CitaModule } from './modules/Citas/cita.module'; // Módulo de citas médicas
+import { DisponibilidadModule } from './modules/Disponibilidad/disponibilidad.module'; // Módulo de disponibilidad horaria
+import { ClinicaModule } from './modules/Clinica/clinica.module'; // Módulo de clínicas universitarias
+import { PersonalClinicaModule } from './modules/PersonalClinica/personal-clinica.module'; // Módulo de personal de clínicas
+import { HorarioClinicaModule } from './modules/HorarioClinica/horario-clinica.module'; // Módulo de horarios de clínicas
+import { LogModule } from './modules/Log/log.module'; // Módulo de logs de auditoría del sistema
 
 
 /**
@@ -52,6 +61,15 @@ import { ObservacionModule } from './modules/Observaciones/observacion.module'; 
     CasosClinicosModule,   // ← Módulo de gestión de casos clínicos odontológicos
     PrescripcionModule,    // ← Módulo de gestión de prescripciones médicas
     ObservacionModule,     // ← Módulo de observaciones para seguimiento y retroalimentación
+    SolicitudModule,       // ← Módulo de solicitudes académicas para asignación estudiante-especialidad
+    OdontogramaModule,     // ← Módulo de gestión de odontogramas (cartas dentales)
+    HallazgoClinicoModule, // ← Módulo de gestión de hallazgos clínicos odontológicos
+    CitaModule,            // ← Módulo de gestión de citas médicas y disponibilidad de estudiantes
+    DisponibilidadModule,  // ← Módulo de gestión de horarios de disponibilidad de estudiantes
+    ClinicaModule,         // ← Módulo de gestión de clínicas universitarias (móviles, fijas, temporales)
+    PersonalClinicaModule, // ← Módulo de asignación de personal a clínicas
+    HorarioClinicaModule,  // ← Módulo de horarios de atención de clínicas
+    LogModule,             // ← Módulo de logs de auditoría del sistema (solo lectura para administradores)
   ],
   controllers: [AppController],
   providers: [
