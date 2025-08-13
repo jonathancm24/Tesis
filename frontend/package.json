@@ -20,7 +20,8 @@
     "jquery": "^3.7.1",
     "pinia": "^3.0.3",
     "vue": "^3.5.17",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/chart.js": "^2.9.41",

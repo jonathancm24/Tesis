@@ -323,58 +323,120 @@
 <script setup lang="ts">
 /**
  * HomeAdmin.vue — Panel de administración
- * Notas:
- * - Usa valores por defecto para evitar ?. en plantilla
- * - Carga en paralelo y manejo de estado (loading/error)
- * - Acciones optimistas (sin recargar toda la lista)
+ * Integra con el backend real para mostrar datos actuales del sistema
  */
 import { ref, computed, onMounted } from 'vue'
-import type { Stats, SystemOverview, ErrorReport, Request } from '@/mocks/admin/api'
-import {
-  fetchStatsMock,
-  fetchSystemOverviewMock,
-  fetchErrorReportsMock,
-  fetchRequestsMock,
-  updateErrorReportStatusMock,
-  updateRequestStatusMock
-} from '@/mocks/admin/api'
+import { adminService } from '@/services/adminService'
+import { useToast } from '@/composables/useToast'
+import type { AdminStats, SystemOverview } from '@/types/admin'
+
+// Importar tipos del mock para compatibilidad temporal
+type ErrorReport = {
+  id: number
+  title: string
+  description: string
+  user: string
+  userRole: string
+  priority: 'baja' | 'media' | 'alta' | 'critica'
+  status: 'pendiente' | 'en_proceso' | 'resuelto' | 'cerrado'
+  createdAt: string
+  updatedAt: string
+  category: string
+}
+
+type Request = {
+  id: number
+  title: string
+  description: string
+  user: string
+  userRole: string
+  type: string
+  status: 'pendiente' | 'aprobado' | 'rechazado' | 'en_proceso'
+  createdAt: string
+  updatedAt: string
+}
 
 /* Estado */
-const stats = ref<Stats | null>(null)
+const stats = ref<AdminStats | null>(null)
 const systemOverview = ref<SystemOverview | null>(null)
 const errorReports = ref<ErrorReport[]>([])
 const requests = ref<Request[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 
-/* Carga de datos (en paralelo) */
+const { showToast } = useToast()
+
+/* Carga de datos desde el backend */
 const loadData = async () => {
   loading.value = true
   error.value = null
   try {
-    const [s, o, errs, reqs] = await Promise.all([
-      fetchStatsMock(),
-      fetchSystemOverviewMock(),
-      fetchErrorReportsMock(),
-      fetchRequestsMock()
+    // Cargar datos en paralelo desde el backend
+    const [statsData, overviewData, requestsData, errorsData] = await Promise.all([
+      adminService.getDashboardStats(),
+      adminService.getSystemOverview(),
+      adminService.getRecentRequests(),
+      adminService.getErrorReports()
     ])
-    stats.value = s
-    systemOverview.value = o
-    errorReports.value = errs
-    requests.value = reqs
-  } catch (e) {
-    console.error(e)
-    error.value = 'No se pudieron cargar los datos. Intenta nuevamente.'
+
+    stats.value = statsData
+    systemOverview.value = overviewData
+    requests.value = requestsData.map(formatRequestFromBackend)
+    errorReports.value = errorsData
+
+    showToast('Datos cargados correctamente', 'success')
+  } catch (e: any) {
+    console.error('Error cargando datos del dashboard:', e)
+    error.value = e.message || 'No se pudieron cargar los datos. Intenta nuevamente.'
+    showToast('Error al cargar los datos del dashboard', 'error')
   } finally {
     loading.value = false
   }
+}
+
+/* Función para formatear solicitudes del backend */
+const formatRequestFromBackend = (solicitud: any): Request => {
+  return {
+    id: solicitud.id,
+    title: solicitud.tipoSolicitud || 'Solicitud',
+    description: solicitud.descripcion || 'Sin descripción',
+    user: solicitud.estudiante?.nombre || 'Usuario desconocido',
+    userRole: 'estudiante',
+    type: solicitud.especialidad?.nombre || 'General',
+    status: mapBackendStatusToRequestStatus(solicitud.estado),
+    createdAt: solicitud.fechaCreacion || new Date().toISOString(),
+    updatedAt: solicitud.fechaActualizacion || solicitud.fechaCreacion || new Date().toISOString()
+  }
+}
+
+/* Mapear estados del backend a estados de la UI */
+const mapBackendStatusToRequestStatus = (backendStatus: string): Request['status'] => {
+  const statusMap: Record<string, Request['status']> = {
+    'PENDIENTE': 'pendiente',
+    'APROBADA': 'aprobado',
+    'RECHAZADA': 'rechazado',
+    'EN_PROCESO': 'en_proceso',
+    'CANCELADA': 'rechazado'
+  }
+  return statusMap[backendStatus] || 'pendiente'
+}
+
+/* Mapear estados de UI a estados del backend */
+const mapRequestStatusToBackend = (uiStatus: Request['status']): string => {
+  const statusMap: Record<Request['status'], string> = {
+    'pendiente': 'PENDIENTE',
+    'aprobado': 'APROBADA',
+    'rechazado': 'RECHAZADA',
+    'en_proceso': 'EN_PROCESO'
+  }
+  return statusMap[uiStatus] || 'PENDIENTE'
 }
 
 const reload = () => loadData()
 onMounted(loadData)
 
 /* Valores por defecto */
-const defaultStats: Stats = {
+const defaultStats: AdminStats = {
   activeUsers: 0,
   totalUsers: 0,
   pendingAppointments: 0,
@@ -395,7 +457,7 @@ const defaultOverview: SystemOverview = {
 const s = computed(() => stats.value ?? defaultStats)
 const o = computed(() => systemOverview.value ?? defaultOverview)
 
-/* Cards (evita repetición en la plantilla) */
+/* Cards de estadísticas */
 const statCards = computed(() => [
   {
     key: 'users',
@@ -434,20 +496,22 @@ const pendingErrorCount = computed(
   () => errorReports.value.filter(r => r.status === 'pendiente').length
 )
 
-/* Mapeos reutilizables */
-const STATUS_CLASS: Record<Request['status'] | 'en_proceso', string> = {
+/* Mapeos de estado */
+const STATUS_CLASS: Record<Request['status'], string> = {
   pendiente: 'bg-warning',
   aprobado: 'bg-success',
   rechazado: 'bg-danger',
   en_proceso: 'bg-info'
 }
-const STATUS_TEXT: Record<Request['status'] | 'en_proceso', string> = {
+
+const STATUS_TEXT: Record<Request['status'], string> = {
   pendiente: 'Pendiente',
   aprobado: 'Aprobado',
   rechazado: 'Rechazado',
   en_proceso: 'En Proceso'
 }
-const PRIORITY_CLASS: Record<ErrorReport['priority'] | 'critica', string> = {
+
+const PRIORITY_CLASS: Record<ErrorReport['priority'], string> = {
   baja: 'bg-secondary',
   media: 'bg-warning',
   alta: 'bg-danger',
@@ -467,31 +531,46 @@ const formatLastActivity = (dateString: string) => {
   return activityDate.toLocaleDateString('es-ES')
 }
 
-const requestStatusClass = (status: Request['status'] | 'en_proceso') =>
+const requestStatusClass = (status: Request['status']) =>
   STATUS_CLASS[status] || 'bg-secondary'
-const requestStatusText = (status: Request['status'] | 'en_proceso') =>
+const requestStatusText = (status: Request['status']) =>
   STATUS_TEXT[status] || status
-const priorityClass = (priority: ErrorReport['priority'] | 'critica') =>
+const priorityClass = (priority: ErrorReport['priority']) =>
   PRIORITY_CLASS[priority] || 'bg-secondary'
 
-/* Acciones (optimistas) */
+/* Acciones con backend */
 const onUpdateRequest = async (id: number, status: Request['status']) => {
   try {
-    await updateRequestStatusMock(id, status)
+    const backendStatus = mapRequestStatusToBackend(status)
+    await adminService.updateRequestStatus(id, backendStatus)
+    
+    // Actualizar optimísticamente en la UI
     const idx = requests.value.findIndex(r => r.id === id)
-    if (idx !== -1) requests.value[idx] = { ...requests.value[idx], status }
-  } catch (e) {
+    if (idx !== -1) {
+      requests.value[idx] = { ...requests.value[idx], status }
+    }
+    
+    showToast(`Solicitud ${status === 'aprobado' ? 'aprobada' : 'rechazada'} correctamente`, 'success')
+  } catch (e: any) {
     console.error('Error al actualizar solicitud:', e)
+    showToast('Error al actualizar la solicitud', 'error')
   }
 }
 
 const onUpdateError = async (id: number, status: ErrorReport['status']) => {
   try {
-    await updateErrorReportStatusMock(id, status)
+    await adminService.updateErrorReportStatus(id, status)
+    
+    // Actualizar optimísticamente en la UI
     const idx = errorReports.value.findIndex(r => r.id === id)
-    if (idx !== -1) errorReports.value[idx] = { ...errorReports.value[idx], status }
-  } catch (e) {
+    if (idx !== -1) {
+      errorReports.value[idx] = { ...errorReports.value[idx], status }
+    }
+    
+    showToast('Reporte de error actualizado correctamente', 'success')
+  } catch (e: any) {
     console.error('Error al actualizar reporte:', e)
+    showToast('Error al actualizar el reporte', 'error')
   }
 }
 </script>

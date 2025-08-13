@@ -107,25 +107,116 @@
   outline: none;
 }
 
-/* Botón Añadir */
-.admin-users .toolbar .btn-add,
-.admin-users .btn.btn-success {
-  background: var(--primary-green);
-  border: 1px solid var(--primary-green);
-  color: white;
+/* ===== Botones del toolbar ===== */
+.admin-users .toolbar .btn,
+.admin-users .d-flex.align-items-center .btn {
   border-radius: var(--au-radius-sm);
   padding: 0.6rem 1rem;
   box-shadow: var(--au-shadow);
   transition: all .2s ease;
   font-weight: 500;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
 }
 
-.admin-users .toolbar .btn-add:hover,
+/* Botón principal - Añadir usuario */
+.admin-users .btn.btn-success {
+  background: var(--primary-green);
+  border: 1px solid var(--primary-green);
+  color: white;
+}
+
 .admin-users .btn.btn-success:hover {
   background: #66bb6a;
   border-color: #66bb6a;
   transform: translateY(-1px);
   box-shadow: var(--au-shadow-hover);
+}
+
+/* Botón de carga masiva */
+.admin-users .btn.btn-outline-success {
+  color: var(--primary-green);
+  border: 1px solid var(--primary-green);
+  background: transparent;
+}
+
+.admin-users .btn.btn-outline-success:hover {
+  background: var(--primary-green);
+  border-color: var(--primary-green);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(129, 199, 132, 0.3);
+}
+
+/* Botón de desactivación masiva */
+.admin-users .btn.btn-outline-warning {
+  color: #ff9800;
+  border: 1px solid #ff9800;
+  background: transparent;
+}
+
+.admin-users .btn.btn-outline-warning:hover:not(:disabled) {
+  background: #ff9800;
+  border-color: #ff9800;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.admin-users .btn.btn-outline-warning:disabled {
+  color: #ccc;
+  border-color: #ddd;
+  background: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Iconos en botones */
+.admin-users .btn i {
+  font-size: 0.875rem;
+}
+
+/* Container de botones del toolbar */
+.admin-users .d-flex.align-items-center.gap-2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Responsive para toolbar */
+@media (max-width: 1200px) {
+  .admin-users .d-flex.align-items-center.gap-2 {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    margin-top: 1rem;
+  }
+  
+  .admin-users .d-flex.align-items-center.gap-2 .form-control {
+    max-width: none;
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+  
+  .admin-users .d-flex.align-items-center.gap-2 .btn {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-users .d-flex.justify-content-between.align-items-center {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .admin-users .d-flex.justify-content-between.align-items-center h1 {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
 }
 
 /* ===== Tabla ===== */

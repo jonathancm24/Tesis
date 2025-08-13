@@ -1,0 +1,313 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0" version="28.1.0">
+  <diagram name="Diagrama de Clases - Sistema Odontológico" id="c4acf3e9-155e-7222-9cf6-157b1a14988f">
+    <mxGraphModel dx="3213" dy="1347" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="4000" pageHeight="3000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="titulo" value="SISTEMA DE GESTIÓN DE PRÁCTICAS ODONTOLÓGICAS&#xa;Diagrama de Clases - Arquitectura Completa" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;align=center;" parent="1" vertex="1">
+          <mxGeometry x="100" y="30" width="600" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="seccionUsuarios" value="GESTIÓN DE USUARIOS" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=center;" parent="1" vertex="1">
+          <mxGeometry x="100" y="130" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="usuario" value="&lt;&lt;abstract&gt;&gt;&#xa;Usuario&#xa;────────────────────&#xa;+ id: Int&#xa;+ email: String&#xa;+ password: String&#xa;+ nombre: String&#xa;+ apellido: String&#xa;+ tipoDocumento: String&#xa;+ numeroDocumento: String&#xa;+ fechaNacimiento: Date&#xa;+ telefono: String&#xa;+ direccion: String&#xa;+ parroquiaId: Int&#xa;+ activo: Boolean&#xa;+ fechaCreacion: DateTime&#xa;+ fechaActualizacion: DateTime&#xa;────────────────────&#xa;+ login(): Boolean&#xa;+ logout(): void&#xa;+ actualizarPerfil(): void&#xa;+ cambiarPassword(): Boolean" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;" parent="1" vertex="1">
+          <mxGeometry x="250" y="180" width="200" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="estudiante" value="Estudiante&#xa;────────────────────&#xa;+ matricula: String&#xa;+ semestre: String&#xa;+ cohorte: String&#xa;+ promedioGeneral: Float&#xa;+ permisoClinico: Boolean&#xa;+ fechaPermisoClinico: DateTime&#xa;────────────────────&#xa;+ registrarPaciente(): void&#xa;+ crearCasoClinico(): void&#xa;+ solicitarAprobacion(): void&#xa;+ iniciarTratamiento(): void" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#f8cecc;strokeColor=#b85450;align=left;" parent="1" vertex="1">
+          <mxGeometry x="50" y="480" width="180" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="profesor" value="Profesor&#xa;────────────────────&#xa;+ especialidadPrincipal: String&#xa;+ titulo: String&#xa;+ experienciaAnios: Int&#xa;+ areaDedicacion: String&#xa;+ supervisorClinico: Boolean&#xa;────────────────────&#xa;+ revisarCasoClinico(): void&#xa;+ aprobarRechazarCaso(): void&#xa;+ evaluarEstudiante(): void&#xa;+ gestionarPermisos(): void" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#f8cecc;strokeColor=#b85450;align=left;" parent="1" vertex="1">
+          <mxGeometry x="260" y="480" width="180" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="secretario" value="Secretario&#xa;────────────────────&#xa;+ area: String&#xa;+ turno: String&#xa;+ fechaIngreso: DateTime&#xa;────────────────────&#xa;+ registrarPaciente(): void&#xa;+ asignarPacienteEstudiante(): void&#xa;+ agendarCita(): void&#xa;+ gestionarHorarios(): void" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#f8cecc;strokeColor=#b85450;align=left;" parent="1" vertex="1">
+          <mxGeometry x="470" y="480" width="180" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="administrador" value="Administrador&#xa;────────────────────&#xa;+ nivelAcceso: String&#xa;+ departamento: String&#xa;────────────────────&#xa;+ gestionarUsuarios(): void&#xa;+ configurarSistema(): void&#xa;+ generarReportes(): void&#xa;+ auditarActividades(): void" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#f8cecc;strokeColor=#b85450;align=left;" parent="1" vertex="1">
+          <mxGeometry x="680" y="480" width="180" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="seccionPacientes" value="GESTIÓN DE PACIENTES" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;" parent="1" vertex="1">
+          <mxGeometry x="100" y="700" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="paciente" value="Paciente&#xa;────────────────────&#xa;+ id: Int&#xa;+ nombres: String&#xa;+ apellidos: String&#xa;+ tipoDocumento: String&#xa;+ numeroDocumento: String&#xa;+ fechaNacimiento: Date&#xa;+ genero: String&#xa;+ telefono: String&#xa;+ direccion: String&#xa;+ emailContacto: String&#xa;+ ocupacion: String&#xa;+ estadoCivil: String&#xa;+ grupoSanguineo: String&#xa;+ representanteLegal: Boolean&#xa;+ fechaRegistro: DateTime" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;align=left;" parent="1" vertex="1">
+          <mxGeometry x="100" y="750" width="180" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="representante" value="RepresentanteLegal&#xa;────────────────────&#xa;+ id: Int&#xa;+ pacienteId: Int&#xa;+ nombres: String&#xa;+ apellidos: String&#xa;+ tipoDocumento: String&#xa;+ numeroDocumento: String&#xa;+ telefono: String&#xa;+ parentesco: String&#xa;+ direccion: String" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;align=left;" parent="1" vertex="1">
+          <mxGeometry x="320" y="750" width="160" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="encuesta" value="EncuestaTamizaje&#xa;────────────────────&#xa;+ id: Int&#xa;+ pacienteId: Int&#xa;+ usuarioId: Int&#xa;+ respuestas: JsonB&#xa;+ completada: Boolean&#xa;+ fechaCompletada: DateTime&#xa;────────────────────&#xa;+ validarCompletitud(): Boolean&#xa;+ obtenerRiesgo(): String" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;align=left;" parent="1" vertex="1">
+          <mxGeometry x="520" y="750" width="170" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="seccionClinica" value="GESTIÓN CLÍNICA" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;align=center;" parent="1" vertex="1">
+          <mxGeometry x="100" y="1050" width="500" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="casoClinico" value="CasoClinico&#xa;────────────────────&#xa;+ id: Int&#xa;+ pacienteId: Int&#xa;+ estudianteId: Int&#xa;+ profesorId: Int?&#xa;+ motivoConsulta: String&#xa;+ enfermedadActual: String&#xa;+ examenFisicoGeneral: JsonB&#xa;+ examenFisicoRegional: JsonB&#xa;+ examenFisicoBucal: JsonB&#xa;+ estudiosComplementarios: JsonB&#xa;+ estado: String&#xa;+ comentariosProfesor: String&#xa;+ calificacion: Float?&#xa;+ fechaCreacion: DateTime&#xa;────────────────────&#xa;+ enviarRevision(): void&#xa;+ aprobar(): void&#xa;+ rechazar(): void&#xa;+ calificar(nota: Float): void" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;align=left;" parent="1" vertex="1">
+          <mxGeometry x="100" y="1100" width="200" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="odontograma" value="Odontograma&#xa;────────────────────&#xa;+ id: Int&#xa;+ casoClinicoId: Int&#xa;+ dientes: JsonB&#xa;+ hallazgos: JsonB&#xa;+ observaciones: String&#xa;+ fechaCreacion: DateTime&#xa;────────────────────&#xa;+ marcarDiente(num: Int): void&#xa;+ agregarHallazgo(): void&#xa;+ validarIntegridad(): Boolean" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;align=left;" parent="1" vertex="1">
+          <mxGeometry x="410" y="1100" width="160" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="topografia" value="TopografiaMucosa&#xa;────────────────────&#xa;+ id: Int&#xa;+ casoClinicoId: Int&#xa;+ areas: JsonB&#xa;+ observaciones: String&#xa;+ fechaCreacion: DateTime&#xa;────────────────────&#xa;+ marcarArea(area: String): void&#xa;+ agregarObservacion(): void" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;align=left;" parent="1" vertex="1">
+          <mxGeometry x="570" y="1210" width="160" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="tratamiento" value="Tratamiento&#xa;────────────────────&#xa;+ id: Int&#xa;+ casoClinicoId: Int&#xa;+ tipo: String&#xa;+ descripcion: String&#xa;+ estado: String&#xa;+ fechaInicio: Date&#xa;+ fechaFinalizacion: Date?&#xa;+ procedimientos: JsonB&#xa;+ observaciones: String&#xa;────────────────────&#xa;+ iniciar(): void&#xa;+ actualizar(): void&#xa;+ finalizar(): void&#xa;+ suspender(): void" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;align=left;" parent="1" vertex="1">
+          <mxGeometry x="360" y="1280" width="160" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="seccionCitas" value="GESTIÓN DE CITAS Y DISPONIBILIDAD" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=center;" parent="1" vertex="1">
+          <mxGeometry x="900" y="700" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cita" value="Cita&#xa;────────────────────&#xa;+ id: Int&#xa;+ pacienteId: Int&#xa;+ estudianteId: Int&#xa;+ profesorId: Int?&#xa;+ clinicaId: Int?&#xa;+ fechaHora: DateTime&#xa;+ motivo: String&#xa;+ estado: String&#xa;+ observaciones: String&#xa;+ duracionMinutos: Int&#xa;────────────────────&#xa;+ agendar(): void&#xa;+ confirmar(): void&#xa;+ cancelar(): void&#xa;+ reprogramar(): void" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;" parent="1" vertex="1">
+          <mxGeometry x="900" y="750" width="160" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="disponibilidad" value="Disponibilidad&#xa;────────────────────&#xa;+ id: Int&#xa;+ usuarioId: Int&#xa;+ diaSemana: String&#xa;+ horaInicio: Time&#xa;+ horaFin: Time&#xa;+ tipoDisponibilidad: String&#xa;+ activo: Boolean&#xa;────────────────────&#xa;+ configurarHorario(): void&#xa;+ verificarDisponibilidad(): Boolean&#xa;+ obtenerSlots(): Array" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;" parent="1" vertex="1">
+          <mxGeometry x="1120" y="750" width="180" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="seccionClinicas" value="GESTIÓN DE CLÍNICAS E INFRAESTRUCTURA" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;align=center;" parent="1" vertex="1">
+          <mxGeometry x="900" y="1050" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="clinica" value="Clinica&#xa;────────────────────&#xa;+ id: Int&#xa;+ nombre: String&#xa;+ tipo: String&#xa;+ descripcion: String&#xa;+ ubicacion: String&#xa;+ capacidad: Int&#xa;+ equipamiento: JsonB&#xa;+ activa: Boolean&#xa;────────────────────&#xa;+ configurar(): void&#xa;+ asignarPersonal(): void&#xa;+ gestionarHorarios(): void" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#f8cecc;strokeColor=#b85450;align=left;" parent="1" vertex="1">
+          <mxGeometry x="900" y="1100" width="170" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="seccionRoles" value="SISTEMA DE ROLES Y PERMISOS" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;fillColor=#ffe6cc;strokeColor=#d79b00;align=center;" parent="1" vertex="1">
+          <mxGeometry x="900" y="130" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rol" value="Rol&#xa;────────────────────&#xa;+ id: Int&#xa;+ nombre: String&#xa;+ descripcion: String&#xa;+ activo: Boolean&#xa;+ fechaCreacion: DateTime&#xa;────────────────────&#xa;+ asignarPermiso(): void&#xa;+ revocarPermiso(): void" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;align=left;" parent="1" vertex="1">
+          <mxGeometry x="900" y="180" width="150" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="permiso" value="Permiso&#xa;────────────────────&#xa;+ id: Int&#xa;+ nombre: String&#xa;+ descripcion: String&#xa;+ recurso: String&#xa;+ accion: String&#xa;────────────────────&#xa;+ verificar(): Boolean" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;align=left;" parent="1" vertex="1">
+          <mxGeometry x="1100" y="180" width="140" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="seccionGeo" value="DATOS GEOGRÁFICOS Y ESPECIALIDADES" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;fillColor=#f0f0f0;strokeColor=#666666;align=center;" parent="1" vertex="1">
+          <mxGeometry x="900" y="350" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="parroquia" value="Parroquia&#xa;────────────────────&#xa;+ id: Int&#xa;+ cantonId: Int&#xa;+ nombre: String&#xa;+ codigo: String&#xa;+ activo: Boolean" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#f0f0f0;strokeColor=#666666;align=left;" parent="1" vertex="1">
+          <mxGeometry x="900" y="400" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="especialidad" value="Especialidad&#xa;────────────────────&#xa;+ id: Int&#xa;+ nombre: String&#xa;+ descripcion: String&#xa;+ codigo: String&#xa;+ activa: Boolean" style="whiteSpace=wrap;html=1;fontSize=10;fillColor=#f0f0f0;strokeColor=#666666;align=left;" parent="1" vertex="1">
+          <mxGeometry x="1060" y="400" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="edge1" style="edgeStyle=orthogonalEdgeStyle;" parent="1" source="usuario" target="estudiante" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="350" y="430" as="sourcePoint" />
+            <mxPoint x="140" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow1" value="" style="endArrow=block;endFill=0;endSize=12;html=1;edgeStyle=orthogonalEdgeStyle;" parent="1" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="350" y="430" as="sourcePoint" />
+            <mxPoint x="140" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge2" parent="1" source="usuario" target="profesor" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow2" value="" style="endArrow=block;endFill=0;endSize=12;html=1;" parent="1" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="350" y="430" as="sourcePoint" />
+            <mxPoint x="350" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge3" style="edgeStyle=elbowEdgeStyle;" parent="1" source="usuario" target="secretario" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow3" value="" style="endArrow=block;endFill=0;endSize=12;html=1;edgeStyle=orthogonalEdgeStyle;" parent="1" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="350" y="430" as="sourcePoint" />
+            <mxPoint x="560" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge4" style="edgeStyle=orthogonalEdgeStyle;" parent="1" source="usuario" target="administrador" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow4" value="" style="endArrow=block;endFill=0;endSize=12;html=1;edgeStyle=orthogonalEdgeStyle;" parent="1" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="350" y="430" as="sourcePoint" />
+            <mxPoint x="770" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel1" value="1" style="endArrow=none;html=1;endSize=12;startArrow=none;startSize=12;startFill=0;endFill=0;" parent="1" source="paciente" target="representante" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="280" y="860" as="sourcePoint" />
+            <mxPoint x="320" y="815" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel1label" value="0..1" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel1" connectable="0" vertex="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel2" value="1" style="endArrow=none;html=1;endSize=12;startArrow=none;startSize=12;startFill=0;endFill=0;edgeStyle=elbowEdgeStyle;elbow=vertical;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="paciente" target="encuesta" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="280" y="810" as="sourcePoint" />
+            <mxPoint x="520" y="810" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="400" y="740" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel2label" value="*" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel2" connectable="0" vertex="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel3" value="" style="endArrow=none;html=1;endSize=12;startArrow=none;startSize=12;startFill=0;endFill=0;" parent="1" source="paciente" target="casoClinico" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="190" y="970" as="sourcePoint" />
+            <mxPoint x="200" y="1100" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel3label1" value="1" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel3" connectable="0" vertex="1">
+          <mxGeometry x="-1" relative="1" as="geometry">
+            <mxPoint y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel3label2" value="*" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel3" connectable="0" vertex="1">
+          <mxGeometry x="1" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel4" value="" style="endArrow=none;html=1;endSize=12;startArrow=none;startSize=12;startFill=0;endFill=0;" parent="1" source="casoClinico" target="odontograma" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="300" y="1165" as="sourcePoint" />
+            <mxPoint x="340" y="1165" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel4label1" value="1" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel4" connectable="0" vertex="1">
+          <mxGeometry x="-1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel4label2" value="0..1" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel4" connectable="0" vertex="1">
+          <mxGeometry x="1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel5" value="" style="endArrow=none;html=1;endSize=12;startArrow=none;startSize=12;startFill=0;endFill=0;" parent="1" source="casoClinico" target="topografia" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="300" y="1155" as="sourcePoint" />
+            <mxPoint x="540" y="1155" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel5label1" value="1" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel5" connectable="0" vertex="1">
+          <mxGeometry x="-1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel5label2" value="0..1" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel5" connectable="0" vertex="1">
+          <mxGeometry x="1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel6" value="" style="endArrow=none;html=1;endSize=12;startArrow=none;startSize=12;startFill=0;endFill=0;" parent="1" source="casoClinico" target="tratamiento" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="200" y="1380" as="sourcePoint" />
+            <mxPoint x="340" y="1365" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel6label1" value="1" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel6" connectable="0" vertex="1">
+          <mxGeometry x="-1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel6label2" value="*" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel6" connectable="0" vertex="1">
+          <mxGeometry x="1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel7" value="" style="endArrow=none;html=1;endSize=12;startArrow=none;startSize=12;startFill=0;endFill=0;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="estudiante" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="150" y="640" as="sourcePoint" />
+            <mxPoint x="210" y="1110" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="140" y="640" />
+              <mxPoint x="70" y="640" />
+              <mxPoint x="70" y="1000" />
+              <mxPoint x="210" y="1000" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel7label1" value="1" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel7" connectable="0" vertex="1">
+          <mxGeometry x="-1" relative="1" as="geometry">
+            <mxPoint y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel7label2" value="*" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel7" connectable="0" vertex="1">
+          <mxGeometry x="1" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel8" value="" style="endArrow=none;html=1;endSize=12;startArrow=none;startSize=12;startFill=0;endFill=0;edgeStyle=elbowEdgeStyle;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="profesor" target="casoClinico" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="290" y="625" as="sourcePoint" />
+            <mxPoint x="290" y="1095" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="310" y="920" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel8label1" value="0..1" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel8" connectable="0" vertex="1">
+          <mxGeometry x="-1" relative="1" as="geometry">
+            <mxPoint y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel8label2" value="*" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel8" connectable="0" vertex="1">
+          <mxGeometry x="1" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel9" value="" style="endArrow=none;html=1;endSize=12;startArrow=none;startSize=12;startFill=0;endFill=0;edgeStyle=elbowEdgeStyle;entryX=-0.015;entryY=0.557;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.994;exitY=0.563;exitDx=0;exitDy=0;exitPerimeter=0;elbow=vertical;" parent="1" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="280.00000000000006" y="903.5999999999999" as="sourcePoint" />
+            <mxPoint x="898.68" y="880" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel9label1" value="1" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel9" connectable="0" vertex="1">
+          <mxGeometry x="-1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel9label2" value="*" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel9" connectable="0" vertex="1">
+          <mxGeometry x="1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel10" value="" style="endArrow=none;html=1;endSize=12;startArrow=none;startSize=12;startFill=0;endFill=0;edgeStyle=orthogonalEdgeStyle;" parent="1" source="usuario" target="parroquia" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="450" y="305" as="sourcePoint" />
+            <mxPoint x="900" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel10label1" value="*" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel10" connectable="0" vertex="1">
+          <mxGeometry x="-1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel10label2" value="1" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel10" connectable="0" vertex="1">
+          <mxGeometry x="1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel11" value="" style="endArrow=none;html=1;endSize=12;startArrow=none;startSize=12;startFill=0;endFill=0;edgeStyle=elbowEdgeStyle;" parent="1" source="usuario" target="disponibilidad" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="450" y="305" as="sourcePoint" />
+            <mxPoint x="1120" y="820" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="870" y="580" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel11label1" value="1" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel11" connectable="0" vertex="1">
+          <mxGeometry x="-1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel11label2" value="*" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel11" connectable="0" vertex="1">
+          <mxGeometry x="1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel12" value="" style="endArrow=none;html=1;endSize=12;startArrow=none;startSize=12;startFill=0;endFill=0;edgeStyle=orthogonalEdgeStyle;" parent="1" source="usuario" target="rol" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="450" y="235" as="sourcePoint" />
+            <mxPoint x="900" y="235" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel12label1" value="*" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel12" connectable="0" vertex="1">
+          <mxGeometry x="-1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel12label2" value="*" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel12" connectable="0" vertex="1">
+          <mxGeometry x="1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel13" value="" style="endArrow=none;html=1;endSize=12;startArrow=none;startSize=12;startFill=0;endFill=0;" parent="1" source="rol" target="permiso" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1050" y="230" as="sourcePoint" />
+            <mxPoint x="1100" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel13label1" value="*" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel13" connectable="0" vertex="1">
+          <mxGeometry x="-1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel13label2" value="*" style="resizable=0;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;" parent="rel13" connectable="0" vertex="1">
+          <mxGeometry x="1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="leyenda" value="LEYENDA&#xa;───────────────────&#xa;─── Herencia&#xa;——— Asociación&#xa;* = Muchos&#xa;1 = Uno&#xa;0..1 = Opcional" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fillColor=#f5f5f5;strokeColor=#666666;align=left;" parent="1" vertex="1">
+          <mxGeometry x="1340" y="360" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="notas" value="NOTAS TÉCNICAS&#xa;───────────────────&#xa;• JsonB: Campos JSON binarios&#xa;• DateTime: Timestamp con zona&#xa;• Herencia: Usuario base abstracto&#xa;• Auditoría: Logs automáticos&#xa;• Validaciones: Nivel de aplicación&#xa;• Índices: Optimización consultas" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fillColor=#fffacd;strokeColor=#ddd700;align=left;" parent="1" vertex="1">
+          <mxGeometry x="1330" y="210" width="200" height="120" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

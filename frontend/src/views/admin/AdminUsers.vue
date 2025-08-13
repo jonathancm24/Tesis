@@ -6,19 +6,46 @@
       <h1 class="h3 text-primary">
         Gestión de Usuarios
       </h1>
-      <div class="d-flex align-items-center">
+      <div class="d-flex align-items-center gap-2">
         <input
           v-model="filter"
           type="text"
           class="form-control me-2"
           placeholder="Buscar..."
           aria-label="Buscar usuarios"
+          style="max-width: 300px;"
         />
+        
+        <!-- Botón de Carga Masiva -->
+        <button
+          class="btn btn-outline-success"
+          data-bs-toggle="modal"
+          data-bs-target="#bulkUploadModal"
+          title="Carga masiva desde Excel"
+        >
+          <i class="fas fa-upload me-1"></i>
+          Carga masiva
+        </button>
+        
+        <!-- Botón de Desactivación Masiva -->
+        <button
+          class="btn btn-outline-warning"
+          data-bs-toggle="modal"
+          data-bs-target="#bulkDeactivateModal"
+          title="Desactivar usuarios masivamente"
+          :disabled="activeUsersCount === 0"
+        >
+          <i class="fas fa-user-slash me-1"></i>
+          Desactivar masivo
+        </button>
+        
+        <!-- Botón de Añadir Usuario Individual -->
         <button
           class="btn btn-success"
           @click="openModal()"
           aria-label="Añadir usuario"
         >
+          <i class="fas fa-user-plus me-1"></i>
           Añadir usuario
         </button>
       </div>
@@ -129,12 +156,20 @@
         </div>
       </div>
     </transition>
+
+    <!-- Modal de Carga Masiva -->
+    <BulkUploadModal @success="onBulkOperationSuccess" />
+
+    <!-- Modal de Desactivación Masiva -->
+    <BulkDeactivateModal :users="users" @success="onBulkOperationSuccess" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import UserForm from '@/components/admin/UserForm.vue'
+import BulkUploadModal from '@/components/admin/BulkUploadModal.vue'
+import BulkDeactivateModal from '@/components/admin/BulkDeactivateModal.vue'
 import { userService } from '@/services/userService'
 import type { User, FormUser, UserRole, TipoDocumentoType } from '@/types/user'
 
@@ -170,6 +205,11 @@ const filteredUsers = computed(() =>
     u.apellido.toLowerCase().includes(filter.value.toLowerCase()) ||
     u.email.toLowerCase().includes(filter.value.toLowerCase())
   )
+)
+
+// Contador de usuarios activos para habilitar/deshabilitar botón de desactivación masiva
+const activeUsersCount = computed(() => 
+  users.value.filter(u => u.activo).length
 )
 
 // Abrir modal en modo creación o edición
@@ -258,6 +298,12 @@ async function onDelete(id: number) {
   } finally {
     loading.value = false
   }
+}
+
+// Manejar éxito de operaciones masivas (carga y desactivación)
+async function onBulkOperationSuccess() {
+  // Recargar la lista de usuarios después de operaciones masivas
+  await loadUsers()
 }
 
 // Clases para badges de rol

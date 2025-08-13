@@ -12,13 +12,13 @@ import { ChangePasswordDto } from './DTO/change-password.dto';
 
 
 @Controller('auth') // Cambiamos la ruta base a 'auth' para unificar
-//@UseGuards(JwtAuthGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) { }
 
 
   @Post('registro')
-  //@RequirePermissions(PermisoEnum.CREAR_USUARIOS)
+  @RequirePermissions(PermisoEnum.CREAR_USUARIOS)
   create(@Body() data: RegisterDto) {
     return this.usuariosService.register(data);
   }
