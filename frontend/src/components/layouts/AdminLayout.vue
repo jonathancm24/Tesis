@@ -77,6 +77,9 @@
         </div>
       </main>
     </div>
+
+    <!-- Contenedor de notificaciones Toast -->
+    <ToastContainer />
   </div>
 </template>
 
@@ -85,6 +88,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import Sidebar from '@/components/common/Sidebar.vue'
+import ToastContainer from '@/components/common/ToastContainer.vue'
 import logoSrc from '@/assets/img/descarga.png'
 
 const router = useRouter()
@@ -156,6 +160,13 @@ const menuItems = [
     color: 'primary' // Azul para contraste
   },
   { 
+    name: 'AdminRoles', 
+    label: 'Roles y Permisos', 
+    icon: 'fas fa-user-shield', 
+    to: { name: 'AdminRoles' },
+    color: 'info' // Azul claro para diferenciación
+  },
+  { 
     name: 'BaseDataManagement', 
     label: 'Datos Base', 
     icon: 'fas fa-database', 
@@ -164,8 +175,8 @@ const menuItems = [
   },
   { 
     name: 'AdminSettings', 
-    label: 'Ajustes', 
-    icon: 'fas fa-cog', 
+    label: 'Gestión de Clínicas', 
+    icon: 'fas fa-hospital', 
     to: { name: 'AdminSettings' },
     color: 'danger' // Rojo institucional
   }

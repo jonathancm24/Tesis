@@ -13,6 +13,7 @@ import { ProvinciaModule } from './modules/Provincia/provincia.module';
 import { AuthModule } from './modules/Auth/auth.module'; // Importamos el módulo de autenticación
 import { PermisosUsuariosModule } from './modules/usuarios/permisos-usuarios.module';
 import { PermisosInicializadorService } from './modules/permisos/permisos-inicializador.service';
+import { PermisosModule } from './modules/permisos/permisos.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { PacienteModule } from './modules/pacientes/paciente.module'; // Módulo de pacientes
 import { EncuestaModule } from './modules/Encuesta/encuesta.module'; // Módulo de encuestas de tamizaje
@@ -53,6 +54,7 @@ import { LogModule } from './modules/Log/log.module'; // Módulo de logs de audi
     ParroquiaModule,
     ProvinciaModule,
     RolesModule,           // ← IMPORTANTE: Debe estar antes que PermisosUsuariosModule
+    PermisosModule,        // ← Módulo de gestión de permisos
     PermisosUsuariosModule,
     PacienteModule,        // ← Módulo de gestión de pacientes
     EncuestaModule,        // ← Módulo de encuestas de tamizaje

@@ -5,15 +5,18 @@
     <div class="page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
       <div>
         <h1 class="mb-1 text-primary fw-bold d-flex align-items-center gap-2">
-          <i class="fas fa-sliders-h"></i> Ajustes del Sistema
+          <i class="fas fa-hospital"></i> Gestión de Clínicas
         </h1>
-        <p class="text-muted mb-0">Configura información general, horarios, seguridad y notificaciones.</p>
+        <p class="text-muted mb-0">Configura clínicas, horarios, seguridad y notificaciones del sistema.</p>
       </div>
       <div class="d-flex align-items-center gap-2">
-        <button type="button" class="btn btn-outline-secondary" @click="resetForm">
+        <button type="button" class="btn btn-outline-secondary" @click="resetForm" :disabled="loading">
           <i class="fas fa-undo"></i> Restablecer
         </button>
-        <button type="button" class="btn btn-primary" @click="saveSettings" :disabled="saving">
+        <button type="button" class="btn btn-success" @click="crearNuevaClinica" :disabled="loading">
+          <i class="fas fa-plus me-1"></i> Nueva Clínica
+        </button>
+        <button type="button" class="btn btn-primary" @click="saveSettings" :disabled="saving || loading">
           <i :class="['me-1', saving ? 'fas fa-spinner fa-spin' : 'fas fa-save']"></i>
           {{ saving ? 'Guardando...' : 'Guardar Cambios' }}
         </button>
@@ -339,6 +342,68 @@
             </div>
           </div>
         </div>
+
+        <!-- Tarjeta: Clínicas Registradas -->
+        <div class="card shadow-sm settings-card">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-list"></i>
+              <h5 class="mb-0">Clínicas Registradas</h5>
+            </div>
+            <span class="badge bg-primary">{{ clinicas.length }}</span>
+          </div>
+          <div class="card-body">
+            <div v-if="loading" class="text-center py-3">
+              <i class="fas fa-spinner fa-spin"></i> Cargando clínicas...
+            </div>
+            <div v-else-if="clinicas.length === 0" class="text-center py-3 text-muted">
+              <i class="fas fa-hospital fa-2x mb-2"></i>
+              <p class="mb-0">No hay clínicas registradas</p>
+              <small>Haz clic en "Nueva Clínica" para agregar la primera</small>
+            </div>
+            <div v-else class="row g-3">
+              <div v-for="clinica in clinicas" :key="clinica.id" class="col-12 col-md-6">
+                <div class="card border">
+                  <div class="card-body p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <h6 class="mb-0 fw-bold">{{ clinica.nombre }}</h6>
+                      <span 
+                        :class="['badge', 
+                          clinica.estado === 'ACTIVA' ? 'bg-success' : 
+                          clinica.estado === 'INACTIVA' ? 'bg-secondary' : 
+                          clinica.estado === 'MANTENIMIENTO' ? 'bg-warning' : 
+                          'bg-primary']"
+                      >
+                        {{ clinica.estado }}
+                      </span>
+                    </div>
+                    <div class="small text-muted mb-2">
+                      <i class="fas fa-code me-1"></i>{{ clinica.codigo }}
+                      <span class="mx-2">•</span>
+                      <i class="fas fa-tag me-1"></i>{{ clinica.tipo }}
+                    </div>
+                    <div v-if="clinica.descripcion" class="small text-muted mb-2">
+                      <i class="fas fa-info-circle me-1"></i>{{ clinica.descripcion }}
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="small">
+                        <i class="fas fa-users me-1"></i>
+                        Cap: {{ clinica.capacidadPacientes || 'N/A' }}
+                      </div>
+                      <div class="small text-muted">
+                        {{ new Date(clinica.fechaCreacion).toLocaleDateString() }}
+                      </div>
+                    </div>
+                    <div v-if="clinica.parroquiaBase" class="small text-muted mt-2">
+                      <i class="fas fa-map-marker-alt me-1"></i>
+                      {{ clinica.parroquiaBase.nombre }}, {{ clinica.parroquiaBase.canton.nombre }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Columna lateral: Vista previa -->
@@ -392,8 +457,15 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { clinicaService, type ConfiguracionClinica } from '@/services/clinicaService'
+import type { ClinicaRespuestaDto, CrearClinicaDto, TipoClinica } from '@/types/clinica'
 
 type Theme = 'system' | 'light' | 'dark'
+
+const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+  console.log(`[${type.toUpperCase()}] ${message}`)
+  alert(message) // Fallback simple
+}
 
 interface Settings {
   clinicName: string
@@ -424,6 +496,11 @@ interface Settings {
 }
 
 const saving = ref(false)
+const loading = ref(false)
+const configuracion = ref<ConfiguracionClinica | null>(null)
+const clinicas = ref<ClinicaRespuestaDto[]>([])
+const clinicaPrincipal = ref<ClinicaRespuestaDto | null>(null)
+
 const touched = reactive<Record<string, boolean>>({
   clinicName: false,
   address: false,
@@ -465,9 +542,13 @@ const logoPreviewUrl = ref<string | null>(null)
 function onLogoChange(e: Event) {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0] || null
-  if (!file) { logoFile.value = null; logoPreviewUrl.value = null; return }
+  if (!file) { 
+    logoFile.value = null
+    logoPreviewUrl.value = null
+    return 
+  }
   if (file.size > 1024 * 1024) { // 1MB
-    alert('El logo supera 1MB. Elige una imagen más ligera.')
+    showToast('El logo supera 1MB. Elige una imagen más ligera.', 'error')
     input.value = ''
     return
   }
@@ -493,61 +574,258 @@ function isValid() {
   return !!(form.clinicName && form.address && form.contact)
 }
 
+/**
+ * Carga la configuración desde el backend
+ */
+async function cargarConfiguracion() {
+  loading.value = true
+  try {
+    const config = await clinicaService.obtenerConfiguracion()
+    configuracion.value = config
+
+    // Mapear configuración al formulario
+    if (config.configuracionGeneral) {
+      form.clinicName = config.configuracionGeneral.nombreSistema
+      form.address = config.configuracionGeneral.direccionBase
+      form.contact = config.configuracionGeneral.telefonoContacto
+      form.hours = config.configuracionGeneral.horariosDefault
+      form.days = config.configuracionGeneral.diasLaborales
+      form.schedule.slotMinutes = config.configuracionGeneral.tiempoTurnoDefault
+      form.schedule.maxAppointmentsPerDay = config.configuracionGeneral.capacidadDefaultPacientes
+      form.schedule.allowOverlaps = config.configuracionGeneral.permitirSolapamientoCitas
+    }
+
+    if (config.notificaciones) {
+      form.notifications.email.enabled = config.notificaciones.email.habilitado
+      form.notifications.email.from = config.notificaciones.email.remitente
+      form.notifications.sms.enabled = config.notificaciones.sms.habilitado
+      form.notifications.sms.gateway = config.notificaciones.sms.proveedor
+      form.notifications.reminders = config.notificaciones.recordatorios.horasAntes as 0 | 12 | 24 | 48
+      form.notifications.template = config.notificaciones.recordatorios.plantillaEmail
+    }
+
+    if (config.seguridad) {
+      form.security.jwtExpires = config.seguridad.tiempoSesion as '30m'|'2h'|'8h'|'1d'|'7d'
+      form.security.passwordMinLength = config.seguridad.longitudMinimaPassword
+      form.security.requireUppercase = config.seguridad.requiereMayuscula
+      form.security.requireNumber = config.seguridad.requiereNumero
+      form.security.requireSymbol = config.seguridad.requiereSimbolo
+      form.security.enable2FA = config.seguridad.autenticacion2FA
+    }
+
+    if (config.interfaz) {
+      form.ui.theme = config.interfaz.tema
+      form.locale.lang = config.interfaz.idioma
+      form.locale.timezone = config.interfaz.zonaHoraria
+      form.brand.showLogo = config.interfaz.mostrarLogo
+      if (config.interfaz.logoUrl) {
+        logoPreviewUrl.value = config.interfaz.logoUrl
+      }
+    }
+
+    if (config.mantenimiento) {
+      form.maintenance.enabled = config.mantenimiento.modoMantenimiento
+      form.maintenance.message = config.mantenimiento.mensajeMantenimiento
+    }
+
+    if (config.clinicaPrincipal) {
+      clinicaPrincipal.value = config.clinicaPrincipal
+    }
+
+    showToast('Configuración cargada correctamente', 'success')
+  } catch (error) {
+    console.error('Error al cargar configuración:', error)
+    showToast('Error al cargar configuración, usando valores por defecto', 'warning')
+  } finally {
+    loading.value = false
+  }
+}
+
+/**
+ * Carga la lista de clínicas
+ */
+async function cargarClinicas() {
+  try {
+    const clinicasData = await clinicaService.obtenerClinicasActivas()
+    clinicas.value = clinicasData
+  } catch (error) {
+    console.error('Error al cargar clínicas:', error)
+    showToast('Error al cargar clínicas', 'error')
+  }
+}
+
+/**
+ * Guarda la configuración en el backend
+ */
 async function saveSettings() {
-  if (!isValid()) return
+  if (!isValid()) {
+    showToast('Por favor completa todos los campos obligatorios', 'error')
+    return
+  }
+
   saving.value = true
   try {
-    // Aquí llamarías a tu API/Store (ej. adminService.saveSettings(form, logoFile))
-    await new Promise(r => setTimeout(r, 800)) // fake delay
-    console.log('Ajustes guardados', { ...form, logoFile: logoFile.value })
-    alert('Ajustes guardados correctamente.')
-  } catch (e) {
-    console.error(e)
-    alert('Error al guardar. Intenta nuevamente.')
+    // Mapear formulario a configuración
+    const nuevaConfiguracion: ConfiguracionClinica = {
+      clinicaPrincipal: clinicaPrincipal.value || undefined,
+      configuracionGeneral: {
+        nombreSistema: form.clinicName,
+        direccionBase: form.address,
+        telefonoContacto: form.contact,
+        emailContacto: form.notifications.email.from,
+        horariosDefault: form.hours,
+        diasLaborales: form.days,
+        capacidadDefaultPacientes: form.schedule.maxAppointmentsPerDay,
+        tiempoTurnoDefault: form.schedule.slotMinutes,
+        permitirSolapamientoCitas: form.schedule.allowOverlaps
+      },
+      notificaciones: {
+        email: {
+          habilitado: form.notifications.email.enabled,
+          remitente: form.notifications.email.from
+        },
+        sms: {
+          habilitado: form.notifications.sms.enabled,
+          proveedor: form.notifications.sms.gateway
+        },
+        recordatorios: {
+          horasAntes: form.notifications.reminders,
+          plantillaEmail: form.notifications.template,
+          plantillaSms: form.notifications.template
+        }
+      },
+      seguridad: {
+        tiempoSesion: form.security.jwtExpires,
+        longitudMinimaPassword: form.security.passwordMinLength,
+        requiereMayuscula: form.security.requireUppercase,
+        requiereNumero: form.security.requireNumber,
+        requiereSimbolo: form.security.requireSymbol,
+        autenticacion2FA: form.security.enable2FA
+      },
+      interfaz: {
+        tema: form.ui.theme,
+        idioma: form.locale.lang,
+        zonaHoraria: form.locale.timezone,
+        mostrarLogo: form.brand.showLogo,
+        logoUrl: logoPreviewUrl.value || undefined
+      },
+      mantenimiento: {
+        modoMantenimiento: form.maintenance.enabled,
+        mensajeMantenimiento: form.maintenance.message
+      }
+    }
+
+    // Subir logo si hay uno nuevo
+    if (logoFile.value) {
+      const logoResponse = await clinicaService.subirLogo(logoFile.value)
+      nuevaConfiguracion.interfaz.logoUrl = logoResponse.url
+      logoPreviewUrl.value = logoResponse.url
+      logoFile.value = null
+    }
+
+    // Guardar configuración
+    const configGuardada = await clinicaService.guardarConfiguracion(nuevaConfiguracion)
+    configuracion.value = configGuardada
+
+    showToast('Configuración guardada correctamente', 'success')
+  } catch (error) {
+    console.error('Error al guardar configuración:', error)
+    showToast('Error al guardar la configuración. Intenta nuevamente.', 'error')
   } finally {
     saving.value = false
   }
 }
 
+/**
+ * Resetea el formulario a los valores por defecto
+ */
 function resetForm() {
-  // Resetea a valores por defecto
-  Object.assign(form, {
-    clinicName: '',
-    address: '',
-    contact: '',
-    hours: 'Lun–Vie 08:00–17:00',
-    days: 'Lun, Mar, Mié, Jue, Vie',
-    privacyPolicy: '',
-    brand: { showLogo: true },
-    schedule: { slotMinutes: 30, maxAppointmentsPerDay: 50, allowOverlaps: false },
-    notifications: {
-      email: { enabled: true, from: 'no-reply@clinic.example' },
-      sms: { enabled: false, gateway: '' },
-      reminders: 24,
-      template: 'Hola {nombre}, te recordamos tu cita el {fecha} a las {hora}.'
-    },
-    security: {
-      jwtExpires: '1d',
-      passwordMinLength: 8,
-      requireUppercase: true,
-      requireNumber: true,
-      requireSymbol: false,
-      enable2FA: false
-    },
-    ui: { theme: 'system' },
-    locale: { timezone: 'America/Guayaquil', lang: 'es' },
-    maintenance: { enabled: false, message: '' }
-  })
-  logoFile.value = null
-  logoPreviewUrl.value = null
+  if (configuracion.value) {
+    // Restaurar desde la configuración cargada
+    cargarConfiguracion()
+  } else {
+    // Resetear a valores por defecto
+    Object.assign(form, {
+      clinicName: '',
+      address: '',
+      contact: '',
+      hours: 'Lun–Vie 08:00–17:00',
+      days: 'Lun, Mar, Mié, Jue, Vie',
+      privacyPolicy: '',
+      brand: { showLogo: true },
+      schedule: { slotMinutes: 30, maxAppointmentsPerDay: 50, allowOverlaps: false },
+      notifications: {
+        email: { enabled: true, from: 'no-reply@clinic.example' },
+        sms: { enabled: false, gateway: '' },
+        reminders: 24,
+        template: 'Hola {nombre}, te recordamos tu cita el {fecha} a las {hora}.'
+      },
+      security: {
+        jwtExpires: '1d',
+        passwordMinLength: 8,
+        requireUppercase: true,
+        requireNumber: true,
+        requireSymbol: false,
+        enable2FA: false
+      },
+      ui: { theme: 'system' },
+      locale: { timezone: 'America/Guayaquil', lang: 'es' },
+      maintenance: { enabled: false, message: '' }
+    })
+    logoFile.value = null
+    logoPreviewUrl.value = null
+  }
+  
   Object.keys(touched).forEach(k => (touched[k] = false))
+  showToast('Formulario restablecido', 'info')
 }
 
-/* Carga inicial (simulada) */
+/**
+ * Abre modal para crear nueva clínica
+ */
+async function crearNuevaClinica() {
+  const nombreClinica = prompt('Ingresa el nombre de la nueva clínica:')
+  if (!nombreClinica) return
+
+  const codigoClinica = prompt('Ingresa el código de la clínica (ej. CM-001):')
+  if (!codigoClinica) return
+
+  const tipoOptions = ['FIJA', 'MOVIL', 'TEMPORAL']
+  const tipoInput = prompt(`Selecciona el tipo de clínica:\n1. ${tipoOptions[0]}\n2. ${tipoOptions[1]}\n3. ${tipoOptions[2]}\n\nIngresa el número:`)
+  
+  if (!tipoInput || !['1', '2', '3'].includes(tipoInput)) {
+    showToast('Tipo de clínica inválido', 'error')
+    return
+  }
+
+  const tipoSeleccionado = tipoOptions[parseInt(tipoInput) - 1] as TipoClinica
+
+  try {
+    const nuevaClinica: CrearClinicaDto = {
+      nombre: nombreClinica,
+      codigo: codigoClinica,
+      tipo: tipoSeleccionado,
+      descripcion: `Clínica ${tipoSeleccionado.toLowerCase()} creada desde el panel de administración`,
+      capacidadPacientes: 8
+    }
+
+    const clinicaCreada = await clinicaService.crearClinica(nuevaClinica)
+    showToast(`Clínica "${clinicaCreada.nombre}" creada exitosamente`, 'success')
+    
+    // Recargar lista de clínicas
+    await cargarClinicas()
+  } catch (error) {
+    console.error('Error al crear clínica:', error)
+    showToast('Error al crear la clínica. Verifica que el código no esté duplicado.', 'error')
+  }
+}
+
+/* Carga inicial */
 onMounted(async () => {
-  // Aquí podrías cargar desde una API real
-  // const data = await adminService.getSettings()
-  // Object.assign(form, data)
+  await Promise.all([
+    cargarConfiguracion(),
+    cargarClinicas()
+  ])
 })
 </script>
 
