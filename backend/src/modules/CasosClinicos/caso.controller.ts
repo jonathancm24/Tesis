@@ -61,6 +61,19 @@ import {
 export class CasoClinicoController {
   constructor(private readonly casoClinicoService: CasoClinicoService) {}
 
+
+
+  /**
+   * Obtener profesores disponibles para supervisión
+   * Disponible para estudiantes y administradores
+   */
+  //@RequireRoles(RoleEnum.ESTUDIANTE, RoleEnum.PROFESOR, RoleEnum.ADMIN)
+  @Get('profesores-disponibles')
+  async obtenerProfesoresDisponibles() {
+    return this.casoClinicoService.obtenerProfesoresDisponibles();
+  }
+
+
   /**
    * Crear un nuevo caso clínico
    * Disponible para estudiantes y profesores
@@ -559,4 +572,5 @@ export class CasoClinicoController {
 
     return this.casoClinicoService.obtenerCasosClinicoConFiltros(filtros);
   }
+
 }

@@ -951,4 +951,36 @@ export class CasoClinicoService {
       }
     });
   }
+
+  /**
+   * Obtener profesores disponibles para supervisión de casos clínicos
+   * Retorna solo profesores activos con rol PROFESOR
+   */
+  async obtenerProfesoresDisponibles() {
+    try {
+      const profesores = await this.prisma.usuario.findMany({
+        where: {
+          activo: true,
+          role: {
+            nombre: RoleEnum.PROFESOR
+          }
+        },
+        select: {
+          id: true,
+          nombre: true,
+          apellido: true,
+          email: true
+        },
+        orderBy: [
+          { apellido: 'asc' },
+          { nombre: 'asc' }
+        ]
+      });
+
+      return profesores;
+    } catch (error) {
+      this.logger.error('Error al obtener profesores disponibles:', error);
+      throw new BadRequestException('Error al obtener profesores disponibles');
+    }
+  }
 }

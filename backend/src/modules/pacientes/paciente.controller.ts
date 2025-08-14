@@ -125,4 +125,22 @@ export class PacienteController {
     const historial = await this.pacienteService.obtenerHistorialCompleto(pacienteId);
     return historial.citas;
   }
+
+  /**
+   * Verificar elegibilidad del paciente para casos clínicos
+   * GET /pacientes/:id/elegibilidad-caso-clinico
+   */
+  @Get(':id/elegibilidad-caso-clinico')
+  async verificarElegibilidadCasoClinico(@Param('id', ParseIntPipe) pacienteId: number) {
+    const historial = await this.pacienteService.obtenerHistorialCompleto(pacienteId);
+    const encuestasCompletadas = historial.encuestasTamizaje.filter(e => e.completada);
+    
+    return {
+      elegible: encuestasCompletadas.length > 0,
+      encuestasCompletadas: encuestasCompletadas.length,
+      mensaje: encuestasCompletadas.length > 0 
+        ? 'Paciente elegible para casos clínicos' 
+        : 'Paciente requiere al menos una encuesta de tamizaje completada'
+    };
+  }
 }

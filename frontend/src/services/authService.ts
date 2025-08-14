@@ -2,6 +2,11 @@
 import { API_CONFIG, getAuthHeaders } from '@/config/api'
 import type { User, FrontendUser, FrontendRole } from '@/types/auth'
 
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
 class AuthService {
   private baseUrl = API_CONFIG.BASE_URL
 
@@ -33,6 +38,8 @@ class AuthService {
 
   async login(email: string, password: string): Promise<FrontendUser> {
     try {
+      console.log('🔐 Intentando hacer login con:', email);
+      
       const response = await fetch(`${this.baseUrl}${API_CONFIG.ENDPOINTS.AUTH.LOGIN}`, {
         method: 'POST',
         headers: {
@@ -43,17 +50,23 @@ class AuthService {
 
       if (!response.ok) {
         const error = await response.json()
+        
+        if (response.status === 401) {
+          throw new Error('Credenciales inválidas')
+        } else if (response.status === 403) {
+          throw new Error('Usuario inactivo o sin permisos')
+        }
+        
         throw new Error(error.message || 'Error al iniciar sesión')
       }
 
       const data = await response.json()
       
-      // ✅ AGREGAR ESTE LOG PARA VER QUÉ LLEGA
-      console.log('Respuesta del backend:', data)
+      console.log('✅ Respuesta del backend:', data)
 
       // Verificar que la respuesta tenga la estructura esperada
-      if (!data.user) {
-        console.error('Error: Backend no devolvió objeto user')
+      if (!data.user || !data.access_token) {
+        console.error('Error: Backend no devolvió estructura completa')
         throw new Error('Respuesta inválida del servidor')
       }
 
@@ -64,10 +77,12 @@ class AuthService {
       const frontendUser = this.mapUserToFrontend(data.user)
       localStorage.setItem('user', JSON.stringify(frontendUser))
       
+      console.log('✅ Login exitoso:', frontendUser.nombre);
+      
       return frontendUser
 
     } catch (error: any) {
-      console.error('Error completo en login:', error)
+      console.error('❌ Error completo en login:', error)
       this.logout()
       throw new Error(error.message || 'Error de conexión')
     }
@@ -98,19 +113,55 @@ class AuthService {
     }
   }
 
+  /**
+   * Cierra la sesión del usuario
+   */
   logout(): void {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    console.log('🔓 Sesión cerrada');
   }
 
+  /**
+   * Verifica si el usuario está autenticado
+   */
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('token')
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    return !!(token && user);
   }
 
+  /**
+   * Obtiene los datos del usuario actual
+   */
   getCurrentUser(): FrontendUser | null {
     const userStr = localStorage.getItem('user')
     return userStr ? JSON.parse(userStr) : null
   }
+
+  /**
+   * Obtiene el token actual
+   */
+  getToken(): string | null {
+    return localStorage.getItem('token');
+  }
+
+  /**
+   * Verifica si el usuario tiene un rol específico
+   */
+  hasRole(roleName: string): boolean {
+    const user = this.getCurrentUser();
+    return user?.role === roleName;
+  }
+
+  /**
+   * Obtiene el ID del usuario actual
+   */
+  getCurrentUserId(): number | null {
+    const user = this.getCurrentUser();
+    return user?.id || null;
+  }
+
 }
 
 export const authService = new AuthService()
