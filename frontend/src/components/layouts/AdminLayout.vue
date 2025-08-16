@@ -15,8 +15,8 @@
         <Sidebar
           :items="menuItems"
           :logoSrc="logoSrc"
-          title="DentApp Admin"
-          subtitle="Panel Administrativo"
+          title="Uleam"
+          subtitle="Facultad de Odontología"
           :is-mobile="isMobile"
           @close-sidebar="closeSidebar"
         />
