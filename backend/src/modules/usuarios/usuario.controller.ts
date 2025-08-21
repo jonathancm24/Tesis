@@ -96,6 +96,8 @@ export class UsuariosController {
   }
 
   // Obtener especialidades del profesor autenticado
+  
+  
   @Get('perfil/especialidades')
   @UseGuards(JwtAuthGuard)
   async getProfesorEspecialidades(@Request() req) {

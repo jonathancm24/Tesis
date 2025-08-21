@@ -177,10 +177,10 @@ export class CitaService {
     // Filtros de fecha
     if (filtros.fechaDesde || filtros.fechaHasta) {
       where.fecha = {};
-      if (filtros.fechaDesde) {
+      if (filtros.fechaDesde && filtros.fechaDesde.trim() !== '') {
         where.fecha.gte = new Date(filtros.fechaDesde);
       }
-      if (filtros.fechaHasta) {
+      if (filtros.fechaHasta && filtros.fechaHasta.trim() !== '') {
         where.fecha.lte = new Date(filtros.fechaHasta + 'T23:59:59.999Z');
       }
     }
