@@ -67,8 +67,9 @@ export class CasoClinicoController {
    * Obtener profesores disponibles para supervisión
    * Disponible para estudiantes y administradores
    */
-  //@RequireRoles(RoleEnum.ESTUDIANTE, RoleEnum.PROFESOR, RoleEnum.ADMIN)
+  
   @Get('profesores-disponibles')
+  @RequireRoles(RoleEnum.ESTUDIANTE, RoleEnum.PROFESOR, RoleEnum.ADMIN)
   async obtenerProfesoresDisponibles() {
     return this.casoClinicoService.obtenerProfesoresDisponibles();
   }
@@ -113,7 +114,7 @@ export class CasoClinicoController {
    * Disponible para todos los roles autenticados
    */
   @Get()
-  @RequireRoles(RoleEnum.ESTUDIANTE, RoleEnum.PROFESOR, RoleEnum.ADMIN, RoleEnum.SECRETARIO)
+  @RequireRoles(RoleEnum.ESTUDIANTE, RoleEnum.PROFESOR, RoleEnum.ADMIN)
   @ApiOperation({ 
     summary: 'Obtener casos clínicos con filtros',
     description: 'Obtiene una lista paginada de casos clínicos con opciones de filtrado y ordenamiento.'
@@ -176,7 +177,7 @@ export class CasoClinicoController {
    * Disponible para todos los roles autenticados
    */
   @Get(':id')
-  @RequireRoles(RoleEnum.ESTUDIANTE, RoleEnum.PROFESOR, RoleEnum.ADMIN, RoleEnum.SECRETARIO)
+  @RequireRoles(RoleEnum.ESTUDIANTE, RoleEnum.PROFESOR, RoleEnum.ADMIN)
   @ApiOperation({ 
     summary: 'Obtener caso clínico por ID',
     description: 'Obtiene la información completa de un caso clínico específico incluyendo relaciones.'
@@ -244,7 +245,7 @@ export class CasoClinicoController {
       id, 
       updateDto, 
       user.sub, 
-      user.role
+      user.role.nombre
     );
   }
 
@@ -470,7 +471,7 @@ export class CasoClinicoController {
     const { user } = req as any;
     
     // Si es estudiante, solo puede ver sus propios casos
-    if (user.role === RoleEnum.ESTUDIANTE && user.sub !== estudianteId) {
+    if (user.role.nombre === RoleEnum.ESTUDIANTE && user.sub !== estudianteId) {
       throw new ForbiddenException('Solo puedes ver tus propios casos clínicos');
     }
 
@@ -516,7 +517,7 @@ export class CasoClinicoController {
     const { user } = req as any;
     
     // Si es profesor, solo puede ver sus propios casos asignados
-    if (user.role === RoleEnum.PROFESOR && user.sub !== profesorId) {
+    if (user.role.nombre === RoleEnum.PROFESOR && user.sub !== profesorId) {
       throw new ForbiddenException('Solo puedes ver los casos clínicos que tienes asignados');
     }
 
@@ -551,13 +552,13 @@ export class CasoClinicoController {
     
     let filtros: FiltrosCasosClinicoDto = {};
 
-    if (user.role === RoleEnum.PROFESOR) {
+    if (user.role.nombre === RoleEnum.PROFESOR) {
       // Profesores ven casos EN_REVISION que tienen asignados
       filtros = {
         profesorId: user.sub,
         estado: 'EN_REVISION'
       };
-    } else if (user.role === RoleEnum.ESTUDIANTE) {
+    } else if (user.role.nombre === RoleEnum.ESTUDIANTE) {
       // Estudiantes ven sus casos EN_REVISION (rechazados o nuevos)
       filtros = {
         estudianteId: user.sub,

@@ -1,0 +1,163 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0" version="28.1.0">
+  <diagram id="flujo-aplicacion" name="Flujo Aplicación Web">
+    <mxGraphModel dx="1227" dy="572" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="pool-2" value="Sistema Propuesto - Aplicación Web" style="swimlane;html=1;childLayout=stackLayout;resizeParent=1;resizeParentMax=0;horizontal=0;startSize=20;horizontalStack=0;" parent="1" vertex="1">
+          <mxGeometry x="50" y="20" width="1100" height="730" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-1-web" value="Registro Digital" style="swimlane;html=1;startSize=20;horizontal=0;" parent="pool-2" vertex="1">
+          <mxGeometry x="20" width="1080" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="start-web" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#90EE90;" parent="lane-1-web" vertex="1">
+          <mxGeometry x="40" y="40" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="registro-paciente" value="Secretario/Estudiante&#xa;registra datos&#xa;del paciente" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-1-web" vertex="1">
+          <mxGeometry x="120" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="encuesta-digital" value="Completar encuesta&#xa;de tamizaje&#xa;digital" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-1-web" vertex="1">
+          <mxGeometry x="280" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="datos-guardados" value="Datos guardados&#xa;y accesibles para&#xa;otros estudiantes" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-1-web" vertex="1">
+          <mxGeometry x="420" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-start-registro" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-1-web" source="start-web" target="registro-paciente" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-registro-encuesta" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-1-web" source="registro-paciente" target="encuesta-digital" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-encuesta-guardado" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-1-web" source="encuesta-digital" target="datos-guardados" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-2-web" value="Gestión Digital de Casos" style="swimlane;html=1;startSize=20;horizontal=0;" parent="pool-2" vertex="1">
+          <mxGeometry x="20" y="120" width="1080" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="crear-caso" value="Estudiante crea&#xa;caso clínico&#xa;digital" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-2-web" vertex="1">
+          <mxGeometry x="120" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="marcar-estudios" value="Marcar estudios&#xa;necesarios" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-2-web" vertex="1">
+          <mxGeometry x="260" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="decision-estudios-web" value="¿Necesita&#xa;estudios?" style="rhombus;whiteSpace=wrap;html=1;" parent="lane-2-web" vertex="1">
+          <mxGeometry x="400" y="35" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="agendar-cita" value="Agendar cita&#xa;automática para&#xa;traer estudios" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-2-web" vertex="1">
+          <mxGeometry x="520" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-caso-estudios" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-2-web" source="crear-caso" target="marcar-estudios" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-estudios-decision" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-2-web" source="marcar-estudios" target="decision-estudios-web" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-decision-agendar" value="Sí" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-2-web" source="decision-estudios-web" target="agendar-cita" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-datos-caso" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=none;endFill=0;" parent="pool-2" source="datos-guardados" target="crear-caso" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-3-web" value="Notificaciones y Aprobación" style="swimlane;html=1;startSize=20;horizontal=0;" parent="pool-2" vertex="1">
+          <mxGeometry x="20" y="300" width="1080" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="notificacion-profesor" value="Notificación&#xa;automática&#xa;al profesor" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#87CEEB;" parent="lane-3-web" vertex="1">
+          <mxGeometry x="120" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="revision-profesor" value="Profesor revisa&#xa;caso clínico&#xa;digital" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-3-web" vertex="1">
+          <mxGeometry x="260" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="decision-aprobacion-web" value="¿Aprueba?" style="rhombus;whiteSpace=wrap;html=1;" parent="lane-3-web" vertex="1">
+          <mxGeometry x="400" y="40" width="60" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="notificacion-rechazo" value="Notificación de&#xa;rechazo con&#xa;observaciones" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFB6C1;" parent="lane-3-web" vertex="1">
+          <mxGeometry x="500" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-notif-revision" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-3-web" source="notificacion-profesor" target="revision-profesor" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-revision-decision" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-3-web" source="revision-profesor" target="decision-aprobacion-web" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-decision-rechazo" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-3-web" source="decision-aprobacion-web" target="notificacion-rechazo" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-caso-notificacion" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=none;endFill=0;" parent="pool-2" source="crear-caso" target="notificacion-profesor" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-rechazo-editar" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=none;endFill=0;" parent="pool-2" source="notificacion-rechazo" target="crear-caso" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="700" y="200" />
+              <mxPoint x="180" y="200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lane-4-web" value="Historial Digital" style="swimlane;html=1;startSize=20;horizontal=0;" parent="pool-2" vertex="1">
+          <mxGeometry x="20" y="480" width="1080" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="proceder-tratamiento-web" value="Proceder con&#xa;tratamiento&#xa;aprobado" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-4-web" vertex="1">
+          <mxGeometry x="360" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="registrar-seguimiento" value="Registrar&#xa;seguimiento&#xa;en sistema" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-4-web" vertex="1">
+          <mxGeometry x="500" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="finalizar-caso" value="Finalizar caso&#xa;clínico" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-4-web" vertex="1">
+          <mxGeometry x="640" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="guardar-historial" value="Guardar en&#xa;historial digital&#xa;del paciente" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-4-web" vertex="1">
+          <mxGeometry x="780" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="end-web" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FF6B6B;" parent="lane-4-web" vertex="1">
+          <mxGeometry x="920" y="40" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-proceder-seguimiento" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-4-web" source="proceder-tratamiento-web" target="registrar-seguimiento" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-seguimiento-finalizar" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-4-web" source="registrar-seguimiento" target="finalizar-caso" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-finalizar-historial" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-4-web" source="finalizar-caso" target="guardar-historial" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-historial-end" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-4-web" source="guardar-historial" target="end-web" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-aprobacion-proceder" value="Sí" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="pool-2" source="decision-aprobacion-web" target="proceder-tratamiento-web" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-no-proceder" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="pool-2" source="decision-estudios-web" target="proceder-tratamiento-web" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="440" y="320" />
+              <mxPoint x="410" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lane-5-web" value="Gestión de Estudios" style="swimlane;html=1;startSize=20;horizontal=0;" parent="pool-2" vertex="1">
+          <mxGeometry x="20" y="600" width="1080" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="subir-estudios" value="Subir y adjuntar&#xa;estudios al caso&#xa;clínico" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-5-web" vertex="1">
+          <mxGeometry x="520" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="nueva-notificacion" value="Nueva notificación&#xa;al profesor para&#xa;revisar estudios" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#87CEEB;" parent="lane-5-web" vertex="1">
+          <mxGeometry x="680" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-subir-notificar" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-5-web" source="subir-estudios" target="nueva-notificacion" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-cita-subir" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=none;endFill=0;" parent="pool-2" source="agendar-cita" target="subir-estudios" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-notificar-revision" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=none;endFill=0;" parent="pool-2" source="nueva-notificacion" target="revision-profesor" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="740" y="200" />
+              <mxPoint x="320" y="200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

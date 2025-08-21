@@ -29,6 +29,7 @@ const ProfessorDashboard    = () => import('@/views/professor/ProfessorDashboard
 const AssignmentsManagement = () => import('@/views/professor/AssignmentsManagementView.vue')
 const ProfessorProfile      = () => import('@/views/professor/ProfileView.vue')
 const StudentProgress       = () => import('@/views/professor/StudentProgressView.vue')
+const QuestionsManagement   = () => import('@/views/professor/QuestionsManagementView.vue')
 
 // ✍️ Secretaría
 const AffiliationView       = () => import('@/views/secretary/AffiliationView.vue')
@@ -88,6 +89,7 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '', name: 'ProfessorDashboard', component: ProfessorDashboard },
       { path: 'assignments', name: 'ProfessorAssignments', component: AssignmentsManagement },
+      { path: 'questions', name: 'ProfessorQuestions', component: QuestionsManagement },
       { path: 'profile', name: 'ProfessorProfile', component: ProfessorProfile },
       { path: 'progress', name: 'StudentProgress', component: StudentProgress }
     ]

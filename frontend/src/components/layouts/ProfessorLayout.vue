@@ -156,6 +156,13 @@ const navItems = [
     color: 'primary'
   },
   { 
+    name: 'ProfessorQuestions', 
+    label: 'Preguntas Clínicas', 
+    icon: 'fas fa-question-circle', 
+    to: { name: 'ProfessorQuestions' },
+    color: 'warning'
+  },
+  { 
     name: 'StudentProgress', 
     label: 'Progreso Estudiantes', 
     icon: 'fas fa-chart-line', 

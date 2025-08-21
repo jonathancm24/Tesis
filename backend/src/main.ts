@@ -16,10 +16,10 @@ async function bootstrap() {
   });
 
   // Validación global
-  //app.useGlobalPipes(new GlobalValidationPipe());
+  app.useGlobalPipes(new GlobalValidationPipe());
   
   // Manejo global de errores
-  //app.useGlobalFilters(new GlobalExceptionFilter());
+  app.useGlobalFilters(new GlobalExceptionFilter());
   
   await app.listen(3000);
   console.log('🚀 Servidor iniciado en http://localhost:3000');

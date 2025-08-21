@@ -11,6 +11,14 @@ import {
   IPreguntasClinicasPaginadas,
   IEstadisticasPreguntasEspecialidad
 } from './interfaces/pregunta-clinica.interface';
+import { 
+  parseQuestion, 
+  validateQuestionFormat, 
+  esFormatoNuevo,
+  migrarFormatoAntiguo,
+  getQuestionSummary,
+  type ParsedQuestion 
+} from '../../utils/questionParser';
 
 /**
  * Servicio para gestión de preguntas clínicas por especialidad
@@ -32,6 +40,13 @@ export class PreguntasClinicasService {
     this.logger.log(`Creando nueva pregunta clínica para especialidad ${createDto.especialidadId}`);
 
     try {
+      // Validar formato de la pregunta
+      validateQuestionFormat(createDto.texto);
+      
+      // Parsear para obtener información adicional
+      const parsedQuestion = parseQuestion(createDto.texto);
+      this.logger.log(`Pregunta parseada: ${getQuestionSummary(parsedQuestion)}`);
+
       // Validar que la especialidad existe si se proporciona
       if (createDto.especialidadId) {
         await this.validarEspecialidad(createDto.especialidadId);
@@ -40,7 +55,7 @@ export class PreguntasClinicasService {
       const pregunta = await this.prisma.preguntaClinica.create({
         data: {
           texto: createDto.texto,
-          tipo: createDto.tipo,
+          tipo: parsedQuestion.type as any, // Usar el tipo inferido del parser
           obligatoria: createDto.obligatoria ?? false,
           especialidadId: createDto.especialidadId
         },
@@ -60,6 +75,12 @@ export class PreguntasClinicasService {
 
     } catch (error) {
       this.logger.error(`Error al crear pregunta clínica: ${error.message}`, error.stack);
+      
+      // Si es un error de validación del parser, pasarlo directamente
+      if (error.message.includes('La pregunta') || error.message.includes('formato')) {
+        throw new BadRequestException(error.message);
+      }
+      
       throw new BadRequestException('Error al crear la pregunta clínica');
     }
   }
@@ -370,5 +391,166 @@ export class PreguntasClinicasService {
     if (!especialidad) {
       throw new NotFoundException(`Especialidad con ID ${especialidadId} no encontrada`);
     }
+  }
+
+  /**
+   * Enriquece una pregunta con información parseada del formato optimizado
+   * @param pregunta - Pregunta de la base de datos
+   * @returns Pregunta enriquecida con información parseada
+   */
+  private enriquecerPregunta(pregunta: any): IPreguntaClinica & { parsedInfo?: ParsedQuestion } {
+    try {
+      // Si la pregunta usa el formato nuevo, parsearla
+      if (esFormatoNuevo(pregunta.texto)) {
+        const parsedInfo = parseQuestion(pregunta.texto);
+        return {
+          ...pregunta,
+          parsedInfo
+        };
+      } else {
+        // Formato antiguo: migrar automáticamente para la respuesta
+        const textoMigrado = migrarFormatoAntiguo(pregunta.texto, pregunta.tipo, pregunta.obligatoria);
+        const parsedInfo = parseQuestion(textoMigrado);
+        
+        return {
+          ...pregunta,
+          parsedInfo,
+          // Agregar flag para indicar que necesita migración
+          requiresMigration: true
+        };
+      }
+    } catch (error) {
+      this.logger.warn(`Error parseando pregunta ID ${pregunta.id}: ${error.message}`);
+      
+      // En caso de error, devolver la pregunta sin información parseada
+      return pregunta;
+    }
+  }
+
+  /**
+   * Migra automáticamente preguntas del formato antiguo al nuevo
+   * @param preguntaId - ID de la pregunta a migrar
+   * @returns Promise<IPreguntaClinica> - Pregunta migrada
+   */
+  async migrarPreguntaAFormatoNuevo(preguntaId: number): Promise<IPreguntaClinica> {
+    this.logger.log(`Migrando pregunta ID ${preguntaId} al formato nuevo`);
+
+    const pregunta = await this.prisma.preguntaClinica.findUnique({
+      where: { id: preguntaId },
+      include: {
+        especialidad: {
+          select: {
+            id: true,
+            nombre: true,
+            descripcion: true
+          }
+        }
+      }
+    });
+
+    if (!pregunta) {
+      throw new NotFoundException(`Pregunta con ID ${preguntaId} no encontrada`);
+    }
+
+    // Si ya está en formato nuevo, no hacer nada
+    if (esFormatoNuevo(pregunta.texto)) {
+      this.logger.log(`Pregunta ID ${preguntaId} ya está en formato nuevo`);
+      return pregunta;
+    }
+
+    try {
+      // Migrar al formato nuevo
+      const textoMigrado = migrarFormatoAntiguo(pregunta.texto, pregunta.tipo, pregunta.obligatoria);
+      
+      // Validar el formato migrado
+      validateQuestionFormat(textoMigrado);
+      
+      // Parsear para obtener el tipo correcto
+      const parsedQuestion = parseQuestion(textoMigrado);
+
+      // Actualizar en la base de datos
+      const preguntaActualizada = await this.prisma.preguntaClinica.update({
+        where: { id: preguntaId },
+        data: {
+          texto: textoMigrado,
+          tipo: parsedQuestion.type as any
+        },
+        include: {
+          especialidad: {
+            select: {
+              id: true,
+              nombre: true,
+              descripcion: true
+            }
+          }
+        }
+      });
+
+      this.logger.log(`Pregunta ID ${preguntaId} migrada exitosamente al formato nuevo`);
+      return preguntaActualizada;
+
+    } catch (error) {
+      this.logger.error(`Error migrando pregunta ID ${preguntaId}: ${error.message}`, error.stack);
+      throw new BadRequestException(`Error al migrar la pregunta: ${error.message}`);
+    }
+  }
+
+  /**
+   * Migra todas las preguntas de una especialidad al formato nuevo
+   * @param especialidadId - ID de la especialidad (opcional, si no se proporciona migra todas)
+   * @returns Promise<{ migradas: number, errores: number }> - Resultado de la migración
+   */
+  async migrarPreguntasFormatoNuevo(especialidadId?: number): Promise<{ migradas: number, errores: number }> {
+    this.logger.log(`Iniciando migración masiva de preguntas ${especialidadId ? `para especialidad ${especialidadId}` : 'de todas las especialidades'}`);
+
+    const whereClause = especialidadId ? { especialidadId } : {};
+    
+    const preguntas = await this.prisma.preguntaClinica.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        texto: true,
+        tipo: true,
+        obligatoria: true
+      }
+    });
+
+    let migradas = 0;
+    let errores = 0;
+
+    for (const pregunta of preguntas) {
+      try {
+        // Solo migrar si no está en formato nuevo
+        if (!esFormatoNuevo(pregunta.texto)) {
+          await this.migrarPreguntaAFormatoNuevo(pregunta.id);
+          migradas++;
+        }
+      } catch (error) {
+        this.logger.error(`Error migrando pregunta ID ${pregunta.id}: ${error.message}`);
+        errores++;
+      }
+    }
+
+    this.logger.log(`Migración completada: ${migradas} migradas, ${errores} errores`);
+    
+    return { migradas, errores };
+  }
+
+  /**
+   * Obtiene estadísticas del formato de preguntas
+   * @returns Promise<{ formatoNuevo: number, formatoAntiguo: number, total: number }>
+   */
+  async obtenerEstadisticasFormato(): Promise<{ formatoNuevo: number, formatoAntiguo: number, total: number }> {
+    const todasLasPreguntas = await this.prisma.preguntaClinica.findMany({
+      select: {
+        texto: true
+      }
+    });
+
+    const total = todasLasPreguntas.length;
+    const formatoNuevo = todasLasPreguntas.filter(p => esFormatoNuevo(p.texto)).length;
+    const formatoAntiguo = total - formatoNuevo;
+
+    return { formatoNuevo, formatoAntiguo, total };
   }
 }

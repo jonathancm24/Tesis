@@ -1,0 +1,145 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0" version="28.1.0">
+  <diagram id="flujo-actual" name="Flujo Actual">
+    <mxGraphModel dx="1227" dy="572" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="pool-1" value="Sistema Actual - Clínica Odontología" style="swimlane;html=1;childLayout=stackLayout;resizeParent=1;resizeParentMax=0;horizontal=0;startSize=20;horizontalStack=0;" parent="1" vertex="1">
+          <mxGeometry x="50" y="20" width="1100" height="770" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-1" value="Recepción de Paciente" style="swimlane;html=1;startSize=20;horizontal=0;" parent="pool-1" vertex="1">
+          <mxGeometry x="20" width="1080" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="start-1" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#90EE90;" parent="lane-1" vertex="1">
+          <mxGeometry x="40" y="40" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ficha-paciente" value="Llenar ficha&#xa;del paciente" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-1" vertex="1">
+          <mxGeometry x="120" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="encuesta-tamizaje" value="Encuesta de&#xa;tamizaje&#xa;(antecedentes)" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-1" vertex="1">
+          <mxGeometry x="260" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-1-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-1" source="start-1" target="ficha-paciente" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-1" source="ficha-paciente" target="encuesta-tamizaje" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-2" value="Gestión de Documentos" style="swimlane;html=1;startSize=20;horizontal=0;" parent="pool-1" vertex="1">
+          <mxGeometry x="20" y="140" width="1080" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="caso-clinico" value="Llenar ficha&#xa;caso clínico&#xa;(motivo, signos vitales)" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-2" vertex="1">
+          <mxGeometry x="120" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ficha-tratamiento" value="Llenar ficha&#xa;de tratamiento" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-2" vertex="1">
+          <mxGeometry x="280" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="decision-estudios" value="¿Necesita&#xa;radiografías/&#xa;estudios?" style="rhombus;whiteSpace=wrap;html=1;" parent="lane-2" vertex="1">
+          <mxGeometry x="420" y="35" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="dar-receta" value="Dar receta&#xa;y agendar&#xa;nueva cita" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-2" vertex="1">
+          <mxGeometry x="540" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-2" source="caso-clinico" target="ficha-tratamiento" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-2" source="ficha-tratamiento" target="decision-estudios" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-6-7" value="Sí" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-2" source="decision-estudios" target="dar-receta" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=none;endFill=0;" parent="pool-1" source="encuesta-tamizaje" target="caso-clinico" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-3" value="Aprobación del Docente" style="swimlane;html=1;startSize=20;horizontal=0;" parent="pool-1" vertex="1">
+          <mxGeometry x="20" y="300" width="1080" height="200" as="geometry">
+            <mxRectangle x="20" y="260" width="1080" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="revision-docente" value="Docente revisa&#xa;fichas y&#xa;tratamiento" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-3" vertex="1">
+          <mxGeometry x="120" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="decision-aprobacion" value="¿Aprueba?" style="rhombus;whiteSpace=wrap;html=1;" parent="lane-3" vertex="1">
+          <mxGeometry x="260" y="40" width="60" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="revisar-estudios" value="Revisar estudios&#xa;adicionales" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-3" vertex="1">
+          <mxGeometry x="540" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-9-10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-3" source="revision-docente" target="decision-aprobacion" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-8-9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=none;endFill=0;" parent="pool-1" source="caso-clinico" target="revision-docente" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-receta-estudios" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=none;endFill=0;" parent="pool-1" source="dar-receta" target="revisar-estudios" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-aprobacion-si" value="Sí" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="pool-1" source="decision-aprobacion" target="proceder-tratamiento" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-no-directa" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="pool-1" source="decision-estudios" target="proceder-tratamiento" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="460" y="320" />
+              <mxPoint x="410" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lane-4" value="Historial Clínico" style="swimlane;html=1;startSize=20;horizontal=0;" parent="pool-1" vertex="1">
+          <mxGeometry x="20" y="500" width="1080" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="proceder-tratamiento" value="Proceder con&#xa;tratamiento" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-4" vertex="1">
+          <mxGeometry x="360" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="seguimiento" value="Agendar citas&#xa;de seguimiento" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-4" vertex="1">
+          <mxGeometry x="500" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cerrar-caso" value="Cerrar caso&#xa;clínico" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-4" vertex="1">
+          <mxGeometry x="640" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="guardar-fichas" value="Guardar fichas&#xa;físicas para&#xa;evaluación" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-4" vertex="1">
+          <mxGeometry x="780" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="end-1" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FF6B6B;" parent="lane-4" vertex="1">
+          <mxGeometry x="920" y="40" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-tratamiento-seguimiento" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-4" source="proceder-tratamiento" target="seguimiento" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-seguimiento-cerrar" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-4" source="seguimiento" target="cerrar-caso" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-cerrar-guardar" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-4" source="cerrar-caso" target="guardar-fichas" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-guardar-end" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-4" source="guardar-fichas" target="end-1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-5" value="Radiografías/Estudios" style="swimlane;html=1;startSize=20;horizontal=0;" parent="pool-1" vertex="1">
+          <mxGeometry x="20" y="630" width="1080" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="traer-estudios" value="Paciente trae&#xa;estudios realizados" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-5" vertex="1">
+          <mxGeometry x="540" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="completar-caso" value="Completar caso&#xa;clínico con&#xa;estudios" style="rounded=0;whiteSpace=wrap;html=1;" parent="lane-5" vertex="1">
+          <mxGeometry x="680" y="30" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-traer-completar" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="lane-5" source="traer-estudios" target="completar-caso" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-estudios-traer" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=none;endFill=0;" parent="pool-1" source="revisar-estudios" target="traer-estudios" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-completar-revision" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=none;endFill=0;" parent="pool-1" source="completar-caso" target="revision-docente" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="730" y="200" />
+              <mxPoint x="170" y="200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

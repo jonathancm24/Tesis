@@ -23,7 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) { // Aquí extendemo
   // NestJS adjuntará este retorno a request.user
   async validate(payload: any) { // Método que valida el token JWT
     const usuario = await this.authService.obtenerUsuarioCompleto(payload.email);
-    if (!usuario) {
+    if (!usuario || !usuario.activo) {
       throw new UnauthorizedException();
     }
     return usuario; // Ahora incluye permisos completos

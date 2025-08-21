@@ -466,4 +466,111 @@ export class PreguntasClinicasController {
     this.logger.log(`DELETE /preguntas-clinicas/${id}`);
     await this.preguntasService.eliminarPregunta(id);
   }
+
+  // ===============================
+  // ENDPOINTS PARA MIGRACIÓN DE FORMATO
+  // ===============================
+
+  // Migrar una pregunta específica al formato nuevo
+  @Put(':id/migrar-formato')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Migrar pregunta al formato optimizado',
+    description: 'Convierte una pregunta del formato antiguo al nuevo formato de texto plano optimizado'
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID de la pregunta',
+    type: 'number'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Pregunta migrada exitosamente'
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Pregunta no encontrada'
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Error en el proceso de migración'
+  })
+  async migrarPreguntaFormato(@Param('id', ParseIntPipe) id: number) {
+    this.logger.log(`PUT /preguntas-clinicas/${id}/migrar-formato`);
+    return await this.preguntasService.migrarPreguntaAFormatoNuevo(id);
+  }
+
+  // Migrar todas las preguntas de una especialidad
+  @Post('migrar-formato-masivo')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Migración masiva al formato optimizado',
+    description: 'Convierte todas las preguntas de una especialidad (o todas) al formato nuevo'
+  })
+  @ApiQuery({
+    name: 'especialidadId',
+    description: 'ID de la especialidad (opcional)',
+    type: 'number',
+    required: false
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Migración masiva completada',
+    schema: {
+      type: 'object',
+      properties: {
+        migradas: { type: 'number', description: 'Preguntas migradas exitosamente' },
+        errores: { type: 'number', description: 'Preguntas con errores' },
+        total: { type: 'number', description: 'Total de preguntas procesadas' }
+      }
+    }
+  })
+  async migrarFormatoMasivo(@Query('especialidadId') especialidadId?: string) {
+    this.logger.log(`POST /preguntas-clinicas/migrar-formato-masivo ${especialidadId ? `especialidad: ${especialidadId}` : 'todas'}`);
+    
+    const especialidadIdNum = especialidadId ? parseInt(especialidadId) : undefined;
+    
+    if (especialidadId && isNaN(especialidadIdNum!)) {
+      throw new BadRequestException('ID de especialidad inválido');
+    }
+    
+    const resultado = await this.preguntasService.migrarPreguntasFormatoNuevo(especialidadIdNum);
+    
+    return {
+      ...resultado,
+      total: resultado.migradas + resultado.errores
+    };
+  }
+
+  // Obtener estadísticas de formato
+  @Get('estadisticas-formato')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Estadísticas de formato de preguntas',
+    description: 'Obtiene información sobre qué preguntas usan el formato nuevo vs antiguo'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Estadísticas de formato obtenidas exitosamente',
+    schema: {
+      type: 'object',
+      properties: {
+        formatoNuevo: { type: 'number', description: 'Preguntas en formato nuevo' },
+        formatoAntiguo: { type: 'number', description: 'Preguntas en formato antiguo' },
+        total: { type: 'number', description: 'Total de preguntas' },
+        porcentajeMigrado: { type: 'number', description: 'Porcentaje migrado' }
+      }
+    }
+  })
+  async obtenerEstadisticasFormato() {
+    this.logger.log('GET /preguntas-clinicas/estadisticas-formato');
+    
+    const estadisticas = await this.preguntasService.obtenerEstadisticasFormato();
+    
+    return {
+      ...estadisticas,
+      porcentajeMigrado: estadisticas.total > 0 ? 
+        Math.round((estadisticas.formatoNuevo / estadisticas.total) * 100) : 0
+    };
+  }
 }

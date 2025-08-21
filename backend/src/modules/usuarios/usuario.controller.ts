@@ -94,4 +94,11 @@ export class UsuariosController {
   ) {
     return await this.usuariosService.changePassword(req.user.id, changePasswordDto);
   }
+
+  // Obtener especialidades del profesor autenticado
+  @Get('perfil/especialidades')
+  @UseGuards(JwtAuthGuard)
+  async getProfesorEspecialidades(@Request() req) {
+    return await this.usuariosService.getProfesorEspecialidades(req.user.id);
+  }
 }

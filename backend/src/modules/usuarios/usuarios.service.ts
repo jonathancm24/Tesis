@@ -347,4 +347,38 @@ export class UsuariosService {
 
     return { message: 'Contraseña actualizada exitosamente' };
   }
+
+  /**
+   * Obtener especialidades del profesor autenticado
+   */
+  async getProfesorEspecialidades(userId: number) {
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id: userId },
+      include: {
+        especialidades: {
+          include: {
+            especialidad: true
+          }
+        },
+        role: true
+      }
+    });
+
+    if (!usuario) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    // Verificar que sea un profesor
+    if (usuario.role.nombre !== 'Profesor') {
+      throw new BadRequestException('Solo los profesores pueden acceder a esta información');
+    }
+
+    return {
+      especialidades: usuario.especialidades.map(ue => ({
+        id: ue.especialidad.id,
+        nombre: ue.especialidad.nombre,
+        descripcion: ue.especialidad.descripcion
+      }))
+    };
+  }
 }

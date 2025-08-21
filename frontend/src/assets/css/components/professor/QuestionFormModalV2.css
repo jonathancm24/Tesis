@@ -1,0 +1,696 @@
+/* =================================================
+   MODAL MEJORADO DE PREGUNTAS CLÍNICAS V2
+   Estilos para el modo asistido y avanzado
+   @author Sistema de Gestión Clínica
+   @version 2.0
+   ================================================= */
+
+/* =================================================
+   BASE Y OVERLAY
+   ================================================= */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  max-width: 900px;
+  width: 95%;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =================================================
+   HEADER
+   ================================================= */
+.modal-header {
+  background: linear-gradient(135deg, #ab47bc, #81c784);
+  color: white;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* =================================================
+   BODY DEL MODAL
+   ================================================= */
+.modal-body {
+  padding: 24px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: #ab47bc;
+  border-radius: 3px;
+}
+
+/* =================================================
+   FORMULARIO BASE
+   ================================================= */
+.question-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 4px;
+}
+
+.form-label.required::after {
+  content: " *";
+  color: #e53e3e;
+  font-weight: 700;
+}
+
+.form-textarea,
+.form-select,
+.form-input {
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #2d3748;
+  background: white;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+.form-textarea:focus,
+.form-select:focus,
+.form-input:focus {
+  outline: none;
+  border-color: #ab47bc;
+  box-shadow: 0 0 0 3px rgba(171, 71, 188, 0.1);
+}
+
+.form-textarea.error,
+.form-select.error,
+.form-input.error {
+  border-color: #e53e3e;
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
+}
+
+.form-help {
+  font-size: 0.75rem;
+  color: #718096;
+  line-height: 1.4;
+}
+
+.form-error {
+  font-size: 0.75rem;
+  color: #e53e3e;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.form-error::before {
+  content: "⚠";
+  font-size: 0.8rem;
+}
+
+/* =================================================
+   MODO ASISTIDO - GRID DE TIPOS
+   ================================================= */
+.guided-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.question-types-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.question-type-card {
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.question-type-card:hover {
+  border-color: #ab47bc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(171, 71, 188, 0.15);
+}
+
+.question-type-card.selected {
+  border-color: #ab47bc;
+  background: linear-gradient(135deg, rgba(171, 71, 188, 0.05), rgba(129, 199, 132, 0.05));
+  box-shadow: 0 4px 12px rgba(171, 71, 188, 0.2);
+}
+
+.type-icon {
+  font-size: 1.5rem;
+  color: #ab47bc;
+  margin-top: 2px;
+}
+
+.type-info {
+  flex: 1;
+}
+
+.type-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 4px 0;
+}
+
+.type-description {
+  font-size: 0.8rem;
+  color: #718096;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* =================================================
+   CONFIGURACIONES ESPECÍFICAS
+   ================================================= */
+.config-section {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 8px;
+}
+
+.config-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Checkbox personalizado */
+.checkbox-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.checkbox-container:hover {
+  background: #edf2f7;
+  border-color: #cbd5e0;
+}
+
+.form-checkbox {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #ab47bc;
+}
+
+.checkbox-label {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.checkbox-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.checkbox-description {
+  font-size: 0.75rem;
+  color: #718096;
+  line-height: 1.4;
+}
+
+/* Lista de opciones múltiples */
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.option-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.option-item .form-input {
+  flex: 1;
+}
+
+.btn-remove {
+  padding: 8px;
+  background: #fed7d7;
+  color: #c53030;
+  border: 1px solid #feb2b2;
+  border-radius: 6px;
+  min-width: auto;
+  width: 36px;
+  height: 36px;
+}
+
+.btn-remove:hover:not(:disabled) {
+  background: #feb2b2;
+}
+
+.btn-remove:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-add {
+  background: #c6f6d5;
+  color: #276749;
+  border: 1px solid #9ae6b4;
+  margin-top: 8px;
+}
+
+.btn-add:hover:not(:disabled) {
+  background: #9ae6b4;
+}
+
+/* =================================================
+   MODO AVANZADO
+   ================================================= */
+.advanced-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mode-header h3 {
+  font-size: 1.2rem;
+  color: #2d3748;
+  margin: 0 0 8px 0;
+}
+
+.mode-header p {
+  font-size: 0.875rem;
+  color: #718096;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.advanced-textarea {
+  font-family: 'Courier New', monospace;
+  background: #1a202c;
+  color: #e2e8f0;
+  border: 2px solid #4a5568;
+  min-height: 120px;
+}
+
+.advanced-textarea:focus {
+  border-color: #ab47bc;
+  box-shadow: 0 0 0 3px rgba(171, 71, 188, 0.1);
+}
+
+/* Ejemplos */
+.examples-section {
+  margin-top: 16px;
+}
+
+.examples-toggle summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #ab47bc;
+  padding: 8px 0;
+}
+
+.examples-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.example-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  background: white;
+}
+
+.example-card h5 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 8px 0;
+}
+
+.example-code {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: #2d3748;
+  margin: 8px 0;
+  white-space: pre-wrap;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+}
+
+/* =================================================
+   VISTA PREVIA
+   ================================================= */
+.preview-group {
+  border-top: 2px solid #e2e8f0;
+  padding-top: 20px;
+  margin-top: 8px;
+}
+
+.preview-header {
+  margin-bottom: 16px;
+}
+
+.preview-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preview-title i {
+  color: #ab47bc;
+}
+
+.preview-subtitle {
+  font-size: 0.8rem;
+  color: #718096;
+  font-style: italic;
+  margin: 0;
+}
+
+.preview-container {
+  background: #f7fafc;
+  border: 2px dashed #cbd5e0;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+/* =================================================
+   TOGGLE DE MODO
+   ================================================= */
+.mode-toggle {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.btn-mode-toggle {
+  background: linear-gradient(135deg, #ab47bc, #81c784);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-mode-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(171, 71, 188, 0.3);
+}
+
+/* =================================================
+   FOOTER
+   ================================================= */
+.modal-footer {
+  padding: 20px 24px;
+  background: #f7fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #edf2f7;
+  color: #4a5568;
+  border: 2px solid #e2e8f0;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #e2e8f0;
+  border-color: #cbd5e0;
+}
+
+.btn-primary {
+  background: #ab47bc;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #9c27b0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(171, 71, 188, 0.3);
+}
+
+/* Spinner */
+.fa-spin {
+  animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* =================================================
+   RESPONSIVE
+   ================================================= */
+@media (max-width: 768px) {
+  .modal-container {
+    width: 98%;
+    max-height: 95vh;
+  }
+
+  .modal-body {
+    padding: 20px;
+    max-height: 65vh;
+  }
+
+  .question-types-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .config-row {
+    grid-template-columns: 1fr;
+  }
+
+  .examples-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-container {
+    width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .modal-body {
+    padding: 16px;
+    max-height: calc(100vh - 140px);
+  }
+
+  .form-group {
+    gap: 6px;
+  }
+
+  .config-section {
+    padding: 16px;
+  }
+
+  .checkbox-container {
+    padding: 12px;
+  }
+}
+
+/* =================================================
+   ACCESIBILIDAD
+   ================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay,
+  .modal-container,
+  .question-type-card,
+  .btn {
+    animation: none;
+    transition: none;
+  }
+
+  .btn:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+.modal-close:focus-visible,
+.form-textarea:focus-visible,
+.form-select:focus-visible,
+.form-input:focus-visible,
+.form-checkbox:focus-visible,
+.btn:focus-visible {
+  outline: 3px solid #ab47bc;
+  outline-offset: 2px;
+}
+
+@media (prefers-contrast: high) {
+  .modal-container {
+    border: 3px solid #000;
+  }
+
+  .form-textarea,
+  .form-select,
+  .form-input {
+    border-color: #000;
+  }
+
+  .question-type-card {
+    border-color: #000;
+  }
+}
