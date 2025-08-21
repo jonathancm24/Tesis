@@ -712,7 +712,7 @@ import type {
   HistorialCompleto
 } from '@/types/patient';
 import { TipoDocumento } from '@/types/patient';
-import type { Parroquia } from '@/types/patient';
+import type { Parroquia } from '@/types/user';
 
 // Estados reactivo
 const loading = ref(false);
