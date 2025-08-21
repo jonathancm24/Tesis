@@ -137,6 +137,14 @@ export const API_CONFIG = {
       ANTECEDENTES: (pacienteId: number) => `/encuestas-tamizaje/antecedentes/${pacienteId}`,
       VERIFICAR: (pacienteId: number) => `/encuestas-tamizaje/verificar/${pacienteId}`,
       ADMIN_PREGUNTAS: '/encuestas-tamizaje/admin/preguntas'
+    },
+    ODONTOGRAMAS: {
+      BASE: '/odontogramas',
+      BY_ID: (id: number) => `/odontogramas/${id}`,
+      MIS_ODONTOGRAMAS: '/odontogramas/mis-odontogramas',
+      ESTADISTICAS: '/odontogramas/estadisticas/basicas',
+      VERIFICAR_ACCESO: (id: number) => `/odontogramas/${id}/verificar-acceso`,
+      POR_CASO_CLINICO: (casoId: number) => `/odontogramas?casoClinicoId=${casoId}`
     }
   }
 }

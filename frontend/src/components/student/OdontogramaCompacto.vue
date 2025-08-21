@@ -1,6 +1,6 @@
 <template>
   <div class="odontograma-compacto">
-    <!-- Fila superior: Condición activa y Leyenda -->
+    <!-- Fila superior: Condición activa, Botón Guardar y Leyenda -->
     <div class="controles-leyenda-fila mb-2">
       <!-- Selector de condición activa -->
       <div class="controles-section">
@@ -16,6 +16,20 @@
           <option value="bridge">Puente</option>
           <option value="extraction">Extracción</option>
         </select>
+      </div>
+
+      <!-- Botón de guardado manual -->
+      <div class="controles-section" v-if="casoClinicoId">
+        <button 
+          type="button"
+          class="btn btn-primary btn-sm"
+          :disabled="guardandoDatos"
+          @click="guardarEnBackend"
+        >
+          <i class="fas fa-save me-1"></i>
+          <span v-if="guardandoDatos">Guardando...</span>
+          <span v-else>Guardar Odontograma</span>
+        </button>
       </div>
 
       <!-- Leyenda compacta -->
@@ -317,6 +331,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { odontogramaService } from '@/services/odontogramaService';
+import { useToast } from '@/composables/useToast';
 
 type EstadoDiente = 'healthy' | 'caries' | 'filling' | 'crown' | 'missing' | 'root-canal' | 'implant' | 'bridge' | 'extraction';
 type SuperficieDiente = 'oclusal' | 'mesial' | 'distal' | 'vestibular' | 'lingual';
@@ -345,6 +361,7 @@ interface HallazgoOdontologico {
 // Props
 interface Props {
   modelValue?: DienteDetallado[];
+  casoClinicoId?: number; // Agregar prop para el caso clínico
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -360,6 +377,8 @@ const emit = defineEmits<{
 
 // Estado local - solo condición activa
 const condicionActiva = ref<EstadoDiente>('caries');
+const guardandoDatos = ref(false);
+const { showToast } = useToast();
 
 // Constantes de colores y etiquetas
 const conditionColors: Record<EstadoDiente, string> = {
@@ -409,37 +428,41 @@ const createInitialSurfaces = (): SuperficiesDiente => ({
   lingual: 'healthy'
 });
 
-// Estado de todos los dientes - usar Map para mejor performance
-const allTeethMap = new Map<string, DienteDetallado>();
+// Estado de todos los dientes - usar ref reactivo en lugar de Map
+const allTeethState = ref<Map<string, DienteDetallado>>(new Map());
 
-// Inicializar Map
-const initializeTeethMap = () => {
+// Inicializar dientes
+const initializeTeeth = () => {
   const allNumbers = [...upperTeeth, ...lowerTeeth, ...upperDeciduousTeeth, ...lowerDeciduousTeeth];
+  const newMap = new Map<string, DienteDetallado>();
+  
   allNumbers.forEach(num => {
-    allTeethMap.set(num, {
+    newMap.set(num, {
       id: num,
       label: num,
       superficies: createInitialSurfaces(),
       observacion: ''
     });
   });
+  
+  allTeethState.value = newMap;
 };
 
 // Computed para dientes separados por tipo
 const dientesSuperioresPermanentes = computed(() => {
-  return upperTeeth.map(num => allTeethMap.get(num)!).filter(Boolean);
+  return upperTeeth.map(num => allTeethState.value.get(num)!).filter(Boolean);
 });
 
 const dientesSuperioresTemporales = computed(() => {
-  return upperDeciduousTeeth.map(num => allTeethMap.get(num)!).filter(Boolean);
+  return upperDeciduousTeeth.map(num => allTeethState.value.get(num)!).filter(Boolean);
 });
 
 const dientesInferioresPermanentes = computed(() => {
-  return lowerTeeth.map(num => allTeethMap.get(num)!).filter(Boolean);
+  return lowerTeeth.map(num => allTeethState.value.get(num)!).filter(Boolean);
 });
 
 const dientesInferioresTemporales = computed(() => {
-  return lowerDeciduousTeeth.map(num => allTeethMap.get(num)!).filter(Boolean);
+  return lowerDeciduousTeeth.map(num => allTeethState.value.get(num)!).filter(Boolean);
 });
 
 // Computed para hallazgos - optimizado con reactividad mejorada
@@ -472,9 +495,11 @@ const hallazgosEncontrados = computed(() => {
 // Métodos optimizados
 const clickSuperficie = (diente: DienteDetallado, superficie: SuperficieDiente) => {
   // Obtener el diente del Map para asegurar referencia correcta
-  const toothRef = allTeethMap.get(diente.id);
+  const toothRef = allTeethState.value.get(diente.id);
   if (toothRef) {
     toothRef.superficies[superficie] = condicionActiva.value;
+    // Forzar reactividad creando nueva referencia del Map
+    allTeethState.value = new Map(allTeethState.value);
     emitirCambios();
   }
 };
@@ -489,7 +514,7 @@ const getCondicionTexto = (condicion: EstadoDiente): string => {
 
 const limpiarHallazgo = (hallazgo: HallazgoOdontologico) => {
   // Encontrar el diente en el Map
-  for (const [_, diente] of allTeethMap) {
+  for (const [_, diente] of allTeethState.value) {
     if (diente.label === hallazgo.diente) {
       const superficie = Object.keys(surfaceLabels).find(
         key => surfaceLabels[key as SuperficieDiente] === hallazgo.superficie
@@ -497,6 +522,8 @@ const limpiarHallazgo = (hallazgo: HallazgoOdontologico) => {
       
       if (superficie) {
         diente.superficies[superficie] = 'healthy';
+        // Forzar reactividad
+        allTeethState.value = new Map(allTeethState.value);
         emitirCambios();
         break;
       }
@@ -504,11 +531,11 @@ const limpiarHallazgo = (hallazgo: HallazgoOdontologico) => {
   }
 };
 
-const emitirCambios = () => {
+const emitirCambios = async () => {
   // Solo emitir dientes que tienen al menos una superficie no sana
   const dientesConHallazgos: DienteDetallado[] = [];
   
-  for (const [_, diente] of allTeethMap) {
+  for (const [_, diente] of allTeethState.value) {
     const hasConditions = Object.values(diente.superficies).some(superficie => superficie !== 'healthy');
     if (hasConditions) {
       dientesConHallazgos.push({
@@ -527,13 +554,41 @@ const emitirCambios = () => {
   emit('update:modelValue', dientesConHallazgos);
   emit('update:hallazgos', [...hallazgos]); // Emitir hallazgos también
   emit('change', dientesConHallazgos);
+
+  // Guardar en el backend si hay caso clínico ID
+  if (props.casoClinicoId && dientesConHallazgos.length > 0) {
+    await guardarEnBackend();
+  }
+};
+
+const guardarEnBackend = async () => {
+  if (guardandoDatos.value) return;
+  
+  try {
+    guardandoDatos.value = true;
+    console.log('💾 Guardando odontograma en el backend...');
+    
+    const resultado = await odontogramaService.guardarOdontogramaCompleto(
+      allTeethState.value,
+      props.casoClinicoId
+    );
+    
+    console.log('✅ Odontograma guardado exitosamente:', resultado);
+    showToast('Odontograma guardado exitosamente', 'success');
+    
+  } catch (error: any) {
+    console.error('❌ Error al guardar odontograma:', error);
+    showToast(`Error al guardar: ${error.message}`, 'error');
+  } finally {
+    guardandoDatos.value = false;
+  }
 };
 
 const inicializarDatos = () => {
   if (!props.modelValue) return;
   
   // Reinicializar todos los dientes a sano
-  for (const [_, diente] of allTeethMap) {
+  for (const [_, diente] of allTeethState.value) {
     diente.superficies = createInitialSurfaces();
     diente.observacion = '';
   }
@@ -541,13 +596,82 @@ const inicializarDatos = () => {
   // Aplicar datos del modelo si existen
   if (props.modelValue.length > 0) {
     props.modelValue.forEach(dienteExterno => {
-      const dienteLocal = allTeethMap.get(dienteExterno.id);
+      const dienteLocal = allTeethState.value.get(dienteExterno.id);
       if (dienteLocal) {
         dienteLocal.superficies = { ...dienteExterno.superficies };
         dienteLocal.observacion = dienteExterno.observacion || '';
       }
     });
+    
+    // Forzar reactividad
+    allTeethState.value = new Map(allTeethState.value);
   }
+};
+
+const cargarDatosDelBackend = async () => {
+  if (!props.casoClinicoId) return;
+  
+  try {
+    console.log('🔄 Cargando odontograma existente del backend...');
+    const respuesta = await odontogramaService.cargarOdontogramaPorCaso(props.casoClinicoId);
+    
+    if (respuesta.odontogramas.length > 0) {
+      console.log('📥 Datos cargados del backend:', respuesta.odontogramas);
+      
+      // Convertir datos del backend al formato del componente
+      respuesta.odontogramas.forEach(odontograma => {
+        const dienteLocal = allTeethState.value.get(odontograma.diente);
+        if (dienteLocal && odontograma.condicion) {
+          // Convertir condiciones del backend a superficies del componente
+          if (Array.isArray(odontograma.condicion)) {
+            odontograma.condicion.forEach((condicion: any) => {
+              if (condicion.cara && condicion.tipoCondicion) {
+                // Mapear el tipo de condición del backend al frontend
+                const tipoCondicionFrontend = mapearCondicionBackendAFrontend(condicion.tipoCondicion);
+                if (condicion.cara !== 'general') {
+                  dienteLocal.superficies[condicion.cara as SuperficieDiente] = tipoCondicionFrontend;
+                }
+              }
+            });
+          }
+          
+          if (odontograma.conclusion) {
+            dienteLocal.observacion = odontograma.conclusion;
+          }
+        }
+      });
+      
+      // Forzar reactividad
+      allTeethState.value = new Map(allTeethState.value);
+      showToast('Odontograma cargado desde el servidor', 'success');
+    }
+  } catch (error: any) {
+    console.error('❌ Error al cargar odontograma:', error);
+    showToast(`Error al cargar odontograma: ${error.message}`, 'error');
+  }
+};
+
+const mapearCondicionBackendAFrontend = (tipoCondicion: string): EstadoDiente => {
+  const mapeo: Record<string, EstadoDiente> = {
+    'normal': 'healthy',
+    'sano': 'healthy',
+    'caries': 'caries',
+    'obturación': 'filling',
+    'obturacion': 'filling',
+    'corona': 'crown',
+    'puente': 'bridge',
+    'implante': 'implant',
+    'extracción': 'extraction',
+    'extraccion': 'extraction',
+    'endodoncia': 'root-canal',
+    'ausente': 'missing',
+    'fractura': 'caries', // Mapear fractura como caries por ahora
+    'desgaste': 'caries', // Mapear desgaste como caries por ahora
+    'manchas': 'caries', // Mapear manchas como caries por ahora
+    'observacion': 'healthy' // Observaciones generales como sano
+  };
+  
+  return mapeo[tipoCondicion.toLowerCase()] || 'healthy';
 };
 
 // Watchers optimizados
@@ -563,8 +687,15 @@ watch(condicionActiva, () => {
   // Forzar rerender de los computed
 });
 
+// Watch para cargar datos cuando cambia el casoClinicoId
+watch(() => props.casoClinicoId, (nuevoCasoId) => {
+  if (nuevoCasoId) {
+    cargarDatosDelBackend();
+  }
+}, { immediate: true });
+
 // Inicialización
-initializeTeethMap();
+initializeTeeth();
 inicializarDatos();
 </script>
 

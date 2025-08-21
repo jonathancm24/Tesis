@@ -119,20 +119,19 @@
 
               <!-- Enfermedad actual -->
               <div class="col-12">
-                <label class="form-label required">Enfermedad Actual</label>
+                <label class="form-label">Enfermedad Actual</label>
                 <textarea
                   v-model="formulario.enfermedadActual"
                   class="form-control"
                   :class="{ 'is-invalid': errores.enfermedadActual }"
                   rows="5"
                   placeholder="Describe detalladamente la evolución y características de la enfermedad actual..."
-                  required
                 ></textarea>
                 <div v-if="errores.enfermedadActual" class="invalid-feedback">
                   {{ errores.enfermedadActual }}
                 </div>
                 <div class="form-text">
-                  Mínimo 20 caracteres, máximo 2000
+                  Campo opcional
                 </div>
               </div>
             </div>
@@ -310,6 +309,7 @@
                   @change="onOdontogramaChange"
                   :readonly="false"
                   :show-tools="true"
+                  :casoClinicoId="props.casoId"
                 />
               </div>
 
@@ -771,8 +771,7 @@ function validarSeccionMotivo(): boolean {
   return !!(
     formulario.value.especialidadId &&
     formulario.value.profesorId &&
-    formulario.value.motivoConsulta.length >= 10 &&
-    formulario.value.enfermedadActual.length >= 20
+    formulario.value.motivoConsulta.length >= 10
   );
 }
 
@@ -823,11 +822,6 @@ function validarFormulario(): boolean {
 
   if (formulario.value.motivoConsulta.length < 10) {
     errores.value.motivoConsulta = 'El motivo de consulta debe tener al menos 10 caracteres';
-    esValido = false;
-  }
-
-  if (formulario.value.enfermedadActual.length < 20) {
-    errores.value.enfermedadActual = 'La enfermedad actual debe tener al menos 20 caracteres';
     esValido = false;
   }
 

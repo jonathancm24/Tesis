@@ -310,6 +310,7 @@
                   @change="onOdontogramaChange"
                   :readonly="false"
                   :show-tools="true"
+                  :casoClinicoId="props.casoId"
                 />
               </div>
 
