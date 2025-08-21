@@ -339,7 +339,7 @@ const local = ref<FormUser>({
   role: props.modelValue.role ?? ('estudiante' as UserRole),
   roleId: props.modelValue.roleId,
   especialidadIds: props.modelValue.especialidadIds ?? [],
-  parroquiaId: props.modelValue.parroquiaId ?? 0,
+  parroquiaId: props.modelValue.parroquiaId ?? 1,
   activo: props.modelValue.activo ?? true
 })
 
@@ -462,7 +462,8 @@ async function loadEspecialidades() {
 
 // Validaciones asíncronas con debounce
 const onEmailInput = async () => {
-  if (local.value.email && local.value.email.includes('@')) {
+  // Solo validar en modo creación para evitar errores en edición
+  if (!props.editMode && local.value.email && local.value.email.includes('@')) {
     asyncValidating.value.email = true
     
     try {
@@ -479,6 +480,8 @@ const onEmailInput = async () => {
       }
     } catch (error) {
       console.error('Error validating email:', error)
+      // Limpiar error si falla la validación
+      clearFieldError('email')
     } finally {
       asyncValidating.value.email = false
     }
@@ -486,7 +489,8 @@ const onEmailInput = async () => {
 }
 
 const onDocumentInput = async () => {
-  if (local.value.numeroDocumento && local.value.tipoDocumento) {
+  // Solo validar en modo creación para evitar errores en edición
+  if (!props.editMode && local.value.numeroDocumento && local.value.tipoDocumento) {
     asyncValidating.value.numeroDocumento = true
     
     try {
@@ -506,6 +510,8 @@ const onDocumentInput = async () => {
       }
     } catch (error) {
       console.error('Error validating document:', error)
+      // Limpiar error si falla la validación
+      clearFieldError('numeroDocumento')
     } finally {
       asyncValidating.value.numeroDocumento = false
     }
@@ -543,8 +549,11 @@ function getRoleLabel(roleName: string): string {
 
 // Sincronizar cambios externos
 watch(() => props.modelValue, (newValue) => {
+  console.log('UserForm.watch - Se disparó el watch, newValue:', newValue)
   if (newValue) {
-    local.value = {
+    console.log('UserForm.watch - Recibiendo datos del usuario para edición:', newValue)
+    
+    const localData = {
       id: newValue.id,
       nombre: newValue.nombre ?? '',
       apellido: newValue.apellido ?? '',
@@ -560,10 +569,20 @@ watch(() => props.modelValue, (newValue) => {
       parroquiaId: newValue.parroquiaId ?? 0,
       activo: newValue.activo ?? true
     }
+    
+    console.log('UserForm.watch - Datos antes de asignar a local.value:', localData)
+    local.value = localData
+    console.log('UserForm.watch - Datos después de asignar a local.value:', local.value)
+  } else {
+    console.log('UserForm.watch - newValue es null/undefined')
   }
-}, { immediate: true })
+}, { immediate: true, deep: true })
 
 async function onSubmit() {
+  console.log('UserForm: Iniciando envío del formulario')
+  console.log('UserForm: Datos locales actuales:', local.value)
+  console.log('UserForm: Modo edición:', props.editMode)
+  
   // Primero validar todos los campos
   const fieldsToValidate = [
     { field: 'nombre', value: local.value.nombre, rules: nameRules },
@@ -582,16 +601,25 @@ async function onSubmit() {
     const isValid = await validateField(field, value, rules)
     if (!isValid) {
       hasValidationErrors = true
+      console.log(`UserForm: Error de validación en campo ${field}`)
     }
   }
 
-  // Validaciones asíncronas adicionales
-  await onEmailInput()
-  await onDocumentInput()
+  // Validaciones asíncronas adicionales solo en modo creación
+  if (!props.editMode) {
+    try {
+      await onEmailInput()
+      await onDocumentInput()
+    } catch (error) {
+      console.error('UserForm: Error en validaciones asíncronas:', error)
+      // Continuar con el envío aunque falle la validación asíncrona
+    }
+  }
 
   // Verificar si hay errores después de todas las validaciones
   if (hasValidationErrors || hasErrors.value) {
-    console.log('Formulario tiene errores, no se puede enviar')
+    console.log('UserForm: Formulario tiene errores, no se puede enviar')
+    console.log('UserForm: Errores de campos:', fieldErrors)
     return
   }
 
@@ -609,10 +637,10 @@ async function onSubmit() {
       parroquiaId: local.value.parroquiaId
     }
     
-    console.log('Enviando datos del usuario:', userData)
+    console.log('UserForm: Enviando datos del usuario:', userData)
     emit('save', userData)
   } catch (error: any) {
-    console.error('Error al enviar formulario:', error)
+    console.error('UserForm: Error al enviar formulario:', error)
     handleApiError(error)
   } finally {
     isSubmitting.value = false

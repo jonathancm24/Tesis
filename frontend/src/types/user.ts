@@ -74,6 +74,9 @@ export interface UpdateUserRequest {
   nombre?: string
   apellido?: string
   email?: string
+  tipoDocumento?: TipoDocumentoType
+  numeroDocumento?: string
+  fechaNacimiento?: string
   NotasAdicionales?: string
   roleId?: number
   activo?: boolean

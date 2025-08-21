@@ -71,17 +71,21 @@ export class UsuariosService {
     const usuario = await this.findById(id);
 
     // ✅ CREAR OBJETO DE ACTUALIZACIÓN SIN MODIFICAR LA CONTRASEÑA AUTOMÁTICAMENTE
-    const updateData: any = {
-      nombre: data.nombre,
-      apellido: data.apellido,
-      email: data.email,
-      roleId: data.roleId,
-      activo: data.activo,
-      parroquiaId: data.parroquiaId,
-    };
+    const updateData: any = {};
+
+    // Solo actualizar campos que se proporcionan
+    if (data.nombre !== undefined) updateData.nombre = data.nombre;
+    if (data.apellido !== undefined) updateData.apellido = data.apellido;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.tipoDocumento !== undefined) updateData.tipoDocumento = data.tipoDocumento;
+    if (data.numeroDocumento !== undefined) updateData.numeroDocumento = data.numeroDocumento;
+    if (data.roleId !== undefined) updateData.roleId = data.roleId;
+    if (data.activo !== undefined) updateData.activo = data.activo;
+    if (data.parroquiaId !== undefined) updateData.parroquiaId = data.parroquiaId;
+    if (data.NotasAdicionales !== undefined) updateData.NotasAdicionales = data.NotasAdicionales;
 
     // ✅ SOLO HASHEAR SI SE PROPORCIONA UNA NUEVA CONTRASEÑA
-    if (data.password && data.password !== usuario.password) {
+    if (data.password && data.password.trim() !== '') {
       updateData.password = await hash(data.password, 10);
     }
 
@@ -91,9 +95,45 @@ export class UsuariosService {
     }
 
     // Actualizar el usuario
-    return this.prisma.usuario.update({
+    const updatedUser = await this.prisma.usuario.update({
       where: { id },
       data: updateData,
+      include: {
+        especialidades: {
+          include: {
+            especialidad: true,
+          },
+        },
+        role: {
+          select: {
+            id: true,
+            nombre: true
+          }
+        }
+      },
+    });
+
+    // ✅ ACTUALIZAR ESPECIALIDADES SI SE PROPORCIONAN
+    if (data.especialidadIds !== undefined) {
+      // Eliminar especialidades existentes
+      await this.prisma.usuarioEspecialidad.deleteMany({
+        where: { usuarioId: id }
+      });
+
+      // Crear nuevas relaciones de especialidades
+      if (data.especialidadIds.length > 0) {
+        await this.prisma.usuarioEspecialidad.createMany({
+          data: data.especialidadIds.map(especialidadId => ({
+            usuarioId: id,
+            especialidadId,
+          })),
+        });
+      }
+    }
+
+    // Retornar usuario actualizado con especialidades
+    return this.prisma.usuario.findUnique({
+      where: { id },
       include: {
         especialidades: {
           include: {

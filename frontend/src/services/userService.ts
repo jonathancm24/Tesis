@@ -28,6 +28,60 @@ class UserService {
   }
 
   /**
+   * Obtener un usuario por ID con datos completos
+   */
+  async getUserById(id: number): Promise<any> {
+    try {
+      const response = await fetch(`${this.baseUrl}${API_CONFIG.ENDPOINTS.USERS.BY_ID(id)}`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Error al obtener usuario')
+      }
+
+      const user = await response.json()
+      console.log('userService.getUserById - Datos raw del backend:', user)
+      
+      // Formatear fecha de nacimiento para input type="date"
+      let fechaNacimientoFormatted = ''
+      if (user.fechaNacimiento) {
+        const fecha = new Date(user.fechaNacimiento)
+        if (!isNaN(fecha.getTime())) {
+          fechaNacimientoFormatted = fecha.toISOString().split('T')[0]
+        }
+      }
+      
+      const mappedUser = {
+        id: user.id,
+        nombre: user.nombre || '',
+        apellido: user.apellido || '',
+        email: user.email || '',
+        tipoDocumento: user.tipoDocumento || 'CEDULA',
+        numeroDocumento: user.numeroDocumento || '',
+        fechaNacimiento: fechaNacimientoFormatted,
+        NotasAdicionales: user.NotasAdicionales || '',
+        role: this.mapRoleToFrontend(user.role?.nombre || 'ESTUDIANTE'),
+        activo: user.activo ?? true,
+        especialidades: user.especialidades?.map((e: any) => ({
+          id: e.especialidad?.id || e.id,
+          nombre: e.especialidad?.nombre || e.nombre,
+          descripcion: e.especialidad?.descripcion || e.descripcion
+        })) || [],
+        parroquiaId: user.parroquiaId || 1
+      }
+      
+      console.log('userService.getUserById - Datos mapeados para frontend:', mappedUser)
+      return mappedUser
+    } catch (error: any) {
+      console.error('userService.getUserById - Error:', error)
+      throw new Error(error.message || 'Error de conexión')
+    }
+  }
+
+  /**
    * Obtener todos los roles disponibles desde la BD
    */
   async getRoles(): Promise<Role[]> {
@@ -154,17 +208,29 @@ class UserService {
    */
   async updateUser(id: number, formData: FormUser): Promise<User> {
     try {
-      // Convertir FormUser a UpdateUserRequest
+      console.log('userService.updateUser - Datos recibidos:', formData)
+      
+      // Convertir FormUser a UpdateUserRequest - solo campos que pueden ser actualizados
       const userData: UpdateUserRequest = {
         nombre: formData.nombre,
         apellido: formData.apellido,
         email: formData.email,
+        tipoDocumento: formData.tipoDocumento,
+        numeroDocumento: formData.numeroDocumento,
+        fechaNacimiento: formData.fechaNacimiento,
         NotasAdicionales: formData.NotasAdicionales,
         roleId: formData.roleId || await this.getRoleIdByName(formData.role),
         activo: formData.activo,
         especialidadIds: formData.especialidadIds,
         parroquiaId: formData.parroquiaId
       }
+
+      // Si se proporciona una contraseña, incluirla en la actualización
+      if (formData.password && formData.password.trim() !== '') {
+        (userData as any).password = formData.password
+      }
+
+      console.log('userService.updateUser - Datos a enviar:', userData)
 
       const response = await fetch(`${this.baseUrl}${API_CONFIG.ENDPOINTS.USERS.BY_ID(id)}`, {
         method: 'PATCH',
@@ -174,12 +240,15 @@ class UserService {
 
       if (!response.ok) {
         const error = await response.json()
+        console.error('userService.updateUser - Error del backend:', error)
         throw new Error(error.message || 'Error al actualizar usuario')
       }
 
       const user = await response.json()
+      console.log('userService.updateUser - Usuario actualizado:', user)
       return this.mapBackendUserToFrontend(user)
     } catch (error: any) {
+      console.error('userService.updateUser - Error:', error)
       throw new Error(error.message || 'Error de conexión')
     }
   }

@@ -89,8 +89,8 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { pacienteService } from '../../services/pacienteService'
-import type { Parroquia } from '../../types/patient'
+import { userService } from '../../services/userService'
+import type { Parroquia } from '../../types/user'
 // Props y Emits definidos
 interface Props {
   modelValue?: number | null
@@ -141,7 +141,7 @@ async function buscarParroquias() {
   
   loading.value = true
   try {
-    resultados.value = await pacienteService.buscarParroquias(searchQuery.value)
+    resultados.value = await userService.buscarParroquias(searchQuery.value)
   } catch (error) {
     console.error('Error al buscar parroquias:', error)
     resultados.value = []
@@ -175,20 +175,29 @@ function onBlur() {
 
 // Watch para cambios externos
 watch(() => props.modelValue, async (newValue) => {
+  console.log('AutocompleteParroquia.watch - Nuevo modelValue:', newValue)
   if (newValue && !selectedParroquia.value) {
     // Cargar la parroquia si se proporciona un ID pero no tenemos la data
     try {
-      const parroquias = await pacienteService.obtenerParroquias()
+      console.log('AutocompleteParroquia.watch - Cargando parroquia con ID:', newValue)
+      const parroquias = await userService.getParroquias()
       const found = parroquias.find((p: Parroquia) => p.id === newValue)
+      console.log('AutocompleteParroquia.watch - Parroquia encontrada:', found)
       if (found) {
         selectedParroquia.value = found
         searchQuery.value = found.nombre
+        console.log('AutocompleteParroquia.watch - Parroquia seleccionada:', selectedParroquia.value)
+      } else {
+        console.log('AutocompleteParroquia.watch - No se encontró parroquia con ID:', newValue)
       }
     } catch (error) {
-      console.error('Error al cargar parroquia:', error)
+      console.error('AutocompleteParroquia.watch - Error al cargar parroquia:', error)
     }
   } else if (!newValue) {
+    console.log('AutocompleteParroquia.watch - Limpiando selección')
     clearSelection()
+  } else if (selectedParroquia.value) {
+    console.log('AutocompleteParroquia.watch - Ya hay parroquia seleccionada:', selectedParroquia.value)
   }
 })
 </script>

@@ -93,19 +93,25 @@
               <button
                 class="btn btn-sm btn-primary me-2"
                 @click="openModal(u)"
+                :disabled="loading || loadingUserData"
               >
+                <i class="fas fa-edit me-1"></i>
                 Editar
               </button>
               <button
                 class="btn btn-sm btn-warning me-2"
                 @click="onToggleActive(u)"
+                :disabled="loading"
               >
+                <i class="fas fa-power-off me-1"></i>
                 {{ u.activo ? 'Desactivar' : 'Activar' }}
               </button>
               <button
                 class="btn btn-sm btn-danger"
                 @click="onDelete(u.id)"
+                :disabled="loading"
               >
+                <i class="fas fa-trash me-1"></i>
                 Eliminar
               </button>
             </td>
@@ -145,7 +151,14 @@
               ></button>
             </div>
             <div class="modal-body">
+              <div v-if="loadingUserData" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Cargando datos del usuario...</span>
+                </div>
+                <p class="mt-2 text-muted">Cargando datos del usuario...</p>
+              </div>
               <UserForm
+                v-else
                 :modelValue="editingUser"
                 :editMode="!!editingUser.id"
                 @save="handleSave"
@@ -180,6 +193,7 @@ const error = ref('')
 const filter = ref('')
 const isModalOpen = ref(false)
 const editingUser = ref<Partial<FormUser>>({})
+const loadingUserData = ref(false)
 
 // Carga inicial de usuarios
 onMounted(loadUsers)
@@ -213,36 +227,85 @@ const activeUsersCount = computed(() =>
 )
 
 // Abrir modal en modo creación o edición
-function openModal(user?: User) {
-  editingUser.value = user
-    ? { 
+async function openModal(user?: User) {
+  if (user) {
+    // Modo edición - cargar datos completos del usuario
+    loadingUserData.value = true
+    try {
+      console.log('AdminUsers.openModal - Usuario básico de la tabla:', user)
+      console.log('AdminUsers.openModal - Cargando datos completos del usuario ID:', user.id)
+      
+      // Obtener datos completos del usuario desde el backend
+      const fullUserData = await userService.getUserById(user.id)
+      console.log('AdminUsers.openModal - Datos completos obtenidos:', fullUserData)
+      
+      editingUser.value = {
+        id: fullUserData.id,
+        nombre: fullUserData.nombre || '',
+        apellido: fullUserData.apellido || '',
+        email: fullUserData.email || '',
+        tipoDocumento: fullUserData.tipoDocumento || 'CEDULA',
+        numeroDocumento: fullUserData.numeroDocumento || '',
+        fechaNacimiento: fullUserData.fechaNacimiento || '',
+        NotasAdicionales: fullUserData.NotasAdicionales || '',
+        role: fullUserData.role || 'estudiante',
+        roleId: fullUserData.roleId,
+        activo: fullUserData.activo !== undefined ? fullUserData.activo : true,
+        especialidadIds: fullUserData.especialidades?.map((e: any) => e.id) || [],
+        parroquiaId: fullUserData.parroquiaId || 1,
+        password: '' // No enviamos la contraseña para edición
+      }
+      
+      console.log('AdminUsers.openModal - editingUser.value asignado:', editingUser.value)
+    } catch (error) {
+      console.error('AdminUsers.openModal - Error al cargar datos del usuario:', error)
+      // Fallback con datos básicos disponibles
+      editingUser.value = {
         id: user.id,
         nombre: user.nombre,
         apellido: user.apellido,
         email: user.email,
         role: user.role,
-        activo: user.activo
-      }
-    : { 
-        nombre: '', 
-        apellido: '', 
-        email: '', 
-        role: 'estudiante' as UserRole,
-        activo: true,
-        tipoDocumento: 'CEDULA' as TipoDocumentoType,
+        activo: user.activo,
+        tipoDocumento: 'CEDULA',
         numeroDocumento: '',
-        password: '',
         fechaNacimiento: '',
-        especialidadIds: [],
+        NotasAdicionales: '',
+        password: '',
+        especialidadIds: user.especialidades?.map((e: any) => e.id) || [],
         parroquiaId: 1
       }
+      console.log('AdminUsers.openModal - Usando datos fallback:', editingUser.value)
+    } finally {
+      loadingUserData.value = false
+    }
+  } else {
+    // Modo creación - datos vacíos con valores por defecto
+    editingUser.value = { 
+      nombre: '', 
+      apellido: '', 
+      email: '', 
+      role: 'estudiante' as UserRole,
+      activo: true,
+      tipoDocumento: 'CEDULA' as TipoDocumentoType,
+      numeroDocumento: '',
+      password: '',
+      fechaNacimiento: '',
+      NotasAdicionales: '',
+      especialidadIds: [],
+      parroquiaId: 1
+    }
+    console.log('AdminUsers.openModal - Modo creación, datos iniciales:', editingUser.value)
+  }
   isModalOpen.value = true
 }
 
 // Cerrar modal
 function closeModal() {
   isModalOpen.value = false
+  loadingUserData.value = false
   editingUser.value = {}
+  error.value = '' // Limpiar errores al cerrar
 }
 
 // Guardar usuario (crear o actualizar)
@@ -254,15 +317,29 @@ async function handleSave(data: FormUser) {
   try {
     if (data.id) {
       // Actualizar usuario existente
+      console.log('Actualizando usuario con ID:', data.id, 'Datos:', data)
       await userService.updateUser(data.id, data)
+      console.log('Usuario actualizado exitosamente')
     } else {
       // Crear nuevo usuario
+      console.log('Creando nuevo usuario:', data)
       await userService.createUser(data)
+      console.log('Usuario creado exitosamente')
     }
     await loadUsers()
+    
+    // Mostrar mensaje de éxito (opcional - puedes agregar un toast/notification aquí)
+    console.log(`Usuario ${data.id ? 'actualizado' : 'creado'} exitosamente`)
+    
   } catch (err: any) {
     error.value = err.message || 'Error al guardar usuario'
     console.error('Error al guardar usuario:', err)
+    
+    // Volver a abrir el modal para que el usuario pueda corregir
+    setTimeout(() => {
+      editingUser.value = data
+      isModalOpen.value = true
+    }, 100)
   } finally {
     loading.value = false
   }
