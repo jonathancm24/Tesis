@@ -173,13 +173,14 @@ const menuItems = [
     to: { name: 'BaseDataManagement' },
     color: 'warning' // Amarillo para contraste
   },
-  { 
+  //se comento pagina por que no se sabe que funcionalidad va a tener
+/*  { 
     name: 'AdminSettings', 
     label: 'Gestión de Clínicas', 
     icon: 'fas fa-hospital', 
     to: { name: 'AdminSettings' },
     color: 'danger' // Rojo institucional
-  }
+  } */
 ]
 </script>
 
