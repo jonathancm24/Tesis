@@ -11,6 +11,7 @@ import {
 import { RolesService } from './roles.service';
 import { CreateRolDto } from './dto/create-rol.dto';
 import { AsignarPermisosDto } from './dto/asignar-permisos.dto';
+import { UpdateRolDto } from './dto/update-rol.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../guards/permissions.guard';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
@@ -105,6 +106,18 @@ export class RolesController {
     @Body() dto: AsignarPermisosDto
   ) {
     return this.rolesService.asignarPermisos(id, dto);
+  }
+
+  /**
+   * Actualiza datos básicos de un rol (nombre, descripción)
+   */
+  @Put(':id')
+  @RequirePermissions(PermisoEnum.GESTIONAR_ROLES)
+  async actualizarRol(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateRolDto
+  ) {
+    return this.rolesService.actualizarRol(id, dto);
   }
 
   

@@ -2,6 +2,7 @@ import { Injectable, ConflictException, NotFoundException } from '@nestjs/common
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateRolDto } from './dto/create-rol.dto';
 import { AsignarPermisosDto } from './dto/asignar-permisos.dto';
+import { UpdateRolDto } from './dto/update-rol.dto';
 import { RoleEnum } from '../../common/enums/roles.enum';
 import { PermisoEnum, PERMISOS_POR_MODULO } from '../../common/enums/permisos.enum';
 
@@ -159,6 +160,32 @@ export class RolesService {
         }
       }
     });
+  }
+
+  /**
+   * Actualiza nombre y/o descripción de un rol
+   */
+  async actualizarRol(id: number, dto: UpdateRolDto) {
+    const rol = await this.prisma.role.findUnique({ where: { id } });
+    if (!rol) throw new NotFoundException(`No se encontró un rol con ID ${id}`);
+
+    // Si cambia el nombre, validar unicidad
+    if (dto.nombre && dto.nombre !== rol.nombre) {
+      const conflicto = await this.prisma.role.findUnique({ where: { nombre: dto.nombre } });
+      if (conflicto) {
+        throw new ConflictException(`Ya existe un rol con el nombre "${dto.nombre}"`);
+      }
+    }
+
+    await this.prisma.role.update({
+      where: { id },
+      data: {
+        nombre: dto.nombre ?? rol.nombre,
+        description: dto.descripcion ?? rol.description,
+      }
+    });
+
+    return this.obtenerRolPorId(id);
   }
 
   /**

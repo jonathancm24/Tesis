@@ -59,6 +59,11 @@ export interface AsignarPermisosDto {
   permisos: number[] // IDs de permisos que tendrá el rol
 }
 
+export interface UpdateRolDto {
+  nombre?: string
+  descripcion?: string
+}
+
 /**
  * Permisos organizados por módulos para el frontend
  */
@@ -85,13 +90,53 @@ export interface ResumenRoles {
 class RolesService {
   private readonly baseUrl = '/roles'
 
+  // Adaptador: mapea un rol del backend (Prisma) al tipo de frontend
+  private mapRolFromBackend(raw: any): Rol {
+    if (!raw) {
+      // fallback mínimo
+      return {
+        id: 0,
+        nombre: '',
+        descripcion: undefined,
+        fechaCreacion: new Date(),
+        fechaActualizacion: new Date(),
+        activo: true,
+        permisos: [],
+        _count: { usuarios: 0, permisos: 0 }
+      }
+    }
+
+    // Aplanar permisos: puede venir como [{ permiso: {...} }]
+    const permisosList = Array.isArray(raw.permisos)
+      ? raw.permisos.map((p: any) => (p?.permiso ? p.permiso : p))
+      : []
+
+    // Calcular conteo de permisos si no viene del backend
+    const permisosCount = raw._count?.permisos ?? (Array.isArray(permisosList) ? permisosList.length : 0)
+
+    return {
+      id: raw.id,
+      nombre: raw.nombre,
+      descripcion: raw.descripcion ?? raw.description ?? undefined,
+      // Intentar mapear posibles nombres; si no existen, usar ahora
+      fechaCreacion: raw.fechaCreacion ? new Date(raw.fechaCreacion) : (raw.fecha_creacion ? new Date(raw.fecha_creacion) : (raw.createdAt ? new Date(raw.createdAt) : new Date())),
+      fechaActualizacion: raw.fechaActualizacion ? new Date(raw.fechaActualizacion) : (raw.fecha_actualizacion ? new Date(raw.fecha_actualizacion) : (raw.updatedAt ? new Date(raw.updatedAt) : new Date())),
+      activo: typeof raw.activo === 'boolean' ? raw.activo : true,
+      permisos: permisosList,
+      _count: {
+        usuarios: raw._count?.usuarios ?? 0,
+        permisos: permisosCount
+      }
+    }
+  }
+
   /**
    * Obtiene todos los roles sin incluir permisos (para listas simples)
    */
   async obtenerRolesSimples(): Promise<Rol[]> {
     try {
-      const response = await api.get<Rol[]>(`${this.baseUrl}/todos`)
-      return response.data
+      const response = await api.get<any[]>(`${this.baseUrl}/todos`)
+      return (response.data || []).map(r => this.mapRolFromBackend(r))
     } catch (error) {
       console.error('Error al obtener roles simples:', error)
       throw error
@@ -103,8 +148,8 @@ class RolesService {
    */
   async obtenerRolesCompletos(): Promise<Rol[]> {
     try {
-      const response = await api.get<Rol[]>(`${this.baseUrl}/todos/con-permisos`)
-      return response.data
+      const response = await api.get<any[]>(`${this.baseUrl}/todos/con-permisos`)
+      return (response.data || []).map(r => this.mapRolFromBackend(r))
     } catch (error) {
       console.error('Error al obtener roles completos:', error)
       // Fallback: obtener roles simples al menos
@@ -122,8 +167,8 @@ class RolesService {
    */
   async obtenerRolPorId(id: number): Promise<Rol> {
     try {
-      const response = await api.get<Rol>(`${this.baseUrl}/${id}`)
-      return response.data
+      const response = await api.get<any>(`${this.baseUrl}/${id}`)
+      return this.mapRolFromBackend(response.data)
     } catch (error) {
       console.error(`Error al obtener rol ${id}:`, error)
       throw error
@@ -135,8 +180,8 @@ class RolesService {
    */
   async crearRol(datos: CrearRolDto): Promise<Rol> {
     try {
-      const response = await api.post<Rol>(this.baseUrl, datos)
-      return response.data
+      const response = await api.post<any>(this.baseUrl, datos)
+      return this.mapRolFromBackend(response.data)
     } catch (error) {
       console.error('Error al crear rol:', error)
       throw error
@@ -149,10 +194,23 @@ class RolesService {
    */
   async asignarPermisos(rolId: number, datos: AsignarPermisosDto): Promise<Rol> {
     try {
-      const response = await api.put<Rol>(`${this.baseUrl}/${rolId}/permisos`, datos)
-      return response.data
+      const response = await api.put<any>(`${this.baseUrl}/${rolId}/permisos`, datos)
+      return this.mapRolFromBackend(response.data)
     } catch (error) {
       console.error(`Error al asignar permisos al rol ${rolId}:`, error)
+      throw error
+    }
+  }
+
+  /**
+   * Actualiza datos básicos del rol
+   */
+  async actualizarRol(rolId: number, datos: UpdateRolDto): Promise<Rol> {
+    try {
+      const response = await api.put<any>(`${this.baseUrl}/${rolId}`, datos)
+      return this.mapRolFromBackend(response.data)
+    } catch (error) {
+      console.error(`Error al actualizar rol ${rolId}:`, error)
       throw error
     }
   }

@@ -14,6 +14,9 @@
           <i :class="['me-1', loading ? 'fas fa-spinner fa-spin' : 'fas fa-sync-alt']"></i>
           {{ loading ? 'Cargando...' : 'Actualizar' }}
         </button>
+        <button type="button" class="btn btn-primary" @click="abrirModalEditarSeleccionado" :disabled="!rolSeleccionadoId || loading">
+          <i class="fas fa-edit me-1"></i> Editar Rol
+        </button>
         <button type="button" class="btn btn-success" @click="abrirModalCrearRol" :disabled="loading">
           <i class="fas fa-plus me-1"></i> Nuevo Rol
         </button>
@@ -129,7 +132,15 @@
             </div>
             <div v-else class="row g-3">
               <div v-for="rol in rolesFiltrados" :key="rol.id" class="col-12">
-                <div class="card border" :class="{ 'border-success': rol.activo, 'border-secondary': !rol.activo }">
+                <div 
+                  class="card border role-card"
+                  :class="{
+                    'border-success': rol.activo && rolSeleccionadoId !== rol.id,
+                    'border-secondary': !rol.activo && rolSeleccionadoId !== rol.id,
+                    'selected-role': rolSeleccionadoId === rol.id
+                  }"
+                  @click="seleccionarRol(rol)"
+                >
                   <div class="card-body">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                       <div class="d-flex align-items-center gap-2">
@@ -147,6 +158,7 @@
                           :id="`dropdown-${rol.id}`"
                           data-bs-toggle="dropdown"
                           aria-expanded="false"
+                          @click.stop
                         >
                           <i class="fas fa-ellipsis-v"></i>
                         </button>
@@ -154,6 +166,11 @@
                           <li>
                             <button class="dropdown-item" @click="verDetallesRol(rol)">
                               <i class="fas fa-eye me-2"></i>Ver Detalles
+                            </button>
+                          </li>
+                          <li>
+                            <button class="dropdown-item" @click="abrirModalEditarRol(rol)">
+                              <i class="fas fa-edit me-2"></i>Editar Rol
                             </button>
                           </li>
                           <li>
@@ -355,6 +372,76 @@
       </div>
     </div>
 
+    <!-- Modal para editar rol -->
+    <div class="modal fade" id="modalEditarRol" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-edit me-2"></i>Editar Rol
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label">Nombre del Rol</label>
+                <input v-model="formEditarRol.nombre" type="text" class="form-control" />
+              </div>
+              <div class="col-12">
+                <label class="form-label">Descripción</label>
+                <textarea v-model="formEditarRol.descripcion" class="form-control" rows="3"></textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label d-flex align-items-center justify-content-between">
+                  <span>Permisos</span>
+                  <span class="badge bg-primary">{{ formEditarRolPermisos.length }} seleccionados</span>
+                </label>
+                <div class="border rounded p-3" style="max-height: 320px; overflow-y: auto;">
+                  <div v-if="Object.keys(permisosOrganizados).length === 0" class="text-muted small">Cargando permisos...</div>
+                  <div v-else>
+                    <div v-for="(permisos, modulo) in permisosOrganizados" :key="modulo" class="mb-3">
+                      <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="text-primary mb-0">{{ modulo }}</h6>
+                        <div class="btn-group btn-group-sm">
+                          <button type="button" class="btn btn-outline-success" @click="seleccionarTodosDelModuloEdicion(modulo, true)">Todo</button>
+                          <button type="button" class="btn btn-outline-danger" @click="seleccionarTodosDelModuloEdicion(modulo, false)">Nada</button>
+                        </div>
+                      </div>
+                      <div class="row g-2">
+                        <div v-for="permiso in permisos" :key="permiso.id" class="col-12">
+                          <div class="form-check">
+                            <input
+                              :id="`editarrol-permiso-${permiso.id}`"
+                              v-model="formEditarRolPermisos"
+                              :value="permiso.id"
+                              type="checkbox"
+                              class="form-check-input"
+                            />
+                            <label :for="`editarrol-permiso-${permiso.id}`" class="form-check-label">
+                              <div class="fw-bold">{{ permiso.nombre }}</div>
+                              <small class="text-muted">{{ permiso.descripcion }}</small>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" :disabled="guardandoEdicion" @click="guardarEdicionRol">
+              <i :class="['me-1', guardandoEdicion ? 'fas fa-spinner fa-spin' : 'fas fa-save']"></i>
+              {{ guardandoEdicion ? 'Guardando...' : 'Guardar Cambios' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal para editar permisos -->
     <div class="modal fade" id="modalEditarPermisos" tabindex="-1">
       <div class="modal-dialog modal-lg">
@@ -536,6 +623,8 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { rolesService } from '@/services/rolesService'
 import { useToast } from '@/composables/useToast'
+// Importar Modal de Bootstrap para manejar modales sin depender de window
+import { Modal } from 'bootstrap'
 import type { 
   Rol, 
   PermisosOrganizados, 
@@ -551,6 +640,7 @@ const { showSuccess, showError, showWarning, showInfo } = useToast()
 const loading = ref(false)
 const creandoRol = ref(false)
 const guardandoPermisos = ref(false)
+const guardandoEdicion = ref(false)
 
 const roles = ref<Rol[]>([])
 const permisosOrganizados = ref<PermisosOrganizados>({})
@@ -582,6 +672,10 @@ const filtros = reactive<FiltrosRoles>({
 const rolSeleccionado = ref<Rol | null>(null)
 const permisosSeleccionadosEdicion = ref<number[]>([])
 const rolDetalles = ref<Rol | null>(null)
+const formEditarRol = reactive<{ nombre: string; descripcion: string }>({ nombre: '', descripcion: '' })
+const formEditarRolPermisos = ref<number[]>([])
+const formEditarRolPermisosOriginal = ref<number[]>([])
+const rolSeleccionadoId = ref<number | null>(null)
 
 // Computed
 const rolesFiltrados = computed(() => {
@@ -663,11 +757,11 @@ function abrirModalCrearRol() {
   
   // Abrir modal usando Bootstrap
   const modalElement = document.getElementById('modalCrearRol')
-  if (modalElement && (window as any).bootstrap) {
-    const modal = new (window as any).bootstrap.Modal(modalElement)
-    modal.show()
+  if (modalElement) {
+    const instance = Modal.getOrCreateInstance(modalElement)
+    instance.show()
   } else {
-    showToast('Error de configuración', 'error', 'Bootstrap no está disponible')
+    showToast('No se encontró el modal', 'error')
   }
 }
 
@@ -694,8 +788,8 @@ async function crearRol() {
     
     // Cerrar modal
     const modalElement = document.getElementById('modalCrearRol')
-    if (modalElement && (window as any).bootstrap) {
-      const modal = (window as any).bootstrap.Modal.getInstance(modalElement)
+    if (modalElement) {
+      const modal = Modal.getInstance(modalElement)
       if (modal) modal.hide()
     }
 
@@ -716,14 +810,15 @@ async function crearRol() {
  */
 function verDetallesRol(rol: Rol) {
   rolDetalles.value = rol
+  rolSeleccionadoId.value = rol.id
   
   // Abrir modal de detalles
   const modalElement = document.getElementById('modalDetallesRol')
-  if (modalElement && (window as any).bootstrap) {
-    const modal = new (window as any).bootstrap.Modal(modalElement)
+  if (modalElement) {
+    const modal = Modal.getOrCreateInstance(modalElement)
     modal.show()
   } else {
-    showToast('Error de configuración', 'error', 'Bootstrap no está disponible')
+    showToast('No se encontró el modal', 'error')
   }
 }
 
@@ -740,16 +835,114 @@ async function editarPermisos(rol: Rol) {
     
     // Abrir modal
     const modalElement = document.getElementById('modalEditarPermisos')
-    if (modalElement && (window as any).bootstrap) {
-      const modal = new (window as any).bootstrap.Modal(modalElement)
+    if (modalElement) {
+      const modal = Modal.getOrCreateInstance(modalElement)
       modal.show()
     } else {
-      showToast('Error de configuración', 'error', 'Bootstrap no está disponible')
+      showToast('No se encontró el modal', 'error')
     }
   } catch (error) {
     console.error('Error al cargar permisos del rol:', error)
     showToast('Error al cargar permisos', 'error', 'No se pudieron obtener los permisos del rol')
   }
+}
+
+/**
+ * Abre modal de edición con datos pre-cargados
+ */
+async function abrirModalEditarRol(rol: Rol) {
+  rolSeleccionado.value = rol
+  formEditarRol.nombre = rol.nombre
+  formEditarRol.descripcion = rol.descripcion || ''
+
+  try {
+    const rolCompleto = await rolesService.obtenerRolPorId(rol.id)
+    const ids = (rolCompleto.permisos || []).map((p: any) => p.id)
+    formEditarRolPermisos.value = [...ids]
+    formEditarRolPermisosOriginal.value = [...ids]
+  } catch (e) {
+    // Si falla, al menos limpiar selección
+    formEditarRolPermisos.value = []
+    formEditarRolPermisosOriginal.value = []
+  }
+
+  const modalElement = document.getElementById('modalEditarRol')
+  if (modalElement) {
+    const modal = Modal.getOrCreateInstance(modalElement)
+    modal.show()
+  } else {
+    showToast('No se encontró el modal', 'error')
+  }
+}
+
+/**
+ * Guarda cambios de nombre/descripcion del rol seleccionado
+ */
+async function guardarEdicionRol() {
+  if (!rolSeleccionado.value) return
+  guardandoEdicion.value = true
+  try {
+    const actualizado = await rolesService.actualizarRol(rolSeleccionado.value.id, {
+      nombre: formEditarRol.nombre?.trim() || undefined,
+      descripcion: formEditarRol.descripcion?.trim() || undefined
+    })
+
+    // Actualizar en la lista local
+    const idx = roles.value.findIndex(r => r.id === actualizado.id)
+    if (idx !== -1) roles.value[idx] = actualizado
+
+    // Actualizar permisos si cambiaron (o siempre, de forma segura)
+    await rolesService.asignarPermisos(rolSeleccionado.value.id, { permisos: formEditarRolPermisos.value })
+
+    // Cerrar modal
+    const modalElement = document.getElementById('modalEditarRol')
+    if (modalElement) {
+      const modal = Modal.getInstance(modalElement)
+      if (modal) modal.hide()
+    }
+
+    showToast('Rol actualizado', 'success', `"${actualizado.nombre}" guardado`)
+    await cargarDatos()
+  } catch (error: any) {
+    console.error('Error al actualizar rol:', error)
+    const msg = error?.response?.data?.message || 'No se pudo actualizar el rol'
+    showToast('Error al actualizar rol', 'error', msg)
+  } finally {
+    guardandoEdicion.value = false
+  }
+}
+
+/** Seleccionar/deseleccionar todos los permisos de un módulo en el modal de editar rol */
+function seleccionarTodosDelModuloEdicion(modulo: string | number, seleccionar: boolean) {
+  const moduloStr = String(modulo)
+  const permisosDelModulo = permisosOrganizados.value[moduloStr] || []
+  const idsPermisosModulo = permisosDelModulo.map(p => p.id)
+  if (seleccionar) {
+    idsPermisosModulo.forEach(id => {
+      if (!formEditarRolPermisos.value.includes(id)) formEditarRolPermisos.value.push(id)
+    })
+  } else {
+    formEditarRolPermisos.value = formEditarRolPermisos.value.filter(id => !idsPermisosModulo.includes(id))
+  }
+}
+
+/**
+ * Selecciona un rol haciendo click en su tarjeta
+ */
+function seleccionarRol(rol: Rol) {
+  rolSeleccionadoId.value = rol.id === rolSeleccionadoId.value ? null : rol.id
+}
+
+/**
+ * Abre el modal de edición para el rol seleccionado desde el header
+ */
+function abrirModalEditarSeleccionado() {
+  if (!rolSeleccionadoId.value) {
+    showToast('Selecciona un rol primero', 'info')
+    return
+  }
+  const rol = roles.value.find(r => r.id === rolSeleccionadoId.value)
+  if (rol) abrirModalEditarRol(rol)
 }
 
 /**
@@ -796,8 +989,8 @@ async function guardarPermisos() {
 
     // Cerrar modal
     const modalElement = document.getElementById('modalEditarPermisos')
-    if (modalElement && (window as any).bootstrap) {
-      const modal = (window as any).bootstrap.Modal.getInstance(modalElement)
+    if (modalElement) {
+      const modal = Modal.getInstance(modalElement)
       if (modal) modal.hide()
     }
 
@@ -872,6 +1065,11 @@ onMounted(async () => {
 .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.role-card.selected-role {
+  border-color: #0d6efd !important;
+  box-shadow: 0 0 0 0.2rem rgba(13,110,253,.25) !important;
 }
 
 .accordion-button {
