@@ -381,37 +381,29 @@ code {
   animation: fadeIn 0.3s ease;
 }
 
-/* ===== Dark mode support ===== */
+/* ===== Modo oscuro: superficies blancas según solicitud ===== */
 @media (prefers-color-scheme: dark) {
+  .modal-content,
+  .modal-header,
+  .modal-body,
+  .modal-footer { background: #ffffff; color: #0f172a; }
+
   .upload-zone {
-    background: #2d3748;
-    border-color: #4a5568;
+    background: #ffffff;
+    border-color: #dee2e6;
   }
-  
   .upload-zone:hover,
   .upload-zone.drag-over,
   .upload-zone.has-file {
-    background: #2d3748;
+    background: #e8f5e8;
     border-color: #81c784;
   }
-  
-  .file-selected {
-    background: #2d3748;
-    color: white;
-  }
-  
-  .stat-card {
-    background: #2d3748;
-    border-color: #4a5568;
-    color: white;
-  }
-  
-  .table thead th {
-    background: #2d3748;
-    color: #e2e8f0;
-  }
-  
-  .table tbody tr:hover {
-    background: rgba(129, 199, 132, 0.1);
-  }
+
+  .file-selected { background: #ffffff; color: #0f172a; }
+  .stat-card { background: #ffffff; border-color: #dee2e6; color: #0f172a; }
+
+  .table-responsive { background: #ffffff; }
+  .table { background: #ffffff; }
+  .table thead th { background: #f8f9fa; color: #495057; }
+  .table tbody tr:hover { background: rgba(76, 175, 80, 0.05); }
 }

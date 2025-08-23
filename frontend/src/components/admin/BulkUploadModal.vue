@@ -42,6 +42,19 @@
               </small>
             </div>
 
+            <!-- Botón visible para subir archivo -->
+            <div class="mb-3">
+              <button
+                type="button"
+                class="btn btn-primary"
+                @click="triggerFileInput"
+              >
+                <i class="fas fa-file-arrow-up me-2"></i>
+                Subir archivo
+              </button>
+              <small class="text-muted d-block mt-1">Selecciona el archivo desde tu equipo.</small>
+            </div>
+
             <!-- Zona de arrastrar y soltar -->
             <div 
               class="upload-zone"

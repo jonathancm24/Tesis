@@ -33,23 +33,33 @@
   --au-shadow-hover: 0 10px 24px rgba(2,6,23,.10);
   --au-focus-ring: 0 0 0 3px color-mix(in srgb, var(--au-primary) 28%, transparent);
 
+  /* Asegura color de fondo consistente y sin “agujeros” */
+  background-color: var(--au-bg);
+  /* Textura suave (light) */
   background:
-    radial-gradient(1000px 600px at 8% -10%, #e9faf2 0%, transparent 60%) var(--au-bg);
+    radial-gradient(1000px 600px at 8% -10%, #e9faf2 0%, transparent 60%),
+    radial-gradient(900px 560px at 110% 100%, rgba(16,185,129,.08) 0%, transparent 60%),
+    var(--au-bg);
   color: var(--au-text);
   padding: 1.25rem;
-  border-radius: var(--au-radius-sm);
-  min-height: calc(100vh - 120px);
+  /* Evita esquinas oscuras en páginas full-bleed */
+  border-radius: 0;
+  /* Cubre toda la altura en móviles/escritorio */
+  min-height: 100dvh;
   font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, "Noto Sans";
 }
 
 /* ===== Dark Mode (automático) ===== */
 @media (prefers-color-scheme: dark){
   .admin-users{
-    --au-bg:#0b1220; --au-surface:#111827; --au-card:#111827;
-    --au-text:#e5e7eb; --au-muted:#94a3b8; --au-border:#1f2937;
-    --au-input:#0f172a; --au-input-border:#1f2937;
-    --au-divider: color-mix(in srgb, var(--au-primary) 28%, transparent);
-    background: radial-gradient(900px 600px at 92% -10%, rgba(37,99,235,.08), transparent 60%) var(--au-bg);
+  /* Forzar blanco en modo oscuro (pedido del usuario) */
+  --au-bg:#ffffff; --au-surface:#ffffff; --au-card:#ffffff;
+  --au-text:#0f172a; --au-muted:#64748b; --au-border:#e2e8f0;
+  --au-input:#ffffff; --au-input-border:#e2e8f0;
+  --au-divider: color-mix(in srgb, var(--au-primary) 18%, transparent);
+  /* Fondo completamente blanco, sin gradientes azules/negros */
+  background-color: var(--au-bg);
+  background: var(--au-bg);
   }
 }
 /* Dark manual */
@@ -99,28 +109,57 @@
 .admin-users .btn{
   border-radius:12px; padding:.56rem 1rem; font-weight:700; font-size:.88rem;
   display:inline-flex; align-items:center; gap:.5rem; transition:.18s;
-  border:1px solid transparent; background:var(--au-surface);
+  border:1px solid var(--au-border);
+  background: linear-gradient(180deg, var(--au-surface), color-mix(in srgb, var(--au-surface) 88%, #000 12%));
+  box-shadow: var(--au-shadow);
 }
 .admin-users .btn i{ font-size:.95rem; }
 
 .admin-users .btn-success{
-  background:var(--au-primary); color:#fff; border-color:var(--au-primary);
+  background: linear-gradient(135deg, var(--au-primary), var(--au-primary-600));
+  color:#fff; border-color:var(--au-primary-600);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--au-primary) 35%, transparent);
 }
-.admin-users .btn-success:hover{ transform:translateY(-1px); box-shadow:var(--au-shadow-hover); background:var(--au-primary-600); border-color:var(--au-primary-600); }
+.admin-users .btn-success:hover{ transform:translateY(-1px); box-shadow:0 12px 24px color-mix(in srgb, var(--au-primary) 40%, transparent); filter: brightness(1.02); }
+.admin-users .btn-success:active{ transform:translateY(0); filter: brightness(.98); }
 
 .admin-users .btn-outline-success{
   color:var(--au-primary); border-color:var(--au-primary); background:transparent;
 }
-.admin-users .btn-outline-success:hover{ background:var(--au-primary); color:#fff; }
+.admin-users .btn-outline-success:hover{ background:color-mix(in srgb, var(--au-primary) 15%, var(--au-surface)); color:var(--au-primary-600); border-color:var(--au-primary-600); }
+.admin-users .btn-outline-success:active{ filter: brightness(.98); }
 
 .admin-users .btn-outline-warning{
   color:var(--au-warning); border-color:var(--au-warning); background:transparent;
 }
-.admin-users .btn-outline-warning:hover:not(:disabled){ background:var(--au-warning); color:#1f2937; }
+.admin-users .btn-outline-warning:hover:not(:disabled){ background:color-mix(in srgb, var(--au-warning) 18%, var(--au-surface)); color:#1f2937; border-color: var(--au-warning); }
 .admin-users .btn-outline-warning:disabled{
   color:#9aa3af; border-color:#e5e7eb; background:color-mix(in srgb, var(--au-card) 80%, #f3f4f6);
   cursor:not-allowed; opacity:.6;
 }
+
+/* Botones de acción mejorados (tabla) */
+.admin-users td .btn-primary{
+  background: linear-gradient(135deg, var(--au-accent), color-mix(in srgb, var(--au-accent) 86%, #000 14%));
+  border-color: var(--au-accent); color:#fff;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--au-accent) 28%, transparent);
+}
+.admin-users td .btn-primary:hover{ transform:translateY(-1px); box-shadow:0 12px 24px color-mix(in srgb, var(--au-accent) 36%, transparent); filter: brightness(1.02); }
+.admin-users td .btn-primary:active{ transform:translateY(0); filter: brightness(.98); }
+
+.admin-users td .btn-warning{
+  background: linear-gradient(135deg, var(--au-warning), color-mix(in srgb, var(--au-warning) 86%, #000 14%));
+  border-color: var(--au-warning); color:#dbe2ec;
+}
+.admin-users td .btn-warning:hover{ transform:translateY(-1px); box-shadow:0 10px 18px color-mix(in srgb, var(--au-warning) 26%, transparent); }
+.admin-users td .btn-warning:active{ transform:translateY(0); }
+
+.admin-users td .btn-danger{
+  background: linear-gradient(135deg, var(--au-danger), color-mix(in srgb, var(--au-danger) 86%, #000 14%));
+  border-color: var(--au-danger); color:#fff;
+}
+.admin-users td .btn-danger:hover{ transform:translateY(-1px); box-shadow:0 10px 18px color-mix(in srgb, var(--au-danger) 28%, transparent); }
+.admin-users td .btn-danger:active{ transform:translateY(0); }
 
 /* ===== Filtros tipo “chip” opcionales ===== */
 .admin-users .chip{
@@ -277,4 +316,33 @@
   .admin-users{ padding:1rem; }
   .admin-users td.actions, .admin-users td.text-center{ white-space:normal; }
   .admin-users td .btn{ margin:.125rem; padding:.3rem .5rem; font-size:.7rem; }
+}
+
+/* ===== Fix fondos oscuros residuales (anti-parches negros) ===== */
+/* Forzar fondo en thead/table-light y wrapper responsive */
+.admin-users .table-responsive{ background: var(--au-card); }
+.admin-users thead.table-light,
+.admin-users thead.table-light th{
+  background: var(--au-surface) !important;
+  color: var(--au-text) !important;
+}
+/* Fallbacks: navegadores sin color-mix conservarán el primer background */
+.admin-users thead th{
+  background: var(--au-surface);
+  background: color-mix(in srgb, var(--au-surface) 75%, var(--au-bg));
+}
+.admin-users tbody tr:nth-child(odd) td{
+  background: var(--au-card);
+  background: color-mix(in srgb, var(--au-card), var(--au-surface) 12%);
+}
+.admin-users .table-hover tbody tr:hover td{
+  background: rgba(219,234,254,.28);
+  background: color-mix(in srgb, var(--au-accent-100) 28%, transparent);
+}
+/* Filas inactivas: sin opacidad para evitar oscurecer el fondo */
+.admin-users tr.table-secondary{ opacity: 1; }
+.admin-users tr.table-secondary td{
+  background: var(--au-card);
+  color: var(--au-muted);
+  filter: saturate(.85);
 }

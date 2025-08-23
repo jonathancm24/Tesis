@@ -2,18 +2,17 @@
 <template>
   <div class="admin-users container-fluid py-4">
     <!-- Toolbar -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h1 class="h3 text-primary">
+    <div class="toolbar">
+      <h1>
         Gestión de Usuarios
       </h1>
-      <div class="d-flex align-items-center gap-2">
+      <div class="actions">
         <input
           v-model="filter"
           type="text"
-          class="form-control me-2"
+          class="form-control search-input"
           placeholder="Buscar..."
           aria-label="Buscar usuarios"
-          style="max-width: 300px;"
         />
         
         <!-- Botón de Carga Masiva -->
@@ -62,7 +61,7 @@
     </div>
 
     <!-- Tabla de usuarios -->
-    <div v-if="!loading" class="table-responsive">
+  <div v-if="!loading" class="table-container table-responsive">
       <table class="table table-hover shadow-sm">
         <thead class="table-light">
           <tr>
