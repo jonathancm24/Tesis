@@ -253,7 +253,7 @@ export class AdminService {
       const summary: { [key: string]: UserSummary } = {}
       
       users.forEach((user: any) => {
-        const role = user.rol?.nombre || 'Sin rol'
+        const role = user.role?.nombre || 'Sin rol'
         if (!summary[role]) {
           summary[role] = {
             role,

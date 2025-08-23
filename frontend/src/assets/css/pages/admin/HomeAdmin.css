@@ -42,12 +42,13 @@
 }
 
 @media (prefers-color-scheme: dark) {
+  /* Solicitud del usuario: superficies blancas también en modo oscuro */
   .admin-home {
-    --ha-card-bg: #f8f9fa;
-    --ha-surface: #e9ecef;
-    --ha-muted: #6c757d;
-    --ha-text-primary: #495057;
-    --ha-divider: rgba(129, 199, 132, 0.2);
+    --ha-card-bg: #ffffff;
+    --ha-surface: #ffffff;
+    --ha-muted: #64748b;
+    --ha-text-primary: #0f172a;
+    --ha-divider: rgba(15, 23, 42, 0.08);
   }
 }
 
@@ -196,7 +197,8 @@
 
 @media (prefers-color-scheme: dark) {
   .admin-home .overview-section {
-    background: rgba(129, 199, 132, 0.08);
+  background: #ffffff;
+  border-color: var(--ha-divider);
   }
 }
 
@@ -262,6 +264,11 @@
 .admin-home .table-hover tbody tr:hover {
   background-color: var(--soft-green);
 }
+
+/* ===== Anti-parches negros (forzar fondos consistentes) ===== */
+.admin-home .table-responsive { background: var(--ha-card-bg); }
+.admin-home thead.table-light,
+.admin-home thead.table-light th { background: var(--ha-surface) !important; color: var(--ha-text-primary) !important; }
 
 /* ===== Badges ===== */
 .admin-home .badge {
