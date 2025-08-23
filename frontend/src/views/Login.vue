@@ -156,7 +156,7 @@ async function onSubmit() {
 
 /* Logo */
 .logo {
-  width: 120px; height: auto; margin: 0 auto 1.25rem;
+  width: var(--logo-size); height: var(--logo-size); margin: 0 auto 1.25rem;
   background: #fff; padding: .6rem; border-radius: 50%;
   border: 3px solid var(--highlight);
   box-shadow: 0 8px 18px rgba(0,0,0,0.25);
@@ -486,27 +486,25 @@ async function onSubmit() {
   --text-on-primary: #ffffff;
 }
 
-/* Adaptación automática al modo oscuro del sistema */
+/* Adaptación automática al modo oscuro del sistema (sin cambiar la paleta Sage/Ink) */
 @media (prefers-color-scheme: dark) {
   [data-theme-mode="auto"] {
-    --color-primary: #6366f1;
-    --color-accent: #8b5cf6;
-    --color-highlight: #06b6d4;
-    
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-tertiary: #334155;
-    --bg-glass: rgba(15, 23, 42, 0.9);
+    color-scheme: dark;
+    /* Mantener --color-primary / --color-accent del tema actual */
+    --bg-primary: #0b1220;
+    --bg-secondary: #0f172a;
+    --bg-tertiary: #111827;
+    --bg-glass: rgba(11, 18, 32, 0.92);
     --bg-overlay: rgba(255, 255, 255, 0.05);
-    
-    --surface: #1e293b;
-    --surface-elevated: #334155;
-    --surface-border: rgba(148, 163, 184, 0.1);
-    --surface-hover: #475569;
-    
-    --text-primary: #f8fafc;
-    --text-secondary: #e2e8f0;
-    --text-tertiary: #cbd5e1;
+
+    --surface: #0f172a;
+    --surface-elevated: #111827;
+    --surface-border: rgba(148, 163, 184, 0.16);
+    --surface-hover: #1f2937;
+
+    --text-primary: #e5edf7;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #9fb0c6;
     --text-muted: #94a3b8;
     --text-on-primary: #ffffff;
   }
@@ -520,6 +518,8 @@ async function onSubmit() {
   justify-content: center;
   align-items: center;
   padding: var(--spacing-lg);
+  /* Control del tamaño del logo: cambia este valor para agrandar o reducir */
+  --logo-size: 160px;
   background: 
     radial-gradient(circle at top right, var(--color-primary) 0%, transparent 50%),
     radial-gradient(circle at bottom left, var(--color-accent) 0%, transparent 50%),
@@ -564,14 +564,15 @@ async function onSubmit() {
   inset: 0;
   background: 
     radial-gradient(circle at 20% 20%, var(--color-highlight) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, var(--color-accent-light) 0%, transparent 50%);
+    radial-gradient(circle at 70% 70%, var(--color-accent-light) 0%, transparent 50%);
   opacity: 0.1;
   pointer-events: none;
 }
 
 .logo {
-  width: 100px;
-  height: 100px;
+  /* Usa --logo-size para cambiar el tamaño del logo fácilmente */
+  width: var(--logo-size);
+  height: var(--logo-size);
   margin: 0 auto var(--spacing-lg);
   background: var(--surface);
   padding: var(--spacing-md);
@@ -942,8 +943,9 @@ async function onSubmit() {
   }
   
   .logo {
-    width: 80px;
-    height: 80px;
+  /* En móviles puedes ajustar este tamaño si lo quieres más pequeño */
+  width: calc(var(--logo-size) * 0.6);
+  height: calc(var(--logo-size) * 0.6);
   }
   
   .left-panel h2 {
@@ -1021,22 +1023,5 @@ async function onSubmit() {
   --brand-spot-1:rgba(38,64,139,0.08); --brand-spot-2:rgba(255,214,224,0.12);
 }
 
-/* Modo oscuro del SO (opcional, mantiene esquema del tema) */
-@media (prefers-color-scheme: dark) {
-  .login-container {
-    background: #1e1e1f;
-    border-color: rgba(255,255,255,0.06);
-  }
-  .right-panel {
-    background: linear-gradient(180deg, #1f2021 0%, #1b1c1d 100%);
-  }
-  .login-form { background: #232425cc; }
-  .login-form h3 { color: var(--highlight); }
-  .input-group input {
-    background: #202122; color: #eaeaea;
-    border-color: rgba(255,255,255,0.12);
-  }
-  .input-group input::placeholder { color: #bdbdbd; }
-  .forgot-link { color: var(--highlight); }
-}
+/* (el @media dark de compatibilidad ya se define arriba con variables y inputs) */
 </style>
