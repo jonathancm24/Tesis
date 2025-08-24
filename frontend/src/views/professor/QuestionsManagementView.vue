@@ -73,11 +73,10 @@
           >
             <option value="">Todos los tipos</option>
             <option value="TEXTO">Texto</option>
-            <option value="OPCION_MULTIPLE">Opción Múltiple</option>
-            <option value="VERDADERO_FALSO">Verdadero/Falso</option>
-            <option value="NUMERO">Número</option>
+            <option value="SI_NO">Sí / No</option>
+            <option value="NUMERICO">Numérico</option>
             <option value="FECHA">Fecha</option>
-            <option value="TEXTO_LARGO">Texto Largo</option>
+            <option value="OPCION_MULTIPLE">Opción Múltiple</option>
           </select>
         </div>
 
@@ -190,7 +189,11 @@
               class="btn-action btn-edit"
               :title="`Editar pregunta: ${pregunta.texto}`"
             >
-              <i class="fas fa-edit" aria-hidden="true"></i>
+              <!-- Icono lápiz (SVG inline) -->
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" focusable="false">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"></path>
+                <path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path>
+              </svg>
               <span class="sr-only">Editar</span>
             </button>
             
@@ -199,7 +202,10 @@
               class="btn-action btn-delete"
               :title="`Eliminar pregunta: ${pregunta.texto}`"
             >
-              <i class="fas fa-trash" aria-hidden="true"></i>
+              <!-- Icono papelera (SVG inline) -->
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" focusable="false">
+                <path d="M9 3h6a1 1 0 0 1 1 1v1h4v2H4V5h4V4a1 1 0 0 1 1-1zm-3 6h12l-1 12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9zm4 2v8h2v-8H10zm4 0v8h2v-8h-2z"></path>
+              </svg>
               <span class="sr-only">Eliminar</span>
             </button>
           </div>
@@ -308,11 +314,9 @@ import {
 import QuestionFormModal from '@/components/professor/QuestionFormModal.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
 import { useToast } from '@/composables/useToast'
-import { useAuthStore } from '@/store/auth'
 
 // Composables
 const { showToast } = useToast()
-const authStore = useAuthStore()
 
 // Estado de la aplicación
 const cargando = ref(false)
@@ -415,7 +419,7 @@ async function cargarPreguntas() {
 async function cargarEspecialidades() {
   try {
     // Obtener solo las especialidades asignadas al profesor
-    especialidades.value = await fetchEspecialidadesProfesor(authStore.user?.id)
+  especialidades.value = await fetchEspecialidadesProfesor()
   } catch (error) {
     console.error('Error cargando especialidades:', error)
     throw error
@@ -561,11 +565,11 @@ async function eliminarPregunta() {
 function formatearTipoPregunta(tipo: TipoPregunta): string {
   const tipos = {
     [TipoPregunta.TEXTO]: 'Texto',
-    [TipoPregunta.OPCION_MULTIPLE]: 'Opción Múltiple',
-    [TipoPregunta.VERDADERO_FALSO]: 'Verdadero/Falso',
-    [TipoPregunta.NUMERO]: 'Número',
+  [TipoPregunta.SI_NO]: 'Sí / No',
+  [TipoPregunta.NUMERICO]: 'Numérico',
+  [TipoPregunta.OPCION_MULTIPLE]: 'Opción Múltiple',
     [TipoPregunta.FECHA]: 'Fecha',
-    [TipoPregunta.TEXTO_LARGO]: 'Texto Largo'
+    
   }
   return tipos[tipo] || tipo
 }

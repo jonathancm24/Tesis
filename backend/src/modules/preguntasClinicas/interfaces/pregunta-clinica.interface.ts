@@ -34,7 +34,7 @@ export interface ICrearPreguntaClinica {
  */
 export interface IFiltrosPreguntasClinicas {
   especialidadId?: number;
-  tipo?: TipoPregunta;
+  tipo?: TipoPregunta | string;
   obligatoria?: boolean;
   busqueda?: string; // Búsqueda por texto
 }

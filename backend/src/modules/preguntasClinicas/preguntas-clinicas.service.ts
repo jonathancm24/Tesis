@@ -43,9 +43,16 @@ export class PreguntasClinicasService {
       // Validar formato de la pregunta
       validateQuestionFormat(createDto.texto);
       
-      // Parsear para obtener información adicional
-      const parsedQuestion = parseQuestion(createDto.texto);
-      this.logger.log(`Pregunta parseada: ${getQuestionSummary(parsedQuestion)}`);
+      // Parsear para obtener información adicional (opcional)
+      let parsedType: any | undefined = undefined;
+      try {
+        const parsedQuestion = parseQuestion(createDto.texto);
+        this.logger.log(`Pregunta parseada: ${getQuestionSummary(parsedQuestion)}`);
+        parsedType = parsedQuestion.type;
+      } catch (e) {
+        // Si el parser falla, continuamos usando el tipo provisto en el DTO
+        this.logger.warn(`Parser de pregunta no aplicado: ${e.message}`);
+      }
 
       // Validar que la especialidad existe si se proporciona
       if (createDto.especialidadId) {
@@ -55,7 +62,8 @@ export class PreguntasClinicasService {
       const pregunta = await this.prisma.preguntaClinica.create({
         data: {
           texto: createDto.texto,
-          tipo: parsedQuestion.type as any, // Usar el tipo inferido del parser
+          // Preferir el tipo provisto por el cliente; fallback al tipo inferido si no viene
+          tipo: (createDto.tipo as any) ?? (parsedType as any),
           obligatoria: createDto.obligatoria ?? false,
           especialidadId: createDto.especialidadId
         },

@@ -161,7 +161,7 @@ export class PreguntasClinicasController {
   async obtenerPreguntasConFiltros(
     @Query('especialidadId') especialidadId?: number,
     @Query('tipo') tipo?: string,
-    @Query('obligatoria') obligatoria?: boolean,
+    @Query('obligatoria') obligatoria?: string,
     @Query('busqueda') busqueda?: string,
     @Query('pagina') pagina: number = 1,
     @Query('limite') limite: number = 10
@@ -170,8 +170,8 @@ export class PreguntasClinicasController {
 
     const filtros = {
       especialidadId: especialidadId ? Number(especialidadId) : undefined,
-      TipoPregunta,
-      obligatoria: obligatoria !== undefined ? Boolean(obligatoria) : undefined,
+      tipo: tipo as any,
+      obligatoria: obligatoria !== undefined && obligatoria !== '' ? obligatoria === 'true' : undefined,
       busqueda
     };
 

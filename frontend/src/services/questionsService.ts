@@ -24,11 +24,10 @@ function getAuthHeaders(): Record<string, string> {
  */
 export enum TipoPregunta {
   TEXTO = 'TEXTO',
-  OPCION_MULTIPLE = 'OPCION_MULTIPLE',
-  VERDADERO_FALSO = 'VERDADERO_FALSO',
-  NUMERO = 'NUMERO',
+  SI_NO = 'SI_NO',
+  NUMERICO = 'NUMERICO',
   FECHA = 'FECHA',
-  TEXTO_LARGO = 'TEXTO_LARGO'
+  OPCION_MULTIPLE = 'OPCION_MULTIPLE'
 }
 
 /**
@@ -121,7 +120,17 @@ export async function fetchPreguntasConFiltros(filtros: FiltrosPregunta = {}): P
       throw new Error(`Error ${response.status}: ${response.statusText}`);
     }
 
-    return await response.json();
+    const json = await response.json();
+    // Backend devuelve { preguntas, total, pagina, limite, totalPaginas }. Mapeamos a { data, ... }
+    if (json && Array.isArray(json.preguntas)) {
+      return {
+        data: json.preguntas,
+        total: json.total ?? 0,
+        pagina: (json.pagina ?? Number(url.searchParams.get('pagina'))) || 1,
+        limite: (json.limite ?? Number(url.searchParams.get('limite'))) || 10,
+      };
+    }
+    return json;
   } catch (error) {
     console.error('Error al obtener preguntas con filtros:', error);
     throw error;
@@ -135,10 +144,17 @@ export async function fetchPreguntasConFiltros(filtros: FiltrosPregunta = {}): P
  */
 export async function crearPregunta(pregunta: Omit<PreguntaClinica, 'id'>): Promise<PreguntaClinica> {
   try {
+    // Enviar solo los campos permitidos por el DTO del backend
+    const payload = {
+      texto: pregunta.texto,
+      tipo: pregunta.tipo,
+      obligatoria: pregunta.obligatoria,
+      especialidadId: pregunta.especialidadId,
+    };
     const response = await fetch(`${API_URL}/preguntas-clinicas`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify(pregunta),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -161,10 +177,17 @@ export async function crearPregunta(pregunta: Omit<PreguntaClinica, 'id'>): Prom
  */
 export async function actualizarPregunta(id: number, pregunta: Partial<PreguntaClinica>): Promise<PreguntaClinica> {
   try {
+    // Limpiar propiedades no permitidas por el DTO
+    const payload: any = {};
+    if (pregunta.texto !== undefined) payload.texto = pregunta.texto;
+    if (pregunta.tipo !== undefined) payload.tipo = pregunta.tipo;
+    if (pregunta.obligatoria !== undefined) payload.obligatoria = pregunta.obligatoria;
+    if (pregunta.especialidadId !== undefined) payload.especialidadId = pregunta.especialidadId;
+
     const response = await fetch(`${API_URL}/preguntas-clinicas/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
-      body: JSON.stringify(pregunta),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -306,7 +329,7 @@ export async function fetchEspecialidades(): Promise<{ id: number; nombre: strin
  * Obtiene las especialidades asignadas al profesor autenticado
  * @returns Lista de especialidades del profesor
  */
-export async function fetchEspecialidadesProfesor(id: number | undefined): Promise<{ id: number; nombre: string; descripcion?: string }[]> {
+export async function fetchEspecialidadesProfesor(): Promise<{ id: number; nombre: string; descripcion?: string }[]> {
   try {
     const response = await fetch(`${API_URL}/auth/perfil/especialidades`, {
       headers: getAuthHeaders(),

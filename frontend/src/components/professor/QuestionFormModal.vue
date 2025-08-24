@@ -62,12 +62,11 @@
               aria-describedby="tipo-error tipo-help"
             >
               <option value="">Selecciona un tipo</option>
-              <option value="TEXTO">Texto Corto</option>
-              <option value="TEXTO_LARGO">Texto Largo</option>
-              <option value="OPCION_MULTIPLE">Opción Múltiple</option>
-              <option value="VERDADERO_FALSO">Verdadero/Falso</option>
-              <option value="NUMERO">Número</option>
+              <option value="TEXTO">Texto</option>
+              <option value="SI_NO">Sí / No</option>
+              <option value="NUMERICO">Numérico</option>
               <option value="FECHA">Fecha</option>
+              <option value="OPCION_MULTIPLE">Opción Múltiple</option>
             </select>
             <div id="tipo-help" class="form-help">
               {{ obtenerDescripcionTipo(formulario.tipo) }}
@@ -149,10 +148,6 @@
                     <input type="text" placeholder="Respuesta de texto corto..." disabled />
                   </div>
                   
-                  <div v-else-if="formulario.tipo === 'TEXTO_LARGO'" class="preview-field">
-                    <textarea placeholder="Respuesta de texto largo..." disabled rows="3"></textarea>
-                  </div>
-                  
                   <div v-else-if="formulario.tipo === 'OPCION_MULTIPLE'" class="preview-field">
                     <div class="preview-options">
                       <label class="preview-option">
@@ -170,7 +165,7 @@
                     </div>
                   </div>
                   
-                  <div v-else-if="formulario.tipo === 'VERDADERO_FALSO'" class="preview-field">
+                  <div v-else-if="formulario.tipo === 'SI_NO'" class="preview-field">
                     <div class="preview-options">
                       <label class="preview-option">
                         <input type="radio" name="preview-bool" disabled />
@@ -183,7 +178,7 @@
                     </div>
                   </div>
                   
-                  <div v-else-if="formulario.tipo === 'NUMERO'" class="preview-field">
+                  <div v-else-if="formulario.tipo === 'NUMERICO'" class="preview-field">
                     <input type="number" placeholder="123" disabled />
                   </div>
                   
@@ -225,7 +220,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import type { PreguntaClinica, TipoPregunta } from '@/services/questionsService'
+import type { PreguntaClinica } from '@/services/questionsService'
+import { TipoPregunta } from '@/services/questionsService'
 
 // Props
 interface Props {
@@ -305,10 +301,12 @@ function validarFormulario(): boolean {
 // Métodos principales
 function inicializarFormulario() {
   if (props.pregunta && props.modo === 'editar') {
+    const tipoOriginal = props.pregunta.tipo as unknown as string
+    const tipoMapeado: TipoPregunta | undefined = mapearTipoLegacy(tipoOriginal)
     formulario.value = {
       id: props.pregunta.id,
       texto: props.pregunta.texto,
-      tipo: props.pregunta.tipo,
+      tipo: tipoMapeado ?? props.pregunta.tipo,
       obligatoria: props.pregunta.obligatoria,
       especialidadId: props.pregunta.especialidadId
     }
@@ -351,15 +349,28 @@ function obtenerDescripcionTipo(tipo?: TipoPregunta): string {
   if (!tipo) return 'Selecciona un tipo para ver su descripción'
   
   const descripciones = {
-    TEXTO: 'Respuesta de texto corto (una línea)',
-    TEXTO_LARGO: 'Respuesta de texto largo (múltiples líneas)',
-    OPCION_MULTIPLE: 'Respuesta de selección múltiple con opciones predefinidas',
-    VERDADERO_FALSO: 'Respuesta de verdadero o falso',
-    NUMERO: 'Respuesta numérica',
-    FECHA: 'Respuesta de fecha específica'
+  TEXTO: 'Respuesta de texto',
+  SI_NO: 'Respuesta de sí o no',
+  NUMERICO: 'Respuesta numérica',
+  FECHA: 'Respuesta de fecha específica',
+  OPCION_MULTIPLE: 'Respuesta de selección múltiple con opciones predefinidas'
   }
   
   return descripciones[tipo] || 'Tipo de pregunta personalizado'
+}
+
+// Mapea valores legados al enum vigente del backend
+function mapearTipoLegacy(tipo: string): TipoPregunta | undefined {
+  switch (tipo) {
+    case 'VERDADERO_FALSO':
+  return TipoPregunta.SI_NO
+    case 'NUMERO':
+  return TipoPregunta.NUMERICO
+    case 'TEXTO_LARGO':
+  return TipoPregunta.TEXTO
+    default:
+  return tipo as TipoPregunta
+  }
 }
 
 // Lifecycle
