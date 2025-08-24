@@ -17,6 +17,15 @@
         <button type="button" class="btn btn-primary" @click="abrirModalEditarSeleccionado" :disabled="!rolSeleccionadoId || loading">
           <i class="fas fa-edit me-1"></i> Editar Rol
         </button>
+        <button 
+          type="button" 
+          class="btn btn-outline-danger" 
+          @click="eliminarRolSeleccionado" 
+          :disabled="!rolSeleccionadoId || loading || rolProtegidoSeleccionado || rolConUsuariosSeleccionado"
+          :title="rolProtegidoSeleccionado ? 'Rol del sistema protegido' : (rolConUsuariosSeleccionado ? 'No se puede eliminar: hay usuarios asignados' : '')"
+        >
+          <i class="fas fa-trash me-1"></i> Eliminar
+        </button>
         <button type="button" class="btn btn-success" @click="abrirModalCrearRol" :disabled="loading">
           <i class="fas fa-plus me-1"></i> Nuevo Rol
         </button>
@@ -183,7 +192,8 @@
                             <button 
                               class="dropdown-item text-danger" 
                               @click="confirmarEliminarRol(rol)"
-                              :disabled="['ADMIN', 'ESTUDIANTE', 'PROFESOR', 'SECRETARIO'].includes(rol.nombre)"
+                              :disabled="['ADMIN', 'ESTUDIANTE', 'PROFESOR', 'SECRETARIO'].includes(rol.nombre) || (rol._count?.usuarios || 0) > 0"
+                              :title="['ADMIN', 'ESTUDIANTE', 'PROFESOR', 'SECRETARIO'].includes(rol.nombre) ? 'Rol del sistema protegido' : ((rol._count?.usuarios || 0) > 0 ? 'No se puede eliminar: hay usuarios asignados' : '')"
                             >
                               <i class="fas fa-trash me-2"></i>Eliminar
                             </button>
@@ -677,6 +687,19 @@ const formEditarRolPermisos = ref<number[]>([])
 const formEditarRolPermisosOriginal = ref<number[]>([])
 const rolSeleccionadoId = ref<number | null>(null)
 
+// Helpers para control de eliminación del rol seleccionado desde el header
+const rolProtegidoSeleccionado = computed(() => {
+  const rl = roles.value.find(r => r.id === rolSeleccionadoId.value)
+  if (!rl) return false
+  return ['ADMIN', 'ESTUDIANTE', 'PROFESOR', 'SECRETARIO'].includes(rl.nombre)
+})
+
+const rolConUsuariosSeleccionado = computed(() => {
+  const rl = roles.value.find(r => r.id === rolSeleccionadoId.value)
+  if (!rl) return false
+  return (rl._count?.usuarios || 0) > 0
+})
+
 // Computed
 const rolesFiltrados = computed(() => {
   let resultado = [...roles.value]
@@ -1031,20 +1054,32 @@ function confirmarEliminarRol(rol: Rol) {
 /**
  * Elimina un rol del sistema
  */
-async function eliminarRol(_rol: Rol) {
+async function eliminarRol(rol: Rol) {
   try {
-    // Como no hay endpoint DELETE en el controlador, mostrar mensaje
-    showToast('Funcionalidad pendiente', 'warning', 'Eliminación de roles pendiente de implementación en el backend')
-    
-    // Código que se ejecutaría cuando el backend soporte DELETE:
-    // await rolesService.eliminarRol(rol.id)
-    // roles.value = roles.value.filter(r => r.id !== rol.id)
-    // showToast('Rol eliminado', 'success', `El rol "${rol.nombre}" ha sido eliminado`)
-    // await cargarDatos()
+    const res = await rolesService.eliminarRol(rol.id)
+    if (res?.eliminado) {
+      roles.value = roles.value.filter(r => r.id !== rol.id)
+      if (rolSeleccionadoId.value === rol.id) rolSeleccionadoId.value = null
+      showToast('Rol eliminado', 'success', `El rol "${rol.nombre}" ha sido eliminado`)
+      await cargarDatos()
+    } else {
+      showToast('No se pudo eliminar', 'warning')
+    }
   } catch (error) {
     console.error('Error al eliminar rol:', error)
-    showToast('Error al eliminar rol', 'error', 'No se pudo completar la operación')
+    const msg = (error as any)?.response?.data?.message || 'No se pudo completar la operación'
+    showToast('Error al eliminar rol', 'error', msg)
   }
+}
+
+function eliminarRolSeleccionado() {
+  if (!rolSeleccionadoId.value) {
+    showToast('Selecciona un rol primero', 'info')
+    return
+  }
+  const rol = roles.value.find(r => r.id === rolSeleccionadoId.value)
+  if (!rol) return
+  confirmarEliminarRol(rol)
 }
 
 // Cargar datos al montar el componente

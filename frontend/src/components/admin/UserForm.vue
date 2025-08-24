@@ -133,20 +133,20 @@
     <div class="col-12 col-md-6">
       <FormField
         label="Rol"
-        :error="getFieldError('role')"
+        :error="getFieldError('roleId')"
         :required="true"
       >
         <select
-          v-model="local.role"
-          :class="getFieldClass('role')"
-          @blur="validateField('role', local.role, roleRules)"
+          v-model="local.roleId"
+          :class="getFieldClass('roleId')"
+          @blur="validateField('roleId', local.roleId, roleRules)"
           :disabled="loadingRoles"
         >
-          <option value="">Seleccione rol...</option>
+          <option :value="null">Seleccione rol...</option>
           <option 
             v-for="role in availableRoles" 
             :key="role.id" 
-            :value="mapRoleNameToFrontend(role.nombre)"
+            :value="role.id"
           >
             {{ getRoleLabel(role.nombre) }}
           </option>
@@ -172,10 +172,10 @@
       </FormField>
     </div>
 
-    <!-- Especialidades (Solo para profesores) -->
-    <div v-if="local.role === 'profesor'" class="col-12">
+  <!-- Especialidades (Profesor o Estudiante) -->
+  <div v-if="local.role === 'profesor' || local.role === 'estudiante'" class="col-12">
       <FormField
-        label="Especialidades"
+    label="Especialidades"
         :error="getFieldError('especialidadIds')"
         :required="false"
       >
@@ -460,6 +460,37 @@ async function loadEspecialidades() {
   }
 }
 
+// Reaccionar a cambios de rol: limpiar especialidades si no aplica
+watch(() => local.value.role, async (newRole) => {
+  const showEspecialidades = newRole === 'profesor' || newRole === 'estudiante'
+  if (!showEspecialidades) {
+    local.value.especialidadIds = []
+  } else if (!availableEspecialidades.value.length && !loadingEspecialidades.value) {
+    await loadEspecialidades()
+  }
+})
+
+// Sincronizar role (string) a partir de roleId cuando se cargan roles o cambia la selección
+watch([() => local.value.roleId, availableRoles], ([rid]) => {
+  const ridNum = typeof rid === 'string' ? parseInt(rid as unknown as string, 10) : rid
+  const r = availableRoles.value.find(r => r.id === ridNum)
+  if (r) {
+    // Mantener 'role' para lógicas existentes (especialidades, estilos, etc.)
+    local.value.role = mapRoleNameToFrontend(r.nombre)
+    // Normalizar roleId a número
+    local.value.roleId = r.id
+  }
+})
+
+// Establecer un roleId por defecto si no viene uno y ya tenemos roles cargados
+watch(availableRoles, (roles) => {
+  if (!local.value.roleId && roles.length) {
+    // Intentar alinear con el role string actual
+    const match = roles.find(r => mapRoleNameToFrontend(r.nombre) === local.value.role)
+    local.value.roleId = match?.id || roles.find(r => r.nombre === 'ESTUDIANTE')?.id || roles[0].id
+  }
+})
+
 // Validaciones asíncronas con debounce
 const onEmailInput = async () => {
   // Solo validar en modo creación para evitar errores en edición
@@ -526,6 +557,8 @@ const onDocumentTypeChange = () => {
 
 // Funciones de mapeo
 function mapRoleNameToFrontend(backendRoleName: string): UserRole {
+  if (!backendRoleName) return 'estudiante'
+  const key = backendRoleName.toString().trim().toUpperCase()
   const roleMap: Record<string, UserRole> = {
     'ADMIN': 'admin',
     'PROFESOR': 'profesor',
@@ -533,10 +566,11 @@ function mapRoleNameToFrontend(backendRoleName: string): UserRole {
     'SECRETARIO': 'secretario',
     'PACIENTE': 'paciente'
   }
-  return roleMap[backendRoleName] || 'estudiante'
+  return roleMap[key] || 'estudiante'
 }
 
 function getRoleLabel(roleName: string): string {
+  const key = roleName ? roleName.toString().trim().toUpperCase() : ''
   const labelMap: Record<string, string> = {
     'ADMIN': 'Administrador',
     'PROFESOR': 'Profesor',
@@ -544,7 +578,7 @@ function getRoleLabel(roleName: string): string {
     'SECRETARIO': 'Secretario',
     'PACIENTE': 'Paciente'
   }
-  return labelMap[roleName] || roleName
+  return labelMap[key] || roleName
 }
 
 // Sincronizar cambios externos
@@ -572,6 +606,13 @@ watch(() => props.modelValue, (newValue) => {
     
     console.log('UserForm.watch - Datos antes de asignar a local.value:', localData)
     local.value = localData
+    // Si tenemos roles cargados y roleId, normalizar role y roleId
+    if (availableRoles.value.length && local.value.roleId) {
+      const r = availableRoles.value.find(r => r.id === local.value.roleId)
+      if (r) {
+        local.value.role = mapRoleNameToFrontend(r.nombre)
+      }
+    }
     console.log('UserForm.watch - Datos después de asignar a local.value:', local.value)
   } else {
     console.log('UserForm.watch - newValue es null/undefined')
@@ -592,7 +633,8 @@ async function onSubmit() {
     { field: 'numeroDocumento', value: local.value.numeroDocumento, rules: getDocumentRules() },
     { field: 'fechaNacimiento', value: local.value.fechaNacimiento, rules: dateRules },
     { field: 'password', value: local.value.password, rules: getPasswordRules() },
-    { field: 'role', value: local.value.role, rules: roleRules }
+    // Validar selección de rol por ID para evitar ambigüedades
+    { field: 'roleId', value: local.value.roleId, rules: roleRules }
   ]
 
   // Validar todos los campos
@@ -626,14 +668,13 @@ async function onSubmit() {
   isSubmitting.value = true
 
   try {
-    // Obtener el roleId correspondiente al rol seleccionado
-    const selectedRole = availableRoles.value.find(r => 
-      mapRoleNameToFrontend(r.nombre) === local.value.role
-    )
-    
     const userData = {
       ...local.value,
-      roleId: selectedRole?.id || 3,
+      // Enviar el roleId seleccionado directamente; fallback a ESTUDIANTE si no existe
+      roleId: (typeof local.value.roleId === 'string' ? parseInt(local.value.roleId as unknown as string, 10) : local.value.roleId) 
+        || availableRoles.value.find(r => r.nombre === 'ESTUDIANTE')?.id 
+        || availableRoles.value[0]?.id 
+        || 3,
       parroquiaId: local.value.parroquiaId
     }
     

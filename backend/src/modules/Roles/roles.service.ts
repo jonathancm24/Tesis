@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateRolDto } from './dto/create-rol.dto';
 import { AsignarPermisosDto } from './dto/asignar-permisos.dto';
@@ -186,6 +186,34 @@ export class RolesService {
     });
 
     return this.obtenerRolPorId(id);
+  }
+
+  /**
+   * Elimina un rol si no está protegido ni en uso por usuarios
+   */
+  async eliminarRol(id: number) {
+    const rol = await this.prisma.role.findUnique({ where: { id } });
+    if (!rol) throw new NotFoundException(`No se encontró un rol con ID ${id}`);
+
+    // Proteger roles base del sistema
+    const protegidos = [RoleEnum.ADMIN, RoleEnum.ESTUDIANTE, RoleEnum.PROFESOR, RoleEnum.SECRETARIO];
+    if (protegidos.includes(rol.nombre as RoleEnum)) {
+      throw new ConflictException('No se pueden eliminar los roles del sistema base');
+    }
+
+    // Verificar si hay usuarios usando este rol
+    const usuariosConRol = await this.prisma.usuario.count({ where: { roleId: id } });
+    if (usuariosConRol > 0) {
+      throw new ConflictException(`No se puede eliminar el rol; hay ${usuariosConRol} usuario(s) que lo usan`);
+    }
+
+    // Eliminar relaciones y luego el rol
+    await this.prisma.$transaction(async (tx) => {
+      await tx.rolePermiso.deleteMany({ where: { roleId: id } });
+      await tx.role.delete({ where: { id } });
+    });
+
+    return { id, eliminado: true };
   }
 
   /**

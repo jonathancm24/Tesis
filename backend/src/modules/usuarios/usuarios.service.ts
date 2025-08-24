@@ -44,13 +44,16 @@ export class UsuariosService {
         parroquiaId: data.parroquiaId,
       },
     });
-    // Crear relaciones con especialidades
-    await this.prisma.usuarioEspecialidad.createMany({
-      data: data.especialidadIds.map(especialidadId => ({
-        usuarioId: usuario.id,
-        especialidadId,
-      })),
-    });
+    // Crear relaciones con especialidades (solo si se proporcionaron)
+    const especialidadIds = data.especialidadIds ?? [];
+    if (especialidadIds.length > 0) {
+      await this.prisma.usuarioEspecialidad.createMany({
+        data: especialidadIds.map(especialidadId => ({
+          usuarioId: usuario.id,
+          especialidadId,
+        })),
+      });
+    }
 
     return usuario;
   }

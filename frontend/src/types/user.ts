@@ -18,6 +18,10 @@ export interface User {
   apellido: string
   email: string
   role: UserRole
+  // Nombre original del rol desde el backend (p. ej. roles personalizados)
+  roleNombre?: string
+  // Id del rol asociado (útil para acciones rápidas)
+  roleId?: number
   activo: boolean
   especialidades?: Especialidad[]
 }

@@ -83,8 +83,8 @@
             <td>{{ u.nombre }}</td>
             <td>{{ u.email }}</td>
             <td>
-              <span :class="roleBadgeClass(u.role)">
-                {{ u.role }}
+              <span :class="roleBadgeClassByNombre(u.roleNombre, u.role)">
+                {{ roleDisplay(u.roleNombre, u.role) }}
               </span>
             </td>
             <td>{{ u.activo ? 'Sí' : 'No' }}</td>
@@ -265,6 +265,7 @@ async function openModal(user?: User) {
         apellido: user.apellido,
         email: user.email,
         role: user.role,
+  roleId: user.roleId,
         activo: user.activo,
         tipoDocumento: 'CEDULA',
         numeroDocumento: '',
@@ -383,13 +384,39 @@ async function onBulkOperationSuccess() {
 }
 
 // Clases para badges de rol
-function roleBadgeClass(role: UserRole) {
+function roleBadgeClassByNombre(roleNombre?: string, role?: UserRole) {
+  const key = roleNombre ? roleNombre.toString().trim().toUpperCase() : ''
+  if (key === 'ADMIN') return 'badge bg-danger'
+  if (key === 'PROFESOR') return 'badge bg-success'
+  if (key === 'ESTUDIANTE') return 'badge bg-info text-dark'
+  if (key === 'SECRETARIO') return 'badge bg-warning text-dark'
+  // Fallback usando role mapeado
   return {
     'badge bg-danger': role === 'admin',
     'badge bg-success': role === 'profesor',
     'badge bg-info text-dark': role === 'estudiante',
-    'badge bg-warning text-dark': role === 'secretario',  
+    'badge bg-warning text-dark': role === 'secretario',
+    'badge bg-secondary': role !== 'admin' && role !== 'profesor' && role !== 'estudiante' && role !== 'secretario'
   }
+}
+
+function roleDisplay(roleNombre?: string, role?: UserRole) {
+  const labelMap: Record<string, string> = {
+    ADMIN: 'Administrador',
+    PROFESOR: 'Profesor',
+    ESTUDIANTE: 'Estudiante',
+    SECRETARIO: 'Secretario',
+    PACIENTE: 'Paciente'
+  }
+  if (roleNombre && labelMap[roleNombre]) return labelMap[roleNombre]
+  const fallback: Record<UserRole, string> = {
+    admin: 'Administrador',
+    profesor: 'Profesor',
+    estudiante: 'Estudiante',
+    secretario: 'Secretario',
+    paciente: 'Paciente'
+  }
+  return role ? fallback[role] : 'Rol'
 }
 </script>
 

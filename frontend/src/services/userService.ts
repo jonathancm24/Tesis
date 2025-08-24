@@ -64,6 +64,7 @@ class UserService {
         fechaNacimiento: fechaNacimientoFormatted,
         NotasAdicionales: user.NotasAdicionales || '',
         role: this.mapRoleToFrontend(user.role?.nombre || 'ESTUDIANTE'),
+  roleId: user.roleId || user.role?.id,
         activo: user.activo ?? true,
         especialidades: user.especialidades?.map((e: any) => ({
           id: e.especialidad?.id || e.id,
@@ -170,6 +171,13 @@ class UserService {
    */
   async createUser(formData: FormUser): Promise<User> {
     try {
+      // Validar roleId requerido y numérico
+      const roleIdNum = typeof formData.roleId === 'string' 
+        ? parseInt(formData.roleId as unknown as string, 10) 
+        : formData.roleId
+      if (!roleIdNum || Number.isNaN(roleIdNum)) {
+        throw new Error('Debe seleccionar un rol válido')
+      }
       // Convertir FormUser a CreateUserRequest (coincide con RegisterDto)
       const userData: CreateUserRequest = {
         nombre: formData.nombre,
@@ -180,7 +188,7 @@ class UserService {
         fechaNacimiento: formData.fechaNacimiento,
         password: formData.password,
         NotasAdicionales: formData.NotasAdicionales,
-        roleId: formData.roleId || await this.getRoleIdByName(formData.role),
+  roleId: roleIdNum as number,
         especialidadIds: formData.especialidadIds || [],
         parroquiaId: formData.parroquiaId
       }
@@ -209,6 +217,11 @@ class UserService {
   async updateUser(id: number, formData: FormUser): Promise<User> {
     try {
       console.log('userService.updateUser - Datos recibidos:', formData)
+      // Validar roleId presente y numérico
+      const roleIdNum = typeof formData.roleId === 'string' ? parseInt(formData.roleId as unknown as string, 10) : formData.roleId
+      if (!roleIdNum || Number.isNaN(roleIdNum)) {
+        throw new Error('Debe seleccionar un rol válido')
+      }
       
       // Convertir FormUser a UpdateUserRequest - solo campos que pueden ser actualizados
       const userData: UpdateUserRequest = {
@@ -219,10 +232,14 @@ class UserService {
         numeroDocumento: formData.numeroDocumento,
         fechaNacimiento: formData.fechaNacimiento,
         NotasAdicionales: formData.NotasAdicionales,
-        roleId: formData.roleId || await this.getRoleIdByName(formData.role),
+        // roleId se añadirá solo si viene definido
         activo: formData.activo,
         especialidadIds: formData.especialidadIds,
         parroquiaId: formData.parroquiaId
+      }
+
+      if (roleIdNum !== undefined) {
+        (userData as any).roleId = roleIdNum
       }
 
       // Si se proporciona una contraseña, incluirla en la actualización
@@ -231,6 +248,11 @@ class UserService {
       }
 
       console.log('userService.updateUser - Datos a enviar:', userData)
+
+      // Si no se envió roleId, eliminarlo del payload para no forzar cambio
+      if (userData.roleId === undefined) {
+        delete (userData as any).roleId
+      }
 
       const response = await fetch(`${this.baseUrl}${API_CONFIG.ENDPOINTS.USERS.BY_ID(id)}`, {
         method: 'PATCH',
@@ -303,7 +325,9 @@ class UserService {
       nombre: backendUser.nombre,
       apellido: backendUser.apellido,
       email: backendUser.email,
-      role: this.mapRoleToFrontend(backendUser.role?.nombre || 'ESTUDIANTE'),
+  role: this.mapRoleToFrontend(backendUser.role?.nombre || 'ESTUDIANTE'),
+  roleNombre: backendUser.role?.nombre,
+  roleId: backendUser.roleId || backendUser.role?.id,
       activo: backendUser.activo ?? true,
       especialidades: backendUser.especialidades?.map((e: any) => ({
         id: e.especialidad?.id || e.id,
@@ -317,6 +341,8 @@ class UserService {
    * Mapear roles del backend al frontend
    */
   private mapRoleToFrontend(backendRole: string): UserRole {
+    if (!backendRole) return 'estudiante'
+    const key = backendRole.toString().trim().toUpperCase()
     const roleMap: Record<string, UserRole> = {
       'ADMIN': 'admin',
       'PROFESOR': 'profesor',
@@ -324,7 +350,7 @@ class UserService {
       'SECRETARIO': 'secretario',
       'PACIENTE': 'paciente'
     }
-    return roleMap[backendRole] || 'estudiante'
+    return roleMap[key] || 'estudiante'
   }
 
   /**

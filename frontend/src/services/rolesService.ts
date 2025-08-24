@@ -216,6 +216,19 @@ class RolesService {
   }
 
   /**
+   * Elimina un rol por ID
+   */
+  async eliminarRol(rolId: number): Promise<{ id: number; eliminado: boolean }> {
+    try {
+      const response = await api.delete<any>(`${this.baseUrl}/${rolId}`)
+      return response.data
+    } catch (error) {
+      console.error(`Error al eliminar rol ${rolId}:`, error)
+      throw error
+    }
+  }
+
+  /**
    * Obtiene todos los permisos disponibles en el sistema
    */
   async obtenerTodosLosPermisos(): Promise<Permiso[]> {

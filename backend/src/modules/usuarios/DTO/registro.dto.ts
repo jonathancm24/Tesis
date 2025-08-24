@@ -65,6 +65,6 @@ export class RegisterDto {
   especialidadIds: number[];
 
   @IsOptional()
-  @IsInt({ each: true })
+  @IsInt()
   parroquiaId: number;
 }

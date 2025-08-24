@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Delete,
   Param,
   Body,
   UseGuards,
@@ -118,6 +119,15 @@ export class RolesController {
     @Body() dto: UpdateRolDto
   ) {
     return this.rolesService.actualizarRol(id, dto);
+  }
+
+  /**
+   * Elimina un rol si no está en uso y no es un rol protegido
+   */
+  @Delete(":id")
+  @RequirePermissions(PermisoEnum.GESTIONAR_ROLES)
+  async eliminarRol(@Param('id', ParseIntPipe) id: number) {
+    return this.rolesService.eliminarRol(id);
   }
 
   
