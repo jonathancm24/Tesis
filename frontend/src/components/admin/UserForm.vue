@@ -201,9 +201,6 @@
               />
               <label :for="`esp-${esp.id}`" class="form-check-label">
                 {{ esp.nombre }}
-                <small v-if="esp.descripcion" class="text-muted d-block">
-                  {{ esp.descripcion }}
-                </small>
               </label>
             </div>
           </div>
