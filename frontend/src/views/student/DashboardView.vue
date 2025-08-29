@@ -396,7 +396,7 @@
                         </dd>
                         
                         <dt class="col-sm-5">Última actualización:</dt>
-                        <dd class="col-sm-7">{{ formatearFecha(pacienteSeleccionado.casoActivo.fechaActualizacion) }}</dd>
+                        <dd class="col-sm-7">{{ formatearFecha(pacienteSeleccionado.casoActivo.fechaActualizacion || pacienteSeleccionado.casoActivo.fechaCreacion) }}</dd>
                       </dl>
                       
                       <div class="mt-3">
@@ -438,10 +438,10 @@
                         <dt class="col-sm-4">Hora:</dt>
                         <dd class="col-sm-8">{{ pacienteSeleccionado.proximaCita.hora }}</dd>
                         
-                        <dt class="col-sm-4">Estado:</dt>
-                        <dd class="col-sm-8">
-                          <span :class="['badge', obtenerClaseEstadoCita(pacienteSeleccionado.proximaCita.estado)]">
-                            {{ formatearEstadoCita(pacienteSeleccionado.proximaCita.estado) }}
+                        <dt class="col-sm-4" v-if="pacienteSeleccionado.proximaCita.estado">Estado:</dt>
+                        <dd class="col-sm-8" v-if="pacienteSeleccionado.proximaCita.estado">
+                          <span :class="['badge', obtenerClaseEstadoCita(pacienteSeleccionado.proximaCita.estado || 'RESERVADA')]">
+                            {{ formatearEstadoCita(pacienteSeleccionado.proximaCita.estado || 'RESERVADA') }}
                           </span>
                         </dd>
                         
@@ -540,20 +540,71 @@ import { useToast } from '@/composables/useToast'
 import ToastContainer from '@/components/common/ToastContainer.vue'
 import studentService from '@/services/studentService'
 
-// Importar tipos necesarios
-import type {
-  EstadisticasEstudiante,
-  PacienteDashboard,
-  EspecialidadBasica,
-  DocenteBasico,
-  FiltrosDashboard
-} from '@/types/student'
+// Definir tipos localmente para evitar dependencias
+interface EstadisticasEstudiante {
+  totalPacientes: number;
+  citasHoy: number;
+  casosActivos: number;
+  tratamientosEnCurso: number;
+  casosCompletados: number;
+  citasPendientes: number;
+  promedioCalificaciones?: number;
+}
 
-// Importar enums como valores (no como types)
-import {
-  EstadoCasoClinico,
-  EstadoCita
-} from '@/types/student'
+interface PacienteDashboard {
+  id: number;
+  paciente: {
+    id: number;
+    nombre: string;
+    apellido: string;
+    numeroDocumento: string;
+    telefono: string;
+    fechaNacimiento: Date;
+    edad: number;
+  };
+  casoActivo?: {
+    id: number;
+    titulo: string;
+    estado: string;
+    especialidad: string;
+    fechaCreacion: Date;
+    fechaActualizacion?: Date;
+  };
+  docenteSupervisor?: {
+    id: number;
+    nombre: string;
+    apellido: string;
+    email: string;
+  };
+  proximaCita?: {
+    fecha: Date;
+    hora: string;
+    estado?: string;
+    motivo?: string;
+  };
+  ultimaActividad: Date;
+  tratamientoActivo?: any;
+}
+
+interface EspecialidadBasica {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+}
+
+interface DocenteBasico {
+  id: number;
+  nombre: string;
+  apellido: string;
+  email: string;
+}
+
+interface FiltrosDashboard {
+  busqueda: string;
+  estadoCaso?: string;
+  especialidadId?: number;
+  docenteId?: number;
+}
 
 // ========================================
 // COMPOSABLES Y SERVICIOS
@@ -809,14 +860,14 @@ function formatearHora(fecha: Date): string {
 /**
  * Formatea el estado de un caso clínico para mostrar
  */
-function formatearEstado(estado: EstadoCasoClinico): string {
-  const estados: Record<EstadoCasoClinico, string> = {
-    [EstadoCasoClinico.EN_REVISION]: 'En Revisión',
-    [EstadoCasoClinico.APROBADO]: 'Aprobado',
-    [EstadoCasoClinico.PENDIENTE_ESTUDIOS]: 'Pendiente Estudios',
-    [EstadoCasoClinico.EN_TRATAMIENTO]: 'En Tratamiento',
-    [EstadoCasoClinico.FINALIZADO]: 'Finalizado',
-    [EstadoCasoClinico.CANCELADO]: 'Cancelado'
+function formatearEstado(estado: string): string {
+  const estados: Record<string, string> = {
+    'EN_REVISION': 'En Revisión',
+    'APROBADO': 'Aprobado',
+    'PENDIENTE_ESTUDIOS': 'Pendiente Estudios',
+    'EN_TRATAMIENTO': 'En Tratamiento',
+    'FINALIZADO': 'Finalizado',
+    'CANCELADO': 'Cancelado'
   }
   
   return estados[estado] || estado
@@ -825,13 +876,13 @@ function formatearEstado(estado: EstadoCasoClinico): string {
 /**
  * Formatea el estado de una cita para mostrar
  */
-function formatearEstadoCita(estado: EstadoCita): string {
-  const estados: Record<EstadoCita, string> = {
-    [EstadoCita.DISPONIBLE]: 'Disponible',
-    [EstadoCita.RESERVADA]: 'Reservada',
-    [EstadoCita.CANCELADA]: 'Cancelada',
-    [EstadoCita.FINALIZADA]: 'Finalizada',
-    [EstadoCita.NO_ASISTIO]: 'No Asistió'
+function formatearEstadoCita(estado: string): string {
+  const estados: Record<string, string> = {
+    'DISPONIBLE': 'Disponible',
+    'RESERVADA': 'Reservada',
+    'CANCELADA': 'Cancelada',
+    'FINALIZADA': 'Finalizada',
+    'NO_ASISTIO': 'No Asistió'
   }
   
   return estados[estado] || estado
@@ -840,14 +891,14 @@ function formatearEstadoCita(estado: EstadoCita): string {
 /**
  * Obtiene la clase CSS para el estado de un caso clínico
  */
-function obtenerClaseEstado(estado: EstadoCasoClinico): string {
+function obtenerClaseEstado(estado: string): string {
   return studentService.obtenerClaseEstadoCaso(estado)
 }
 
 /**
  * Obtiene la clase CSS para el estado de una cita
  */
-function obtenerClaseEstadoCita(estado: EstadoCita): string {
+function obtenerClaseEstadoCita(estado: string): string {
   return studentService.obtenerClaseEstadoCita(estado)
 }
 

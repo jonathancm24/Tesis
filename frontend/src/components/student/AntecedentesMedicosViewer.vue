@@ -1,27 +1,23 @@
 <template>
-  <div v-if="mostrarAntecedentes" class="modal-backdrop show" @click.self="cerrarAntecedentes">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-      <div class="modal-content">
+  <div v-if="mostrarAntecedentes" class="modal-backdrop antecedentes-modal-backdrop show" @click.self="cerrarAntecedentes">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable antecedentes-modal-dialog">
+      <div class="modal-content antecedentes-modal-content">
         <!-- Header -->
         <div class="modal-header">
           <div class="header-content">
             <div class="icon-container">
-              <i class="fas fa-file-medical-alt"></i>
+              <i class="fas fa-file-medical text-primary"></i>
             </div>
             <div class="title-container">
-              <h4>Antecedentes Médicos</h4>
-              <p class="modal-subtitle">
-                {{ antecedentes?.paciente.nombre }} {{ antecedentes?.paciente.apellido }}
-                - {{ antecedentes?.paciente.cedula }}
-              </p>
+              <h4 class="modal-title mb-0">Antecedentes Médicos</h4>
+              <p class="subtitle mb-0">Información médica del paciente</p>
             </div>
           </div>
           <button 
             type="button" 
             class="btn-close" 
             @click="cerrarAntecedentes"
-          >
-            <i class="fas fa-times"></i>
+            aria-label="Cerrar">
           </button>
         </div>
 
@@ -37,23 +33,23 @@
 
           <!-- Antecedentes cargados -->
           <div v-else-if="antecedentes" class="antecedentes-content">
-            <!-- Información del paciente -->
-            <div class="patient-info-card mb-4">
+            <!-- Información del paciente - Compacta -->
+            <div class="patient-info-card mb-3">
               <div class="card border-0 bg-light">
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col-md-6">
-                      <h6 class="text-muted mb-1">Información del Paciente</h6>
-                      <p class="mb-1"><strong>Nombre:</strong> {{ antecedentes.paciente.nombre }} {{ antecedentes.paciente.apellido }}</p>
-                      <p class="mb-1"><strong>Cédula:</strong> {{ antecedentes.paciente.cedula }}</p>
-                      <p class="mb-0"><strong>Género:</strong> {{ antecedentes.paciente.genero || 'No especificado' }}</p>
+                <div class="card-body py-2 px-3">
+                  <div class="row align-items-center">
+                    <div class="col-md-8">
+                      <div class="d-flex flex-wrap gap-3 align-items-center">
+                        <span><strong>{{ antecedentes.paciente.nombre }} {{ antecedentes.paciente.apellido }}</strong></span>
+                        <span class="text-muted">{{ antecedentes.paciente.cedula }}</span>
+                        <span class="text-muted">{{ antecedentes.paciente.genero || 'No especificado' }}</span>
+                      </div>
                     </div>
-                    <div class="col-md-6">
-                      <h6 class="text-muted mb-1">Fecha de Encuesta</h6>
-                      <p class="mb-0">
-                        <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                    <div class="col-md-4 text-md-end">
+                      <small class="text-muted">
+                        <i class="fas fa-calendar-alt me-1"></i>
                         {{ formatearFecha(antecedentes.fechaEncuesta) }}
-                      </p>
+                      </small>
                     </div>
                   </div>
                 </div>
@@ -61,7 +57,7 @@
             </div>
 
             <!-- Antecedentes por categoría -->
-            <div v-for="categoria in antecedentes.antecedentesPorCategoria" :key="categoria.categoria" class="categoria-antecedentes mb-4">
+            <div v-for="categoria in antecedentes.antecedentesPorCategoria" :key="categoria.categoria" class="categoria-antecedentes mb-3">
               <div class="categoria-card">
                 <!-- Header de categoría -->
                 <div class="categoria-header">
@@ -80,7 +76,7 @@
                       No hay información registrada en esta categoría
                     </p>
                   </div>
-                  <div v-else class="respuestas-grid">
+                  <div v-else class="respuestas-grid antecedentes-respuestas-grid">
                     <div 
                       v-for="(respuesta, index) in categoria.respuestas" 
                       :key="index"
@@ -155,6 +151,15 @@
               </div>
             </div>
           </div>
+
+          <!-- Estado inicial -->
+          <div v-else class="text-center py-5">
+            <div class="mb-3">
+              <i class="fas fa-file-medical-alt fa-3x text-muted"></i>
+            </div>
+            <h5 class="text-muted">No hay antecedentes disponibles</h5>
+            <p class="text-muted">Seleccione un paciente para ver sus antecedentes médicos</p>
+          </div>
         </div>
 
         <!-- Footer -->
@@ -215,12 +220,7 @@ const alertasImportantes = computed(() => {
   // Buscar respuestas positivas que puedan ser alertas médicas
   antecedentes.value.antecedentesPorCategoria.forEach(categoria => {
     categoria.respuestas.forEach(respuesta => {
-      if (esRespuestaPositiva(respuesta.respuesta) && 
-          (respuesta.pregunta.toLowerCase().includes('alerg') ||
-           respuesta.pregunta.toLowerCase().includes('medicament') ||
-           respuesta.pregunta.toLowerCase().includes('enfermedad') ||
-           respuesta.pregunta.toLowerCase().includes('cirug') ||
-           respuesta.pregunta.toLowerCase().includes('hospital'))) {
+      if (esRespuestaPositiva(respuesta.respuesta)) {
         alertas.push({
           categoria: categoria.categoria,
           pregunta: respuesta.pregunta,
@@ -233,18 +233,19 @@ const alertasImportantes = computed(() => {
   return alertas;
 });
 
-// Métodos
+// Methods
 const cargarAntecedentes = async () => {
   if (!props.pacienteId) return;
   
+  cargandoAntecedentes.value = true;
+  error.value = '';
+  
   try {
-    cargandoAntecedentes.value = true;
-    error.value = '';
-    
-    antecedentes.value = await encuestaService.obtenerAntecedentes(props.pacienteId);
-    
+    const resultado = await encuestaService.obtenerAntecedentes(props.pacienteId);
+    antecedentes.value = resultado;
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Error desconocido';
+    error.value = 'Error al cargar los antecedentes médicos';
+    console.error('Error cargando antecedentes:', err);
   } finally {
     cargandoAntecedentes.value = false;
   }
@@ -254,63 +255,58 @@ const cerrarAntecedentes = () => {
   emit('cerrar');
 };
 
-const formatearFecha = (fecha: Date) => {
-  return new Date(fecha).toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-};
-
-const getIconoCategoria = (categoria: string): string => {
-  const iconos: Record<string, string> = {
-    'Antecedentes Personales': 'fas fa-user-md',
-    'Antecedentes Familiares': 'fas fa-users',
-    'Hábitos': 'fas fa-leaf',
-    'Gineco-Obstétricos': 'fas fa-female',
-    'Medicamentos': 'fas fa-pills',
-    'Alergias': 'fas fa-exclamation-triangle',
-    'Revisión de Sistemas': 'fas fa-stethoscope'
-  };
-  
-  return iconos[categoria] || 'fas fa-clipboard-list';
+const imprimirAntecedentes = () => {
+  window.print();
 };
 
 const esRespuestaPositiva = (respuesta: string): boolean => {
-  return respuesta?.toLowerCase() === 'si' || respuesta?.toLowerCase() === 'sí';
+  const respuestasPositivas = ['sí', 'si', 'yes', 'verdadero', 'true', 'positivo'];
+  return respuestasPositivas.includes(respuesta.toLowerCase());
 };
 
 const getBadgeClass = (respuesta: string): string => {
   if (esRespuestaPositiva(respuesta)) {
-    return 'badge bg-warning text-dark';
-  } else if (respuesta?.toLowerCase() === 'no') {
-    return 'badge bg-success';
-  } else {
-    return 'badge bg-info';
+    return 'bg-warning text-dark';
   }
+  return 'bg-success';
 };
 
-const imprimirAntecedentes = () => {
-  // Implementar funcionalidad de impresión
-  window.print();
+const getIconoCategoria = (categoria: string): string => {
+  const iconos: Record<string, string> = {
+    'Antecedentes Personales': 'fas fa-user',
+    'Antecedentes Familiares': 'fas fa-users',
+    'Medicamentos': 'fas fa-pills',
+    'Alergias': 'fas fa-exclamation-triangle',
+    'Hábitos': 'fas fa-smoking',
+    'Antecedentes Gineco-Obstétricos': 'fas fa-venus',
+    'Revisión por Sistemas': 'fas fa-stethoscope'
+  };
+  return iconos[categoria] || 'fas fa-file-medical';
+};
+
+const formatearFecha = (fecha: string | Date): string => {
+  const fechaObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
+  return fechaObj.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 };
 
 // Watchers
-watch(() => props.mostrarAntecedentes, (nuevoValor) => {
-  if (nuevoValor && props.pacienteId) {
+watch(() => props.mostrarAntecedentes, (mostrar) => {
+  if (mostrar && props.pacienteId) {
     cargarAntecedentes();
   }
 });
 
 watch(() => props.pacienteId, (nuevoPacienteId) => {
-  if (nuevoPacienteId && props.mostrarAntecedentes) {
+  if (props.mostrarAntecedentes && nuevoPacienteId) {
     cargarAntecedentes();
   }
 });
 
-// Lifecycle
+// Mount
 onMounted(() => {
   if (props.mostrarAntecedentes && props.pacienteId) {
     cargarAntecedentes();
@@ -319,174 +315,318 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Estilos para los antecedentes médicos */
-.antecedentes-content {
-  font-size: 0.95rem;
+/* Modal optimized styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+}
+
+.modal-dialog {
+  max-width: 98%;
+  max-height: 98vh;
+  margin: 0;
+  width: 100%;
+  opacity: 1;
+}
+
+.modal-content {
+  height: 95vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  background-color: #ffffff;
+  opacity: 1;
+}
+
+.modal-header {
+  flex-shrink: 0;
+  border-bottom: 2px solid #e3f2fd;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  color: white;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icon-container {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.icon-container i {
+  font-size: 1.5rem;
+  color: white;
+}
+
+.title-container h4 {
+  font-weight: 600;
+  color: white;
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem;
+  max-height: calc(95vh - 140px);
+  font-size: 0.9rem;
+  background: linear-gradient(135deg, #f8f9fae8 0%, #ffffff 100%);
+}
+
+.modal-footer {
+  flex-shrink: 0;
+  border-top: 2px solid #e3f2fd;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
+}
+
+.footer-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* Patient info card - Compact */
+.patient-info-card .card-body {
+  padding: 0.8rem 1rem;
 }
 
 .patient-info-card .card {
-  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  border: 1px solid #2196f3;
+  box-shadow: 0 2px 6px rgba(33, 150, 243, 0.15);
 }
 
+.patient-info-card .row {
+  margin: 0;
+}
+
+.patient-info-card .col-md-8,
+.patient-info-card .col-md-4 {
+  padding: 0.25rem 0;
+}
+
+/* Category cards - Compact */
 .categoria-antecedentes {
-  border-radius: 0.75rem;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0.75rem;
 }
 
 .categoria-card {
-  background: white;
-  border: 1px solid #e9ecef;
-  border-radius: 0.75rem;
+  border: 2px solid #e1f5fe;
+  border-radius: 0.5rem;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
 }
 
 .categoria-header {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  padding: 1.25rem;
-  border-bottom: 1px solid #dee2e6;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  padding: 0.7rem 0.85rem;
+  border-bottom: 2px solid #2196f3;
 }
 
 .categoria-title {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #495057;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1565c0;
   display: flex;
   align-items: center;
 }
 
 .categoria-body {
-  padding: 1.25rem;
+  padding: 0.75rem;
 }
 
-.no-respuestas {
-  text-align: center;
-  padding: 2rem;
-  background: #f8f9fa;
-  border-radius: 0.5rem;
-}
-
+/* Responsive grid - Optimized for more content */
 .respuestas-grid {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0.6rem;
 }
 
 .respuesta-item {
-  background: #f8f9fa;
+  background: #ffffff;
+  border: 1px solid #e1f5fe;
   border-radius: 0.5rem;
-  padding: 1rem;
-  border-left: 4px solid #dee2e6;
-  transition: all 0.2s ease;
+  padding: 0.75rem;
+  transition: all 0.3s ease-in-out;
+  font-size: 0.85rem;
+  box-shadow: 0 1px 3px rgba(33, 150, 243, 0.1);
 }
 
 .respuesta-item:hover {
-  transform: translateX(2px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: #2196f3;
+  box-shadow: 0 3px 8px rgba(33, 150, 243, 0.2);
+  transform: translateY(-1px);
 }
 
 .respuesta-positiva {
-  border-left-color: #ffc107;
-  background: linear-gradient(135deg, #fff3cd 0%, #fef7d8 100%);
+  border-left: 4px solid #ff9800;
+  background: linear-gradient(to right, #fff8e1 0%, #ffffff 15%);
+  box-shadow: 0 2px 6px rgba(255, 152, 0, 0.15);
 }
 
 .respuesta-content {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.4rem;
 }
 
 .pregunta-texto {
-  font-weight: 600;
-  color: #495057;
-  line-height: 1.4;
+  font-weight: 500;
+  color: #1565c0;
+  font-size: 0.85rem;
+  line-height: 1.3;
 }
 
 .respuesta-valor {
   display: flex;
   align-items: center;
+  margin-top: 0.3rem;
 }
 
 .respuesta-badge {
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 0.4rem 0.8rem;
-  border-radius: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 500;
 }
 
 .respuesta-detalle {
-  background: white;
-  border-radius: 0.375rem;
-  padding: 0.75rem;
-  border: 1px solid #dee2e6;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
+  border-radius: 0.3rem;
+  border-left: 3px solid #4caf50;
 }
 
 .detalle-label {
-  font-weight: 600;
-  color: #6c757d;
-  font-size: 0.85rem;
-  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #2e7d32;
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
 }
 
 .detalle-content {
-  color: #495057;
-  line-height: 1.5;
+  color: #388e3c;
+  font-size: 0.8rem;
+  line-height: 1.4;
 }
 
+.no-respuestas {
+  text-align: center;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 0.375rem;
+}
+
+/* Alerts section - Compact */
 .alertas-medicas-card {
-  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.alertas-medicas-card .card-header {
+  padding: 0.8rem 1rem;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border-bottom: 2px solid #ff9800;
+}
+
+.alertas-medicas-card .card-body {
+  padding: 1rem;
+  background: #fffef7;
 }
 
 .alerta-item {
-  padding: 0.75rem;
-  background: rgba(255, 193, 7, 0.1);
-  border-radius: 0.375rem;
-  border-left: 3px solid #ffc107;
+  margin-bottom: 0.8rem;
+  padding: 0.6rem;
+  background: linear-gradient(135deg, #fff8e1 0%, #ffffff 100%);
+  border-radius: 0.3rem;
+  border-left: 4px solid #ff9800;
+  box-shadow: 0 1px 3px rgba(255, 152, 0, 0.2);
 }
 
-/* Responsive */
+.alerta-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .respuestas-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .categoria-header,
-  .categoria-body {
-    padding: 1rem;
-  }
-  
-  .respuesta-content {
-    gap: 0.5rem;
-  }
-  
-  .modal-dialog.modal-xl {
-    margin: 0.25rem;
-    max-width: calc(100% - 0.5rem);
-  }
-}
-
-/* Print styles */
-@media print {
-  .modal-backdrop,
-  .modal-header,
-  .modal-footer {
-    display: none !important;
-  }
-  
   .modal-dialog {
-    margin: 0 !important;
-    max-width: 100% !important;
+    max-width: 100%;
+    height: 100vh;
   }
   
   .modal-content {
-    border: none !important;
-    box-shadow: none !important;
+    height: 100vh;
+    border-radius: 0;
   }
   
-  .categoria-card {
-    break-inside: avoid;
-    margin-bottom: 1rem;
+  .modal-body {
+    padding: 0.6rem;
+    font-size: 0.8rem;
+  }
+  
+  .respuestas-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .respuesta-item {
+    padding: 0.6rem;
+    font-size: 0.8rem;
+  }
+  
+  .categoria-header,
+  .alertas-medicas-card .card-header {
+    padding: 0.5rem 0.7rem;
+  }
+  
+  .categoria-body,
+  .alertas-medicas-card .card-body {
+    padding: 0.7rem;
+  }
+  
+  .pregunta-texto {
+    font-size: 0.8rem;
+  }
+  
+  .respuesta-badge {
+    font-size: 0.75rem;
+  }
+}
+
+@media (min-width: 1400px) {
+  .respuestas-grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+}
+
+@media (min-width: 1600px) {
+  .respuestas-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   }
 }
 </style>

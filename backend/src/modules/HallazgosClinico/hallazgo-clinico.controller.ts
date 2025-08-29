@@ -113,11 +113,11 @@ export class HallazgoClinicoController {
     @Body() crearHallazgoDto: CrearHallazgoClinicoDto,
     @Request() request: any
   ) {
-    this.logger.log(`Solicitud para crear hallazgo clínico del usuario ${request.user.userId}`);
+    this.logger.log(`Solicitud para crear hallazgo clínico del usuario ${request.user.id}`);
     
     return await this.hallazgoClinicoService.crearHallazgo(
       crearHallazgoDto,
-      request.user.userId
+      request.user.id
     );
   }
 
@@ -198,11 +198,11 @@ export class HallazgoClinicoController {
     @Query() filtros: FiltrosHallazgosClinicosDto,
     @Request() request: any
   ): Promise<RespuestaPaginadaHallazgosDto> {
-    this.logger.log(`Solicitud para listar hallazgos clínicos del usuario ${request.user.userId}`);
+    this.logger.log(`Solicitud para listar hallazgos clínicos del usuario ${request.user.id}`);
     
     return await this.hallazgoClinicoService.obtenerHallazgos(
       filtros,
-      request.user.userId
+      request.user.id
     );
   }
 
@@ -264,11 +264,11 @@ export class HallazgoClinicoController {
     @Param('id', ParseIntPipe) id: number,
     @Request() request: any
   ) {
-    this.logger.log(`Solicitud para obtener hallazgo clínico ${id} del usuario ${request.user.userId}`);
+    this.logger.log(`Solicitud para obtener hallazgo clínico ${id} del usuario ${request.user.id}`);
     
     return await this.hallazgoClinicoService.obtenerHallazgoPorId(
       id,
-      request.user.userId
+      request.user.id
     );
   }
 
@@ -321,12 +321,12 @@ export class HallazgoClinicoController {
     @Body() actualizarHallazgoDto: ActualizarHallazgoClinicoDto,
     @Request() request: any
   ) {
-    this.logger.log(`Solicitud para actualizar hallazgo clínico ${id} del usuario ${request.user.userId}`);
+    this.logger.log(`Solicitud para actualizar hallazgo clínico ${id} del usuario ${request.user.id}`);
     
     return await this.hallazgoClinicoService.actualizarHallazgo(
       id,
       actualizarHallazgoDto,
-      request.user.userId
+      request.user.id
     );
   }
 
@@ -364,11 +364,11 @@ export class HallazgoClinicoController {
     @Param('id', ParseIntPipe) id: number,
     @Request() request: any
   ): Promise<void> {
-    this.logger.log(`Solicitud para eliminar hallazgo clínico ${id} del usuario ${request.user.userId}`);
+    this.logger.log(`Solicitud para eliminar hallazgo clínico ${id} del usuario ${request.user.id}`);
     
     await this.hallazgoClinicoService.eliminarHallazgo(
       id,
-      request.user.userId
+      request.user.id
     );
   }
 
@@ -448,10 +448,10 @@ export class HallazgoClinicoController {
     @Query() filtros: Partial<FiltrosHallazgosClinicosDto>,
     @Request() request: any
   ): Promise<RespuestaPaginadaHallazgosDto> {
-    this.logger.log(`Solicitud para obtener hallazgos del usuario ${request.user.userId}`);
+    this.logger.log(`Solicitud para obtener hallazgos del usuario ${request.user.id}`);
     
     return await this.hallazgoClinicoService.obtenerHallazgosUsuario(
-      request.user.userId,
+      request.user.id,
       filtros
     );
   }
@@ -500,11 +500,11 @@ export class HallazgoClinicoController {
     @Param('id', ParseIntPipe) id: number,
     @Request() request: any
   ) {
-    this.logger.log(`Verificando acceso al hallazgo clínico ${id} para usuario ${request.user.userId}`);
+    this.logger.log(`Verificando acceso al hallazgo clínico ${id} para usuario ${request.user.id}`);
     
     return await this.hallazgoClinicoService.verificarAccesoHallazgo(
       id,
-      request.user.userId
+      request.user.id
     );
   }
 
@@ -554,7 +554,7 @@ export class HallazgoClinicoController {
     @Param('casoId', ParseIntPipe) casoId: number,
     @Request() request: any
   ) {
-    this.logger.log(`Solicitud para obtener hallazgos del caso ${casoId} del usuario ${request.user.userId}`);
+    this.logger.log(`Solicitud para obtener hallazgos del caso ${casoId} del usuario ${request.user.id}`);
     
     const filtros: FiltrosHallazgosClinicosDto = {
       casoClinicoId: casoId,
@@ -563,7 +563,7 @@ export class HallazgoClinicoController {
     
     const resultado = await this.hallazgoClinicoService.obtenerHallazgos(
       filtros,
-      request.user.userId
+      request.user.id
     );
     
     return resultado.hallazgos;

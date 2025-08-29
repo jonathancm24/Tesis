@@ -54,46 +54,20 @@ export class CrearHallazgoClinicoDto {
   @ApiProperty({
     description: 'Tipo de hallazgo clínico encontrado',
     example: 'Caries',
-    enum: [
-      'Caries',
-      'Gingivitis',
-      'Periodontitis',
-      'Absceso',
-      'Fractura',
-      'Desgaste',
-      'Maloclusión',
-      'Lesión de tejidos blandos',
-      'Anomalía dental',
-      'Patología pulpar',
-      'Otro'
-    ]
   })
   @IsString({ message: 'El tipo debe ser una cadena de texto' })
   @IsNotEmpty({ message: 'El tipo de hallazgo es obligatorio' })
   @Length(2, 50, { message: 'El tipo debe tener entre 2 y 50 caracteres' })
-  @IsIn([
-    'Caries',
-    'Gingivitis', 
-    'Periodontitis',
-    'Absceso',
-    'Fractura',
-    'Desgaste',
-    'Maloclusión',
-    'Lesión de tejidos blandos',
-    'Anomalía dental',
-    'Patología pulpar',
-    'Otro'
-  ], { message: 'Tipo de hallazgo no válido' })
   tipo: string;
 
   @ApiProperty({
-    description: 'Código de la zona anatómica donde se encontró el hallazgo (ej: D-16, D-21, etc.)',
+    description: 'Código de la zona anatómica donde se encontró el hallazgo (ej: D-16 para dientes, M-S15 para mucosa superior, M-I32 para mucosa inferior)',
     example: 'D-16',
-    pattern: '^[A-Z]-[0-9]{1,2}$'
+    pattern: '^(D-[0-9]{1,2}(-[A-Z]+)?|M-[SI][0-9]{1,2}|[A-Z]+-[0-9A-Z]+)$'
   })
   @IsString({ message: 'El código de zona debe ser una cadena de texto' })
   @IsNotEmpty({ message: 'El código de zona es obligatorio' })
-  @Length(3, 10, { message: 'El código de zona debe tener entre 3 y 10 caracteres' })
+  @Length(3, 20, { message: 'El código de zona debe tener entre 3 y 20 caracteres' })
   codigoZona: string;
 
   @ApiPropertyOptional({
@@ -170,19 +144,6 @@ export class FiltrosHallazgosClinicosDto {
   @ApiPropertyOptional({
     description: 'Tipo de hallazgo para filtrar',
     example: 'Caries',
-    enum: [
-      'Caries',
-      'Gingivitis',
-      'Periodontitis',
-      'Absceso',
-      'Fractura',
-      'Desgaste',
-      'Maloclusión',
-      'Lesión de tejidos blandos',
-      'Anomalía dental',
-      'Patología pulpar',
-      'Otro'
-    ]
   })
   @IsOptional()
   @IsString({ message: 'El tipo debe ser una cadena de texto' })

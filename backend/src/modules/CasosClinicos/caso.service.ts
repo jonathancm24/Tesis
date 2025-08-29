@@ -310,27 +310,52 @@ export class CasoClinicoService {
   async obtenerCasosClinicoConFiltros(filtros: FiltrosCasosClinicoDto): Promise<RespuestaPaginadaCasosClinicoDto> {
     this.logger.log(`Obteniendo casos clínicos con filtros: ${JSON.stringify(filtros)}`);
 
-    const { pagina = 1, limite = 10, ordenarPor = 'fechaCreacion', direccion = 'desc', ...criterios } = filtros;
+    // Asegurar que los parámetros de paginación sean números
+    const pagina = Number(filtros.pagina) || 1;
+    const limite = Number(filtros.limite) || 10;
+    const ordenarPor = filtros.ordenarPor || 'fechaCreacion';
+    const direccion = filtros.direccion || 'desc';
+    
     const saltar = (pagina - 1) * limite;
 
     // Construir condiciones WHERE
-    const where = this.buildWhereConditions(criterios);
+    const where = this.buildWhereConditions(filtros);
 
     const [casosClinico, total] = await Promise.all([
       this.prisma.casoClinico.findMany({
         where,
         include: {
           estudiante: {
-            select: { nombre: true, apellido: true }
+            select: { 
+              id: true,
+              nombre: true, 
+              apellido: true,
+              email: true 
+            }
           },
           profesor: {
-            select: { nombre: true, apellido: true }
+            select: { 
+              id: true,
+              nombre: true, 
+              apellido: true,
+              email: true 
+            }
           },
           paciente: {
-            select: { nombre: true, apellido: true }
+            select: { 
+              id: true,
+              nombre: true, 
+              apellido: true,
+              numeroDocumento: true,
+              fechaNacimiento: true
+            }
           },
           especialidad: {
-            select: { nombre: true }
+            select: { 
+              id: true,
+              nombre: true,
+              descripcion: true 
+            }
           },
           _count: {
             select: { 
@@ -339,22 +364,22 @@ export class CasoClinicoService {
           }
         },
         orderBy: { [ordenarPor]: direccion },
-        skip: saltar,
-        take: limite
+        skip: Number(saltar),
+        take: Number(limite)
       }),
       this.prisma.casoClinico.count({ where })
     ]);
 
-    const totalPaginas = Math.ceil(total / limite);
+    const totalPaginas = Math.ceil(total / Number(limite));
 
     return {
       data: casosClinico.map(caso => this.mapearCasoClinicoResumen(caso)),
       total,
-      pagina,
-      limite,
+      pagina: Number(pagina),
+      limite: Number(limite),
       totalPaginas,
-      hayPaginaSiguiente: pagina < totalPaginas,
-      hayPaginaAnterior: pagina > 1
+      hayPaginaSiguiente: Number(pagina) < totalPaginas,
+      hayPaginaAnterior: Number(pagina) > 1
     };
   }
 
@@ -512,19 +537,34 @@ export class CasoClinicoService {
    * @param caso - Resultado de Prisma con includes
    * @returns Resumen del caso clínico
    */
-  private mapearCasoClinicoResumen(caso: any): ICasoClinicoResumen {
+  private mapearCasoClinicoResumen(caso: any): any {
+    console.log('🔍 Mapeando caso clínico:', {
+      id: caso.id,
+      paciente: caso.paciente,
+      estudiante: caso.estudiante,
+      profesor: caso.profesor,
+      especialidad: caso.especialidad
+    });
+
     return {
       id: caso.id,
       fechaCreacion: caso.fechaCreacion,
+      fechaActualizacion: caso.fechaActualizacion,
       estado: caso.estado,
       motivoConsulta: caso.motivoConsulta,
-      nombreEstudiante: `${caso.estudiante.nombre} ${caso.estudiante.apellido}`,
-      nombreProfesor: `${caso.profesor.nombre} ${caso.profesor.apellido}`,
-      nombrePaciente: `${caso.paciente.nombre} ${caso.paciente.apellido}`,
-      nombreEspecialidad: caso.especialidad.nombre,
+      enfermedadActual: caso.enfermedadActual,
       calificacion: caso.calificacion,
+      nombreEstudiante: `${caso.estudiante?.nombre || 'Sin nombre'} ${caso.estudiante?.apellido || 'Sin apellido'}`,
+      nombreProfesor: `${caso.profesor?.nombre || 'Sin nombre'} ${caso.profesor?.apellido || 'Sin apellido'}`,
+      nombrePaciente: `${caso.paciente?.nombre || 'Sin nombre'} ${caso.paciente?.apellido || 'Sin apellido'}`,
+      nombreEspecialidad: caso.especialidad?.nombre || 'Sin especialidad',
       totalTratamientos: caso._count?.tratamientos || 0,
-      tratamientosFinalizados: 0 // Se calculará en el query específico
+      tratamientosFinalizados: 0, // Se calculará en el query específico
+      // Incluir objetos completos para compatibilidad con frontend
+      paciente: caso.paciente,
+      estudiante: caso.estudiante,
+      profesor: caso.profesor,
+      especialidad: caso.especialidad
     };
   }
 

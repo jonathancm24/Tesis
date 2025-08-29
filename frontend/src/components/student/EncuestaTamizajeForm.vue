@@ -546,14 +546,14 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.2) !important;
   border: none !important;
   border-radius: 50% !important;
-  width: 40px !important;
-  height: 40px !important;
+  width: 35px !important; /* Más compacto */
+  height: 35px !important; /* Más compacto */
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   color: white !important;
   opacity: 1 !important;
-  font-size: 1rem !important;
+  font-size: 0.9rem !important; /* Más pequeño */
   transition: all 0.2s ease !important;
   flex-shrink: 0 !important;
 }
@@ -601,25 +601,25 @@ onMounted(() => {
 .encuesta-modal-footer {
   background: #f8f9fa !important;
   border-top: 1px solid #e9ecef !important;
-  padding: 1.25rem 1.5rem !important;
+  padding: 1rem 1.25rem !important; /* Más compacto */
   display: flex !important;
   justify-content: flex-end !important;
-  gap: 1rem !important;
+  gap: 0.75rem !important; /* Reducido gap */
   flex-shrink: 0 !important;
   border-radius: 0 0 1rem 1rem !important;
 }
 
 .footer-actions {
   display: flex !important;
-  gap: 1rem !important;
+  gap: 0.75rem !important; /* Reducido gap */
   align-items: center !important;
 }
 
 .footer-actions .btn {
-  padding: 0.75rem 1.5rem !important;
+  padding: 0.6rem 1.25rem !important; /* Más compacto */
   font-weight: 600 !important;
-  border-radius: 0.5rem !important;
-  font-size: 0.95rem !important;
+  border-radius: 0.4rem !important; /* Más compacto */
+  font-size: 0.85rem !important; /* Más pequeño */
   transition: all 0.2s ease !important;
   white-space: nowrap !important;
 }
@@ -688,23 +688,23 @@ onMounted(() => {
 /* Secciones de categorías */
 .categoria-section {
   background: #f8f9fa !important;
-  border-radius: 0.75rem !important;
-  padding: 1.5rem !important;
+  border-radius: 0.5rem !important; /* Más compacto */
+  padding: 1rem !important; /* Reducido desde 1.5rem */
   border-left: 4px solid #0d6efd !important;
-  margin-bottom: 1.5rem !important;
+  margin-bottom: 1rem !important; /* Reducido desde 1.5rem */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
 }
 
 .section-header {
   border-bottom: 2px solid #e9ecef !important;
-  padding-bottom: 0.75rem !important;
-  margin-bottom: 1rem !important;
+  padding-bottom: 0.5rem !important; /* Reducido desde 0.75rem */
+  margin-bottom: 0.75rem !important; /* Reducido desde 1rem */
 }
 
 .categoria-title {
   color: #495057 !important;
   font-weight: 700 !important;
-  font-size: 1.1rem !important;
+  font-size: 1rem !important; /* Reducido desde 1.1rem */
   margin: 0 !important;
   display: flex !important;
   align-items: center !important;
@@ -714,11 +714,11 @@ onMounted(() => {
   padding-top: 0.5rem !important;
 }
 
-/* Grid de preguntas - NUEVA IMPLEMENTACIÓN */
+/* Grid de preguntas - OPTIMIZADO PARA 93 PREGUNTAS */
 .preguntas-grid {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
-  gap: 1rem !important;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+  gap: 0.75rem !important;
   width: 100% !important;
 }
 
@@ -727,18 +727,19 @@ onMounted(() => {
   grid-column: 1 / -1 !important; /* Ocupa toda la fila cuando necesita detalle */
 }
 
-/* Items de preguntas */
+/* Items de preguntas - COMPACTO Y PROFESIONAL */
 .pregunta-item {
   background: white !important;
-  border-radius: 0.5rem !important;
-  padding: 1rem !important;
+  border-radius: 0.375rem !important;
+  padding: 0.75rem !important;
   border: 1px solid #e9ecef !important;
   transition: all 0.2s ease !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
   height: fit-content !important;
-  min-height: 120px !important;
+  min-height: 100px !important;
   display: flex !important;
   flex-direction: column !important;
+  font-size: 0.875rem !important; /* Tamaño de fuente optimizado */
 }
 
 .pregunta-item:hover {
@@ -760,12 +761,12 @@ onMounted(() => {
 }
 
 .pregunta-label {
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   color: #495057 !important;
-  margin-bottom: 0.5rem !important;
-  line-height: 1.4 !important;
+  margin-bottom: 0.4rem !important;
+  line-height: 1.3 !important;
   display: block !important;
-  font-size: 0.9rem !important;
+  font-size: 0.85rem !important; /* Tamaño más compacto */
   flex-shrink: 0 !important;
 }
 
@@ -780,7 +781,7 @@ onMounted(() => {
 /* Opciones de respuesta */
 .respuesta-opciones {
   display: flex !important;
-  gap: 1rem !important;
+  gap: 0.75rem !important; /* Reducido desde 1rem */
   align-items: center !important;
   justify-content: center !important;
   flex-wrap: wrap !important;
@@ -794,33 +795,33 @@ onMounted(() => {
 
 .form-check-input {
   margin-top: 0 !important;
-  margin-right: 0.4rem !important;
-  width: 1.1rem !important;
-  height: 1.1rem !important;
+  margin-right: 0.3rem !important; /* Reducido desde 0.4rem */
+  width: 1rem !important; /* Reducido desde 1.1rem */
+  height: 1rem !important; /* Reducido desde 1.1rem */
 }
 
 .form-check-label {
   font-weight: 500 !important;
   color: #495057 !important;
+  font-size: 0.8rem !important; /* Más compacto */
   cursor: pointer !important;
   margin-bottom: 0 !important;
-  font-size: 0.9rem !important;
 }
 
 /* Campos de texto y número */
 .respuesta-texto .form-control,
 .respuesta-numero .form-control {
   border: 2px solid #e9ecef !important;
-  border-radius: 0.4rem !important;
-  padding: 0.5rem 0.75rem !important;
-  font-size: 0.85rem !important;
+  border-radius: 0.3rem !important; /* Más compacto */
+  padding: 0.4rem 0.6rem !important; /* Reducido padding */
+  font-size: 0.8rem !important; /* Más pequeño */
   transition: all 0.2s ease !important;
-  min-height: 38px !important;
+  min-height: 32px !important; /* Reducido altura */
 }
 
 .respuesta-texto .form-control {
   resize: vertical !important;
-  min-height: 60px !important;
+  min-height: 50px !important; /* Reducido altura de textarea */
 }
 
 .respuesta-texto .form-control:focus,

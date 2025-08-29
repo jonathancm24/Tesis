@@ -63,7 +63,7 @@ export class CondicionDentalDto {
   })
   @IsOptional()
   @IsString()
-  @Length(5, 500)
+  @Length(1, 500)
   descripcion?: string;
 
   @ApiPropertyOptional({
@@ -102,7 +102,7 @@ export class CondicionDentalDto {
   })
   @IsOptional()
   @IsString()
-  @Length(5, 300)
+  @Length(1, 300)
   observacionesCondicion?: string;
 }
 
@@ -149,7 +149,7 @@ export class CrearOdontogramaDto {
   })
   @IsOptional()
   @IsString()
-  @Length(10, 1000)
+  @Length(1, 1000)
   conclusion?: string;
 
   @ApiProperty({
@@ -238,7 +238,7 @@ export class ActualizarOdontogramaBasicoDto {
   })
   @IsOptional()
   @IsString()
-  @Length(10, 1000)
+  @Length(1, 1000)
   conclusion?: string;
 }
 

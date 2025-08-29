@@ -294,6 +294,7 @@
               <th>Diente</th>
               <th>Superficie</th>
               <th>Condición</th>
+              <th>Observaciones</th>
               <th>Acción</th>
             </tr>
           </thead>
@@ -312,6 +313,16 @@
                   {{ conditionLabels[hallazgo.condicion] }}
                 </span>
               </td>
+              <td style="min-width: 200px;">
+                <textarea 
+                  v-model="allTeethState.get(hallazgo.diente)!.observacion"
+                  @input="emitirCambios"
+                  class="form-control form-control-sm"
+                  rows="2"
+                  :placeholder="`Observaciones del diente ${hallazgo.diente}...`"
+                  style="font-size: 0.8rem; resize: vertical;"
+                ></textarea>
+              </td>
               <td>
                 <button 
                   class="btn btn-outline-danger btn-sm"
@@ -324,6 +335,30 @@
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Conclusión general del odontograma -->
+    <div class="conclusion-general-section">
+      <div class="conclusion-header">
+        <h6 class="fw-bold text-success mb-2">
+          <i class="fas fa-clipboard-check me-1"></i>
+          Conclusión General del Odontograma
+        </h6>
+      </div>
+      <div class="conclusion-content">
+        <textarea 
+          v-model="conclusionGeneral"
+          @input="emitirCambios"
+          class="form-control"
+          rows="4"
+          placeholder="Escriba aquí las conclusiones generales del examen odontológico, observaciones importantes, plan de tratamiento recomendado, etc..."
+          style="resize: vertical;"
+        ></textarea>
+        <small class="text-muted mt-1 d-block">
+          <i class="fas fa-info-circle me-1"></i>
+          Campo opcional para resumir los hallazgos y proponer un plan de tratamiento general.
+        </small>
       </div>
     </div>
   </div>
@@ -372,12 +407,14 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'update:modelValue': [value: DienteDetallado[]];
   'update:hallazgos': [value: HallazgoOdontologico[]];
+  'update:datosCompletos': [value: Map<string, any>];
   change: [value: DienteDetallado[]];
 }>();
 
 // Estado local - solo condición activa
 const condicionActiva = ref<EstadoDiente>('caries');
 const guardandoDatos = ref(false);
+const conclusionGeneral = ref<string>('');
 const { showToast } = useToast();
 
 // Constantes de colores y etiquetas
@@ -553,10 +590,19 @@ const emitirCambios = async () => {
   
   emit('update:modelValue', dientesConHallazgos);
   emit('update:hallazgos', [...hallazgos]); // Emitir hallazgos también
+  
+  // Emitir datos completos como objeto especial para el backend
+  const datosCompletos = new Map<string, any>();
+  for (const [key, value] of allTeethState.value) {
+    datosCompletos.set(key, value);
+  }
+  datosCompletos.set('_conclusionGeneral', conclusionGeneral.value);
+  
+  emit('update:datosCompletos', datosCompletos);
   emit('change', dientesConHallazgos);
 
   // Guardar en el backend si hay caso clínico ID
-  if (props.casoClinicoId && dientesConHallazgos.length > 0) {
+  if (props.casoClinicoId && (dientesConHallazgos.length > 0 || conclusionGeneral.value.trim())) {
     await guardarEnBackend();
   }
 };
@@ -568,9 +614,17 @@ const guardarEnBackend = async () => {
     guardandoDatos.value = true;
     console.log('💾 Guardando odontograma en el backend...');
     
+    // Crear datos completos incluyendo conclusión general
+    const datosCompletos = new Map<string, any>();
+    for (const [key, value] of allTeethState.value) {
+      datosCompletos.set(key, value);
+    }
+    datosCompletos.set('_conclusionGeneral', conclusionGeneral.value);
+    
     const resultado = await odontogramaService.guardarOdontogramaCompleto(
-      allTeethState.value,
-      props.casoClinicoId
+      datosCompletos,
+      props.casoClinicoId,
+      conclusionGeneral.value
     );
     
     console.log('✅ Odontograma guardado exitosamente:', resultado);
@@ -618,8 +672,17 @@ const cargarDatosDelBackend = async () => {
     if (respuesta.odontogramas.length > 0) {
       console.log('📥 Datos cargados del backend:', respuesta.odontogramas);
       
+      // Buscar conclusión general primero
+      const odontogramaGeneral = respuesta.odontogramas.find(o => o.diente === 'odontograma_general');
+      if (odontogramaGeneral && odontogramaGeneral.conclusion) {
+        conclusionGeneral.value = odontogramaGeneral.conclusion;
+      }
+      
       // Convertir datos del backend al formato del componente
       respuesta.odontogramas.forEach(odontograma => {
+        // Saltar el registro general
+        if (odontograma.diente === 'odontograma_general') return;
+        
         const dienteLocal = allTeethState.value.get(odontograma.diente);
         if (dienteLocal && odontograma.condicion) {
           // Convertir condiciones del backend a superficies del componente
@@ -1010,6 +1073,34 @@ inicializarDatos();
   margin-bottom: 0.75rem;
 }
 
+.conclusion-general-section {
+  background: #f0fdf4;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid #bbf7d0;
+  margin-top: 1rem;
+}
+
+.conclusion-header {
+  margin-bottom: 0.75rem;
+}
+
+.conclusion-content .form-control {
+  border: 1px solid #16a34a;
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  background-color: #ffffff;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.conclusion-content .form-control:focus {
+  border-color: #15803d;
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(34, 197, 94, 0.25);
+}
+
 .table {
   margin-bottom: 0;
 }
@@ -1026,6 +1117,17 @@ inicializarDatos();
   font-size: 0.85rem;
   vertical-align: middle;
   padding: 0.5rem;
+}
+
+.table td .form-control {
+  border: 1px solid #d1d5db;
+  font-size: 0.8rem;
+  padding: 0.375rem 0.5rem;
+}
+
+.table td .form-control:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 0.1rem rgba(59, 130, 246, 0.25);
 }
 
 .badge {

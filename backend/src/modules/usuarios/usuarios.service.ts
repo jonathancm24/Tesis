@@ -424,4 +424,35 @@ export class UsuariosService {
       }))
     };
   }
+  // Obtener usuarios por id de especialidad especifica
+  async getUsuariosPorEspecialidad(especialidadId: number) {
+    const usuarios = await this.prisma.usuario.findMany({
+      where: {
+        especialidades: {
+          some: {
+            especialidadId
+          }
+        }
+      },
+      include: {
+        especialidades: {
+          include: {
+            especialidad: true
+          }
+        },
+        role: true
+      }
+    });
+
+    return usuarios.map(usuario => ({
+      id: usuario.id,
+      nombre: usuario.nombre,
+      email: usuario.email,
+      especialidades: usuario.especialidades.map(ue => ({
+        id: ue.especialidad.id,
+        nombre: ue.especialidad.nombre
+      })),
+      role: usuario.role.nombre
+    }));
+  }
 }

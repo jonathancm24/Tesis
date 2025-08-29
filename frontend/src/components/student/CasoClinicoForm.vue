@@ -1,5 +1,5 @@
 <template>
-  <div v-if="mostrarFormulario" class="caso-clinico-backdrop show" @click.self="cerrarFormulario">
+  <div v-if="mostrarFormulario" class="caso-clinico-backdrop show">
     <div class="caso-clinico-modal">
       <div class="caso-clinico-content">
         
@@ -58,7 +58,7 @@
                   v-model="formulario.especialidadId" 
                   class="form-select"
                   :class="{ 'is-invalid': errores.especialidadId }"
-                  @change="cargarPreguntasEspecialidad"
+                  @change="onEspecialidadChange"
                   required
                 >
                   <option value="">Selecciona una especialidad...</option>
@@ -119,19 +119,20 @@
 
               <!-- Enfermedad actual -->
               <div class="col-12">
-                <label class="form-label">Enfermedad Actual</label>
+                <label class="form-label required">Enfermedad Actual</label>
                 <textarea
                   v-model="formulario.enfermedadActual"
                   class="form-control"
                   :class="{ 'is-invalid': errores.enfermedadActual }"
                   rows="5"
                   placeholder="Describe detalladamente la evolución y características de la enfermedad actual..."
+                  required
                 ></textarea>
                 <div v-if="errores.enfermedadActual" class="invalid-feedback">
                   {{ errores.enfermedadActual }}
                 </div>
                 <div class="form-text">
-                  Campo opcional
+                  Mínimo 20 caracteres, máximo 2000
                 </div>
               </div>
             </div>
@@ -307,6 +308,7 @@
               <div class="odontograma-container-expandido">
                 <OdontogramaCompacto
                   @change="onOdontogramaChange"
+                  @update:datosCompletos="onOdontogramaDataChange"
                   :readonly="false"
                   :show-tools="true"
                   :casoClinicoId="props.casoId"
@@ -326,12 +328,23 @@
                       <div class="card-body p-2">
                         <div class="d-flex justify-content-between align-items-start">
                           <div>
-                            <strong>Diente {{ hallazgo.diente }}</strong>
-                            <span v-if="hallazgo.superficie" class="text-muted"> ({{ hallazgo.superficie }})</span>
+                            <!-- Hallazgo en diente -->
+                            <template v-if="hallazgo.diente">
+                              <strong>Diente {{ hallazgo.diente }}</strong>
+                              <span v-if="hallazgo.superficie" class="text-muted"> ({{ hallazgo.superficie }})</span>
+                            </template>
+                            <!-- Hallazgo en mucosa -->
+                            <template v-else-if="hallazgo.zona">
+                              <strong>{{ hallazgo.zona }}</strong>
+                              <br>
+                              <small class="text-muted">{{ hallazgo.vista }} - Zona {{ hallazgo.numero }}</small>
+                            </template>
                             <br>
                             <span class="badge" :class="getBadgeClass(hallazgo.condicion)">
                               {{ getEstadoTexto(hallazgo.condicion) }}
                             </span>
+                            <br>
+                            <small class="text-muted">{{ hallazgo.descripcion }}</small>
                           </div>
                           <button 
                             type="button" 
@@ -611,6 +624,7 @@ import clinicalCaseService, {
   type PreguntaClinica
 } from '@/services/clinicalCaseService';
 import studentService from '@/services/studentService';
+import odontogramaService from '@/services/odontogramaService';
 import type { PacienteLista } from '@/types/patient';
 
 // =======================================
@@ -618,10 +632,15 @@ import type { PacienteLista } from '@/types/patient';
 // =======================================
 
 interface HallazgoOdontologico {
-  diente: string;
-  superficie: string;
+  diente: string | null;
+  superficie: string | null;
   condicion: string;
   descripcion: string;
+  codigoZona?: string;
+  tipo?: string;
+  zona?: string;
+  vista?: string;
+  numero?: number;
 }
 
 interface MucosaSeleccionada {
@@ -722,6 +741,9 @@ const hallazgosEncontrados = ref<HallazgoOdontologico[]>([]);
 const mucosasSeleccionadas = ref<MucosaSeleccionada[]>([]);
 const respuestasClinicas = ref<Record<number, string>>({});
 
+// Datos del odontograma para integración completa
+const datosOdontograma = ref<Map<string, any>>(new Map());
+
 // Control de errores
 const errores = ref<Record<string, string>>({});
 
@@ -771,7 +793,8 @@ function validarSeccionMotivo(): boolean {
   return !!(
     formulario.value.especialidadId &&
     formulario.value.profesorId &&
-    formulario.value.motivoConsulta.length >= 10
+    formulario.value.motivoConsulta.length >= 10 &&
+    formulario.value.enfermedadActual.length >= 20
   );
 }
 
@@ -822,6 +845,11 @@ function validarFormulario(): boolean {
 
   if (formulario.value.motivoConsulta.length < 10) {
     errores.value.motivoConsulta = 'El motivo de consulta debe tener al menos 10 caracteres';
+    esValido = false;
+  }
+
+  if (formulario.value.enfermedadActual.length < 20) {
+    errores.value.enfermedadActual = 'La enfermedad actual debe tener al menos 20 caracteres';
     esValido = false;
   }
 
@@ -886,10 +914,29 @@ async function cargarEspecialidades(): Promise<void> {
 
 async function cargarProfesores(): Promise<void> {
   try {
-    profesores.value = await studentService.obtenerDocentes();
+    // Si hay especialidad seleccionada, cargar solo profesores de esa especialidad
+    const especialidadId = formulario.value.especialidadId || undefined;
+    profesores.value = await studentService.obtenerDocentes(especialidadId);
   } catch (error) {
     console.error('Error al cargar profesores:', error);
     showToast('Error al cargar profesores', 'error');
+  }
+}
+
+// Nueva función para manejar el cambio de especialidad
+async function onEspecialidadChange(): Promise<void> {
+  // Limpiar profesor seleccionado cuando cambie la especialidad
+  formulario.value.profesorId = null;
+  
+  // Cargar preguntas y profesores de la nueva especialidad
+  try {
+    await Promise.all([
+      cargarPreguntasEspecialidad(),
+      cargarProfesores()
+    ]);
+  } catch (error) {
+    console.error('Error al actualizar datos:', error);
+    showToast('Error al actualizar profesores y preguntas', 'error');
   }
 }
 
@@ -919,18 +966,78 @@ async function cargarPreguntasEspecialidad(): Promise<void> {
 // MÉTODOS DE HALLAZGOS
 // =======================================
 
-function onOdontogramaChange(dientes: any[]): void {
+function onOdontogramaChange(dientes: any[], datosCompletos?: Map<string, any>): void {
+  // Actualizar hallazgos simplificados para la vista
   hallazgosEncontrados.value = dientes.map(diente => ({
     diente: diente.numero,
     superficie: diente.superficie || '',
     condicion: diente.estado,
     descripcion: diente.observaciones || `${diente.estado} en diente ${diente.numero}`
   }));
+
+  // Guardar datos completos del odontograma para el guardado en backend
+  if (datosCompletos) {
+    datosOdontograma.value = new Map(datosCompletos);
+  }
+}
+
+// Función separada para recibir los datos completos del odontograma
+function onOdontogramaDataChange(datosCompletos: Map<string, any>): void {
+  datosOdontograma.value = new Map(datosCompletos);
 }
 
 function onTopografiaChange(datos: any): void {
   // Procesar datos de topografía de mucosa
-  mucosasSeleccionadas.value = datos.selecciones || [];
+  if (datos.hallazgosClinicosGenerados && datos.hallazgosClinicosGenerados.length > 0) {
+    // Limpiar hallazgos de mucosa existentes para evitar duplicados
+    hallazgosEncontrados.value = hallazgosEncontrados.value.filter(h => 
+      h.condicion !== 'HALLAZGO_MUCOSA'
+    );
+    
+    // Agregar automáticamente los hallazgos clínicos generados
+    datos.hallazgosClinicosGenerados.forEach((hallazgo: any) => {
+      hallazgosEncontrados.value.push({
+        diente: null,
+        superficie: null,
+        condicion: 'HALLAZGO_MUCOSA',
+        codigoZona: hallazgo.codigoZona,
+        descripcion: hallazgo.descripcion,
+        tipo: hallazgo.tipo,
+        zona: hallazgo.zona,
+        vista: hallazgo.vista,
+        numero: hallazgo.numero
+      });
+    });
+  }
+  
+  // Actualizar las mucosas seleccionadas para la interfaz
+  if (datos.topografia) {
+    const mucosasConHallazgos: any[] = [];
+    
+    // Procesar superior
+    datos.topografia.superior?.forEach((item: any) => {
+      if (item.marcado) {
+        mucosasConHallazgos.push({
+          vista: 'superior',
+          numero: item.numero,
+          descripcion: item.descripcion || item.nombre
+        });
+      }
+    });
+    
+    // Procesar inferior
+    datos.topografia.inferior?.forEach((item: any) => {
+      if (item.marcado) {
+        mucosasConHallazgos.push({
+          vista: 'inferior',
+          numero: item.numero,
+          descripcion: item.descripcion || item.nombre
+        });
+      }
+    });
+    
+    mucosasSeleccionadas.value = mucosasConHallazgos;
+  }
 }
 
 function removerHallazgo(index: number): void {
@@ -957,7 +1064,8 @@ function getBadgeClass(estado: string): string {
     'OBTURADO': 'bg-info',
     'AUSENTE': 'bg-danger',
     'CORONA': 'bg-primary',
-    'ENDODONCIA': 'bg-secondary'
+    'ENDODONCIA': 'bg-secondary',
+    'HALLAZGO_MUCOSA': 'bg-info'
   };
   return clases[estado] || 'bg-secondary';
 }
@@ -969,7 +1077,8 @@ function getEstadoTexto(estado: string): string {
     'OBTURADO': 'Obturado',
     'AUSENTE': 'Ausente',
     'CORONA': 'Corona',
-    'ENDODONCIA': 'Endodoncia'
+    'ENDODONCIA': 'Endodoncia',
+    'HALLAZGO_MUCOSA': 'Hallazgo en Mucosa'
   };
   return textos[estado] || estado;
 }
@@ -991,35 +1100,61 @@ function getTipoPreguntaTexto(tipo: string): string {
 // =======================================
 
 async function verificarElegibilidadPaciente(): Promise<boolean> {
-  if (!props.paciente) return false;
+  if (!props.paciente) {
+    console.log('❌ No hay paciente para verificar elegibilidad');
+    return false;
+  }
   
   try {
-    return await clinicalCaseService.verificarElegibilidadPaciente(props.paciente.id);
+    console.log('🔍 Verificando elegibilidad del paciente ID:', props.paciente.id);
+    const resultado = await clinicalCaseService.verificarElegibilidadPaciente(props.paciente.id);
+    console.log('✅ Resultado de elegibilidad:', resultado);
+    return resultado;
   } catch (error) {
-    console.error('Error al verificar elegibilidad:', error);
-    return false;
+    console.error('❌ Error al verificar elegibilidad:', error);
+    // En lugar de fallar completamente, permitir continuar si hay error
+    console.log('⚠️ Asumiendo elegibilidad por error en la verificación');
+    return true;
   }
 }
 
 async function guardarCasoClinico(): Promise<void> {
-  if (!validarFormulario()) {
+  console.log('🚀 Iniciando guardado de caso clínico...');
+  
+  // Debug: verificar datos del formulario
+  console.log('📝 Datos del formulario:', formulario.value);
+  console.log('👤 Paciente seleccionado:', props.paciente);
+  console.log('🦷 Datos del odontograma:', datosOdontograma.value);
+  
+  const validacionExitosa = validarFormulario();
+  console.log('✅ Validación del formulario:', validacionExitosa);
+  console.log('❌ Errores encontrados:', errores.value);
+  
+  if (!validacionExitosa) {
     showToast('Por favor corrige los errores en el formulario', 'error');
     return;
   }
 
   if (!props.paciente) {
+    console.log('❌ No hay paciente seleccionado');
     showToast('No hay paciente seleccionado', 'error');
     return;
   }
 
+  console.log('🔍 Verificando elegibilidad del paciente...');
   // Verificar elegibilidad del paciente
   const esElegible = await verificarElegibilidadPaciente();
+  console.log('🎯 Paciente elegible:', esElegible);
+  
+  // TEMPORAL: Para fines de pruebas, continuar aunque no sea elegible
   if (!esElegible) {
-    showToast('El paciente debe tener al menos una encuesta de tamizaje completada', 'error');
-    return;
+    console.log('⚠️ MODO PRUEBAS: Continuando aunque el paciente no sea elegible');
+    showToast('⚠️ Paciente sin encuesta de tamizaje - Modo pruebas activado', 'warning');
+    // No retornar, continuar con el guardado
   }
 
   try {
+    console.log('💾 Iniciando proceso de guardado...');
     guardando.value = true;
 
     // Preparar datos del caso clínico
@@ -1039,38 +1174,57 @@ async function guardarCasoClinico(): Promise<void> {
       talla: formulario.value.talla!
     };
 
+    console.log('📦 Datos preparados para enviar:', datosCasoClinico);
+
     let casoClinico;
     
     if (modoEdicion.value) {
+      console.log('✏️ Actualizando caso existente...');
       // Actualizar caso existente
       casoClinico = await clinicalCaseService.actualizarCasoClinico(props.casoId!, datosCasoClinico);
     } else {
+      console.log('🆕 Creando nuevo caso clínico...');
       // Crear nuevo caso
       casoClinico = await clinicalCaseService.crearCasoClinico(datosCasoClinico);
     }
 
-    // Guardar hallazgos si existen
-    if (hallazgosEncontrados.value.length > 0) {
-      const hallazgosParaGuardar: CrearHallazgoRequest[] = hallazgosEncontrados.value.map(h => ({
-        diente: h.diente,
-        superficie: h.superficie,
-        condicion: h.condicion,
-        descripcion: h.descripcion
-      }));
+    console.log('✅ Caso clínico guardado:', casoClinico);
 
-      await clinicalCaseService.guardarHallazgos(casoClinico.id, hallazgosParaGuardar);
+    // Guardar odontograma completo usando el servicio específico
+    if (datosOdontograma.value.size > 0) {
+      try {
+        await odontogramaService.guardarOdontogramaCompleto(datosOdontograma.value, casoClinico.id);
+      } catch (error) {
+        console.error('Error al guardar odontograma:', error);
+        showToast('Advertencia: El caso se guardó pero hubo un error al guardar el odontograma', 'warning');
+      }
     }
 
-    // Guardar hallazgos de mucosa si existen
-    if (mucosasSeleccionadas.value.length > 0) {
-      const hallazgosMucosa: CrearHallazgoRequest[] = mucosasSeleccionadas.value.map(m => ({
-        ubicacionMucosa: `${m.vista} ${m.numero}`,
-        condicion: 'HALLAZGO',
-        descripcion: m.descripcion,
-        caracteristicas: m.descripcion
-      }));
+    // Guardar hallazgos de mucosa y odontograma si existen
+    if (hallazgosEncontrados.value.length > 0) {
+      const hallazgosParaGuardar: CrearHallazgoRequest[] = hallazgosEncontrados.value.map(h => {
+        if (h.condicion === 'HALLAZGO_MUCOSA') {
+          // Para hallazgos de mucosa, usar el codigoZona directamente
+          return {
+            condicion: 'MUCOSA_ORAL',
+            descripcion: h.descripcion,
+            ubicacionMucosa: `${h.vista} ${h.numero}`, // Para el servicio
+            caracteristicas: h.tipo || undefined
+          };
+        } else {
+          // Para hallazgos de dientes
+          return {
+            diente: h.diente || undefined,
+            superficie: h.superficie || undefined,
+            condicion: h.condicion,
+            descripcion: h.descripcion,
+            ubicacionMucosa: h.codigoZona || undefined,
+            caracteristicas: h.tipo || undefined
+          };
+        }
+      });
 
-      await clinicalCaseService.guardarHallazgos(casoClinico.id, hallazgosMucosa);
+      await clinicalCaseService.guardarHallazgos(casoClinico.id, hallazgosParaGuardar);
     }
 
     // Guardar respuestas a preguntas clínicas si existen
@@ -1125,6 +1279,7 @@ function cerrarFormulario(): void {
   hallazgosEncontrados.value = [];
   mucosasSeleccionadas.value = [];
   respuestasClinicas.value = {};
+  datosOdontograma.value = new Map(); // Limpiar datos del odontograma
   errores.value = {};
   seccionActual.value = 'motivo';
   

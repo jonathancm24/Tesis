@@ -162,6 +162,27 @@ class AuthService {
     return user?.id || null;
   }
 
+  /**
+   * Decodifica el token JWT para obtener el ID del usuario (sub claim)
+   * Esto es más confiable que el localStorage ya que viene directamente del token
+   */
+  getUserIdFromToken(): number | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      // Decodificar el token JWT (solo la parte payload, sin verificar la firma)
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(window.atob(base64));
+      
+      return payload.sub || null;
+    } catch (error) {
+      console.error('Error al decodificar token:', error);
+      return null;
+    }
+  }
+
 }
 
 export const authService = new AuthService()

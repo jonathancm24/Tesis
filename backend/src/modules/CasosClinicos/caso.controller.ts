@@ -244,7 +244,7 @@ export class CasoClinicoController {
     return this.casoClinicoService.actualizarCasoClinicoBasico(
       id, 
       updateDto, 
-      user.sub, 
+      user.id, 
       user.role.nombre
     );
   }
@@ -469,9 +469,9 @@ export class CasoClinicoController {
     @Req() req: Request
   ): Promise<RespuestaPaginadaCasosClinicoDto> {
     const { user } = req as any;
-    
+
     // Si es estudiante, solo puede ver sus propios casos
-    if (user.role.nombre === RoleEnum.ESTUDIANTE && user.sub !== estudianteId) {
+    if (user.role.nombre === RoleEnum.ESTUDIANTE && user.id !== estudianteId) {
       throw new ForbiddenException('Solo puedes ver tus propios casos clínicos');
     }
 
@@ -517,7 +517,7 @@ export class CasoClinicoController {
     const { user } = req as any;
     
     // Si es profesor, solo puede ver sus propios casos asignados
-    if (user.role.nombre === RoleEnum.PROFESOR && user.sub !== profesorId) {
+    if (user.role.nombre === RoleEnum.PROFESOR && user.id !== profesorId) {
       throw new ForbiddenException('Solo puedes ver los casos clínicos que tienes asignados');
     }
 
@@ -555,13 +555,13 @@ export class CasoClinicoController {
     if (user.role.nombre === RoleEnum.PROFESOR) {
       // Profesores ven casos EN_REVISION que tienen asignados
       filtros = {
-        profesorId: user.sub,
+        profesorId: user.id,
         estado: 'EN_REVISION'
       };
     } else if (user.role.nombre === RoleEnum.ESTUDIANTE) {
       // Estudiantes ven sus casos EN_REVISION (rechazados o nuevos)
       filtros = {
-        estudianteId: user.sub,
+        estudianteId: user.id,
         estado: 'EN_REVISION'
       };
     } else {

@@ -1,5 +1,6 @@
 import api from '@/config/api'
 import type { AxiosResponse } from 'axios'
+import { authService } from '@/services/authService'
 
 // Tipos para el odontograma
 export interface CondicionDental {
@@ -17,6 +18,7 @@ export interface CrearOdontogramaDto {
   condiciones: CondicionDental[]
   conclusion?: string
   casoClinicoId?: number
+  estudianteId?: number
 }
 
 export interface OdontogramaResponse {
@@ -192,15 +194,28 @@ export class OdontogramaService {
    */
   async guardarOdontogramaCompleto(
     dientesData: Map<string, any>, 
-    casoClinicoId?: number
+    casoClinicoId?: number,
+    conclusionGeneral?: string
   ): Promise<OdontogramaResponse[]> {
     try {
+      console.log('🦷 Iniciando guardado de odontograma completo');
+      console.log('📊 Datos recibidos:', { 
+        dientesDataSize: dientesData.size, 
+        casoClinicoId, 
+        conclusionGeneral 
+      });
+      
       const resultados: OdontogramaResponse[] = []
 
       for (const [numeroMental, diente] of dientesData) {
-        // Solo guardar dientes que tienen condiciones diferentes a "sano"
+        // Saltar la conclusión general que viene como metadato
+        if (numeroMental === '_conclusionGeneral') continue;
+
+        console.log(`🦷 Procesando diente ${numeroMental}:`, diente);
+
+        // Solo guardar dientes que tienen condiciones diferentes a "healthy"
         const tieneCondiciones = Object.values(diente.superficies).some(
-          (superficie: any) => superficie !== 'sano'
+          (superficie: any) => superficie !== 'healthy'
         )
 
         if (tieneCondiciones || diente.observacion) {
@@ -208,10 +223,10 @@ export class OdontogramaService {
           const condiciones: CondicionDental[] = []
           
           Object.entries(diente.superficies).forEach(([cara, tipoCondicion]) => {
-            if (tipoCondicion !== 'sano') {
+            if (tipoCondicion !== 'healthy') {
               condiciones.push({
-                cara,
-                tipoCondicion: tipoCondicion as string,
+                cara: this.mapearCaraFrontendABackend(cara),
+                tipoCondicion: this.mapearCondicionFrontendABackend(tipoCondicion as string),
                 descripcion: diente.observacion || undefined
               })
             }
@@ -220,8 +235,8 @@ export class OdontogramaService {
           // Si no hay condiciones específicas pero hay observación, agregar una condición general
           if (condiciones.length === 0 && diente.observacion) {
             condiciones.push({
-              cara: 'general',
-              tipoCondicion: 'observacion',
+              cara: this.mapearCaraFrontendABackend('general'),
+              tipoCondicion: this.mapearCondicionFrontendABackend('observacion'),
               descripcion: diente.observacion
             })
           }
@@ -229,13 +244,33 @@ export class OdontogramaService {
           const odontogramaDto: CrearOdontogramaDto = {
             diente: numeroMental,
             condiciones,
-            conclusion: diente.observacion,
-            casoClinicoId
+            conclusion: conclusionGeneral || diente.observacion || undefined,
+            casoClinicoId,
+            estudianteId: authService.getCurrentUserId() || undefined
           }
 
+          console.log(`📤 Enviando odontograma para diente ${numeroMental}:`, JSON.stringify(odontogramaDto, null, 2));
           const resultado = await this.crearOdontograma(odontogramaDto)
           resultados.push(resultado)
         }
+      }
+
+      // Si solo hay conclusión general sin hallazgos específicos, crear un registro general
+      if (resultados.length === 0 && conclusionGeneral?.trim()) {
+        const odontogramaDto: CrearOdontogramaDto = {
+          diente: 'odontograma_general',
+          condiciones: [{
+            cara: this.mapearCaraFrontendABackend('general'),
+            tipoCondicion: this.mapearCondicionFrontendABackend('observacion'),
+            descripcion: 'Evaluación odontológica general'
+          }],
+          conclusion: conclusionGeneral,
+          casoClinicoId,
+          estudianteId: authService.getCurrentUserId() || undefined
+        }
+
+        const resultado = await this.crearOdontograma(odontogramaDto)
+        resultados.push(resultado)
       }
 
       return resultados
@@ -243,6 +278,42 @@ export class OdontogramaService {
       console.error('Error al guardar odontograma completo:', error)
       throw this.manejarError(error)
     }
+  }
+
+  /**
+   * Mapea condiciones del frontend al formato esperado por el backend
+   */
+  private mapearCondicionFrontendABackend(condicionFrontend: string): string {
+    const mapeo: Record<string, string> = {
+      'healthy': 'normal',
+      'caries': 'caries',
+      'filling': 'obturación',
+      'crown': 'corona',
+      'missing': 'extracción', // Mapear missing a extracción
+      'root-canal': 'fractura', // El backend no tiene endodoncia, usar fractura como alternativa
+      'implant': 'implante',
+      'bridge': 'puente',
+      'extraction': 'extracción',
+      'observacion': 'normal' // Mapear observacion a normal
+    }
+    
+    return mapeo[condicionFrontend] || 'normal' // Default a normal en lugar de undefined
+  }
+
+  /**
+   * Mapea caras del frontend al formato esperado por el backend
+   */
+  private mapearCaraFrontendABackend(caraFrontend: string): string {
+    const mapeo: Record<string, string> = {
+      'oclusal': 'oclusal',
+      'mesial': 'mesial', 
+      'distal': 'distal',
+      'vestibular': 'vestibular',
+      'lingual': 'lingual',
+      'general': 'oclusal' // Mapear general a oclusal
+    }
+    
+    return mapeo[caraFrontend] || 'oclusal' // Default a oclusal
   }
 
   /**

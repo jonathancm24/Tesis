@@ -127,7 +127,7 @@
                 </button>
                 <button 
                   class="btn btn-outline-warning btn-sm flex-fill"
-                  @click="abrirEncuestaTamizaje(paciente)"
+                  @click="manejarEncuestaTamizaje(paciente)"
                   title="Encuesta de Tamizaje"
                 >
                   <i class="fas fa-clipboard-list me-1"></i>
@@ -136,6 +136,7 @@
               </div>
               <!-- Segunda fila -->
               <button 
+                v-if="!pacienteTieneCasoClinico(paciente.id)"
                 class="btn btn-outline-success btn-sm"
                 @click="iniciarCasoClinico(paciente)"
                 :disabled="!pacienteTieneEncuestaCompleta(paciente)"
@@ -143,6 +144,15 @@
               >
                 <i class="fas fa-plus me-1"></i>
                 Iniciar Caso Clínico
+              </button>
+              <button 
+                v-else
+                class="btn btn-outline-info btn-sm"
+                @click="irACasosClinicos()"
+                title="Ver detalles del caso clínico"
+              >
+                <i class="fas fa-file-medical me-1"></i>
+                Ver Detalles
               </button>
             </div>
           </div>
@@ -673,6 +683,82 @@
       </div>
     </div>
 
+    <!-- MODAL DE OPCIONES DE ENCUESTA -->
+    <div v-if="mostrarOpcionesEncuesta" class="modal-backdrop show" @click.self="cerrarOpcionesEncuesta">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-warning text-white">
+            <div class="header-content">
+              <div class="icon-container">
+                <i class="fas fa-clipboard-list fa-lg"></i>
+              </div>
+              <div class="title-container">
+                <h4 class="modal-title mb-0">Encuesta de Tamizaje</h4>
+                <p class="modal-subtitle mb-0">
+                  {{ pacienteParaEncuesta?.nombre }} {{ pacienteParaEncuesta?.apellido }}
+                </p>
+              </div>
+            </div>
+            <button 
+              type="button" 
+              class="btn-close btn-close-white" 
+              @click="cerrarOpcionesEncuesta"
+            ></button>
+          </div>
+          
+          <div class="modal-body">
+            <div class="alert alert-info">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle me-3 fa-lg"></i>
+                <div>
+                  <strong>Este paciente ya tiene una encuesta de tamizaje completada</strong>
+                  <br>
+                  <small class="text-muted">
+                    Fecha de última encuesta: 
+                    {{ estadoEncuestaPaciente?.[pacienteParaEncuesta?.id || 0]?.fechaUltimaEncuesta ? 
+                       new Date(estadoEncuestaPaciente?.[pacienteParaEncuesta?.id || 0]?.fechaUltimaEncuesta || '').toLocaleDateString('es-ES') : 
+                       'No disponible' }}
+                  </small>
+                </div>
+              </div>
+            </div>
+            
+            <p class="text-muted mb-4">¿Qué acción desea realizar?</p>
+            
+            <div class="d-grid gap-3">
+              <button 
+                class="btn btn-outline-primary btn-lg"
+                @click="seleccionarAccionEncuesta('ver')"
+              >
+                <i class="fas fa-eye me-2"></i>
+                Ver Encuesta Actual
+                <small class="d-block text-muted mt-1">Revisar las respuestas de la encuesta existente</small>
+              </button>
+              
+              <button 
+                class="btn btn-outline-success btn-lg"
+                @click="seleccionarAccionEncuesta('nueva')"
+              >
+                <i class="fas fa-plus me-2"></i>
+                Crear Nueva Encuesta
+                <small class="d-block text-muted mt-1">Llenar una nueva encuesta de tamizaje</small>
+              </button>
+            </div>
+          </div>
+          
+          <div class="modal-footer">
+            <button 
+              type="button" 
+              class="btn btn-secondary"
+              @click="cerrarOpcionesEncuesta"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL DE ENCUESTA DE TAMIZAJE -->
     <EncuestaTamizajeForm 
       :mostrarEncuesta="mostrarEncuestaTamizaje"
@@ -701,7 +787,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { pacienteService } from '@/services/pacienteService';
+import { studentService } from '@/services/studentService';
 import AutocompleteParroquia from '@/components/common/AutocompleteParroquia.vue';
 import EncuestaTamizajeForm from '@/components/student/EncuestaTamizajeForm.vue';
 import AntecedentesMedicosViewer from '@/components/student/AntecedentesMedicosViewer.vue';
@@ -729,6 +817,19 @@ const mostrarCasoClinico = ref(false);
 const pacienteParaEncuesta = ref<PacienteLista | null>(null);
 const pacienteParaAntecedentes = ref<number | null>(null);
 const pacienteParaCasoClinico = ref<PacienteLista | null>(null);
+
+// Estados para el manejo de encuestas
+const estadoEncuestaPaciente = ref<{[pacienteId: number]: {
+  tieneEncuesta: boolean;
+  fechaUltimaEncuesta?: string;
+  puedeCrearNueva: boolean;
+}} | null>(null);
+const cargandoEstadoEncuesta = ref(false);
+const mostrarOpcionesEncuesta = ref(false);
+const accionEncuestaSeleccionada = ref<'ver' | 'nueva' | null>(null);
+
+// Estados para el manejo de casos clínicos
+const casosClinicosPorPaciente = ref<{[pacienteId: number]: any} | null>(null);
 
 // Estados del formulario de registro
 const mostrarFormularioRegistro = ref(false);
@@ -971,7 +1072,78 @@ const cerrarHistorial = () => {
   pacienteSeleccionado.value = null;
 };
 
-// Métodos de encuesta de tamizaje
+// Métodos de encuesta de tamizaje mejorados
+const verificarEstadoEncuesta = async (pacienteId: number) => {
+  try {
+    cargandoEstadoEncuesta.value = true;
+    
+    // Verificar si el paciente tiene encuestas usando el historial completo
+    const historial = await pacienteService.obtenerHistorialCompleto(pacienteId);
+    
+    if (historial.encuestasTamizaje && historial.encuestasTamizaje.length > 0) {
+      // Tiene encuestas previas
+      const ultimaEncuesta = historial.encuestasTamizaje[historial.encuestasTamizaje.length - 1];
+      return {
+        tieneEncuesta: true,
+        fechaUltimaEncuesta: ultimaEncuesta.fecha.toString(),
+        puedeCrearNueva: true // Siempre permitir crear nueva encuesta
+      };
+    }
+    
+    return { tieneEncuesta: false, puedeCrearNueva: true };
+  } catch (error) {
+    console.error('Error al verificar estado de encuesta:', error);
+    return { tieneEncuesta: false, puedeCrearNueva: true };
+  } finally {
+    cargandoEstadoEncuesta.value = false;
+  }
+};
+
+const manejarEncuestaTamizaje = async (paciente: PacienteLista) => {
+  const estado = await verificarEstadoEncuesta(paciente.id);
+  
+  if (estado.tieneEncuesta) {
+    // Si ya tiene encuesta, mostrar opciones
+    pacienteParaEncuesta.value = paciente;
+    mostrarOpcionesEncuesta.value = true;
+    
+    // Guardar el estado para usar en el modal
+    if (!estadoEncuestaPaciente.value) {
+      estadoEncuestaPaciente.value = {};
+    }
+    estadoEncuestaPaciente.value[paciente.id] = estado;
+  } else {
+    // Si no tiene encuesta, abrir directamente el formulario
+    abrirEncuestaTamizaje(paciente);
+  }
+};
+
+const seleccionarAccionEncuesta = (accion: 'ver' | 'nueva') => {
+  accionEncuestaSeleccionada.value = accion;
+  mostrarOpcionesEncuesta.value = false;
+  
+  if (accion === 'ver') {
+    // Abrir visor de antecedentes
+    if (pacienteParaEncuesta.value) {
+      onVerAntecedentes(pacienteParaEncuesta.value.id);
+    }
+  } else {
+    // Abrir formulario de nueva encuesta
+    if (pacienteParaEncuesta.value) {
+      abrirEncuestaTamizaje(pacienteParaEncuesta.value);
+    }
+  }
+  
+  pacienteParaEncuesta.value = null;
+  accionEncuestaSeleccionada.value = null;
+};
+
+const cerrarOpcionesEncuesta = () => {
+  mostrarOpcionesEncuesta.value = false;
+  pacienteParaEncuesta.value = null;
+  accionEncuestaSeleccionada.value = null;
+};
+
 const abrirEncuestaTamizaje = (paciente: PacienteLista) => {
   pacienteParaEncuesta.value = paciente;
   mostrarEncuestaTamizaje.value = true;
@@ -982,7 +1154,6 @@ const cerrarEncuestaTamizaje = () => {
   pacienteParaEncuesta.value = null;
 };
 
-// Método para manejar cuando se guarda una encuesta exitosamente
 const onEncuestaGuardada = async (encuestaId: number) => {
   console.log('Encuesta guardada con ID:', encuestaId);
   
@@ -1008,13 +1179,43 @@ const cerrarAntecedentes = () => {
 };
 
 
-// Método para verificar si el paciente tiene encuesta completa
-const pacienteTieneEncuestaCompleta = (paciente: PacienteLista): boolean => {
+const pacienteTieneEncuestaCompleta = (_paciente: PacienteLista): boolean => {
   // Por ahora permitir siempre el caso clínico (hasta que el backend implemente la validación de encuesta)
   // En el futuro, esto verificará si el paciente completó la encuesta de tamizaje
-  console.log('Verificando encuesta para paciente:', paciente.nombre, paciente.apellido);
   return true; // Temporalmente permitir todos los casos clínicos
   // return paciente.tieneEncuestaCompleta === true;
+};
+
+// Métodos de casos clínicos mejorados
+const router = useRouter();
+
+const pacienteTieneCasoClinico = (pacienteId: number): boolean => {
+  return casosClinicosPorPaciente.value?.[pacienteId] !== undefined && 
+         casosClinicosPorPaciente.value?.[pacienteId] !== null;
+};
+
+const irACasosClinicos = () => {
+  router.push('/student/casos-clinicos');
+};
+
+// Cargar casos clínicos al inicializar
+const cargarCasosClinicosTodos = async () => {
+  try {
+    const casos = await studentService.obtenerCasosClinicos({ tamanoPagina: 1000 });
+    
+    if (!casosClinicosPorPaciente.value) {
+      casosClinicosPorPaciente.value = {};
+    }
+    
+    // Indexar casos por paciente ID
+    casos.datos.forEach(caso => {
+      if (casosClinicosPorPaciente.value) {
+        casosClinicosPorPaciente.value[caso.paciente.id] = caso;
+      }
+    });
+  } catch (error) {
+    console.error('Error al cargar casos clínicos:', error);
+  }
 };
 
 // Métodos de acciones
@@ -1066,6 +1267,7 @@ watch(searchTerm, (newValue) => {
 // Ciclo de vida
 onMounted(() => {
   cargarPacientes();
+  cargarCasosClinicosTodos();
 });
 </script>
 

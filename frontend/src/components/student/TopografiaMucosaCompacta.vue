@@ -50,6 +50,26 @@
               <span class="numero">{{ item.numero }}.</span>
               <span class="nombre">{{ item.nombre }}</span>
             </label>
+            
+            <!-- Campo de observación que aparece cuando se marca el checkbox -->
+            <div v-if="item.marcado" class="observacion-container mt-2">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text">
+                  <i class="fas fa-comment-medical text-primary"></i>
+                </span>
+                <input 
+                  type="text" 
+                  v-model="item.descripcion"
+                  @input="onSeleccionChange"
+                  class="form-control form-control-sm"
+                  :placeholder="`Observación para ${item.nombre}...`"
+                  maxlength="200"
+                />
+              </div>
+              <small class="text-muted">
+                Describe el hallazgo encontrado en esta área
+              </small>
+            </div>
           </div>
         </div>
       </div>
@@ -84,6 +104,20 @@ interface TopografiaData {
   inferior: LocalizacionMucosa[];
 }
 
+interface HallazgoClinicoMucosa {
+  tipo: string;
+  codigoZona: string;
+  descripcion: string;
+  zona: string;
+  vista: string;
+  numero: number;
+}
+
+interface TopografiaChangeData {
+  topografia: TopografiaData;
+  hallazgosClinicosGenerados: HallazgoClinicoMucosa[];
+}
+
 // Props
 interface Props {
   modelValue?: TopografiaData;
@@ -99,7 +133,7 @@ const props = withDefaults(defineProps<Props>(), {
 // Emits
 const emit = defineEmits<{
   'update:modelValue': [value: TopografiaData];
-  change: [value: TopografiaData];
+  change: [value: TopografiaChangeData];
 }>();
 
 // Estado local
@@ -181,9 +215,43 @@ const totalSeleccionadas = computed(() => {
 
 // Métodos
 const onSeleccionChange = () => {
-  // Debounce la emisión para evitar demasiadas actualizaciones
+  // Crear lista de hallazgos clínicos para las áreas seleccionadas
+  const hallazgosClinicosGenerados: HallazgoClinicoMucosa[] = [];
+  
+  // Procesar vista superior
+  localizaciones.value.superior.forEach(item => {
+    if (item.marcado) {
+      hallazgosClinicosGenerados.push({
+        tipo: 'Lesión de tejidos blandos',
+        codigoZona: `M-S${item.numero}`,
+        descripcion: item.descripcion || `Hallazgo en ${item.nombre}`,
+        zona: item.nombre,
+        vista: 'superior',
+        numero: item.numero
+      });
+    }
+  });
+  
+  // Procesar vista inferior
+  localizaciones.value.inferior.forEach(item => {
+    if (item.marcado) {
+      hallazgosClinicosGenerados.push({
+        tipo: 'Lesión de tejidos blandos',
+        codigoZona: `M-I${item.numero}`,
+        descripcion: item.descripcion || `Hallazgo en ${item.nombre}`,
+        zona: item.nombre,
+        vista: 'inferior',
+        numero: item.numero
+      });
+    }
+  });
+  
+  // Emitir datos actualizados
   emit('update:modelValue', localizaciones.value);
-  emit('change', localizaciones.value);
+  emit('change', {
+    topografia: localizaciones.value,
+    hallazgosClinicosGenerados
+  });
 };
 
 const inicializarDatos = () => {
@@ -288,6 +356,19 @@ inicializarDatos();
 
 .localizacion-item {
   padding: 0.25rem 0;
+}
+
+.observacion-container {
+  margin-left: 32px; /* Alinear con el texto */
+  padding: 0.5rem;
+  background: #f8fafc;
+  border-radius: 0.375rem;
+  border-left: 3px solid #2563eb;
+}
+
+.observacion-container .input-group-text {
+  background: #ffffff;
+  border-color: #e5e7eb;
 }
 
 .localizacion-label {

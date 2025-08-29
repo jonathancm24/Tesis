@@ -103,4 +103,11 @@ export class UsuariosController {
   async getProfesorEspecialidades(@Request() req) {
     return await this.usuariosService.getProfesorEspecialidades(req.user.id);
   }
+
+  // Obtener usuarios por especialidad
+  @Get('usuarios/porEspecialidad/:especialidadId')
+  @RequirePermissions(PermisoEnum.VER_USUARIOS)
+  async getUsuariosPorEspecialidad(@Param('especialidadId', ParseIntPipe) especialidadId: number) {
+    return await this.usuariosService.getUsuariosPorEspecialidad(especialidadId);
+  }
 }
