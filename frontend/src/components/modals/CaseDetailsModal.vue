@@ -253,12 +253,15 @@
                   <div class="record-content">
                     <div v-if="odontogramData" class="record-summary">
                       <p class="mb-1">
-                        <strong>Piezas afectadas:</strong> {{ odontogramData.piezasAfectadas || 'Ninguna' }}
+                        <strong>Piezas registradas:</strong> {{ odontogramData.piezasAfectadas || 'Ninguna' }}
+                      </p>
+                      <p class="mb-1">
+                        <strong>Total de dientes:</strong> {{ odontogramData.totalPiezas || 0 }}
                       </p>
                       <p class="mb-1">
                         <strong>Última actualización:</strong> {{ formatDate(odontogramData.fechaActualizacion) }}
                       </p>
-                      <span class="badge bg-success">Registrado</span>
+                      <span class="badge bg-success">{{ odontogramData.totalPiezas }} registro(s)</span>
                     </div>
                     <div v-else class="empty-record">
                       <i class="fas fa-plus-circle text-muted fa-2x mb-2"></i>
@@ -298,12 +301,18 @@
                   <div class="record-content">
                     <div v-if="mucosaData" class="record-summary">
                       <p class="mb-1">
-                        <strong>Hallazgos:</strong> {{ mucosaData.hallazgos || 'Normales' }}
+                        <strong>Hallazgos superiores:</strong> {{ mucosaData.zonasSuperior || 0 }}
+                      </p>
+                      <p class="mb-1">
+                        <strong>Hallazgos inferiores:</strong> {{ mucosaData.zonasInferior || 0 }}
+                      </p>
+                      <p class="mb-1">
+                        <strong>Total de hallazgos:</strong> {{ mucosaData.totalHallazgos || 0 }}
                       </p>
                       <p class="mb-1">
                         <strong>Última actualización:</strong> {{ formatDate(mucosaData.fechaActualizacion) }}
                       </p>
-                      <span class="badge bg-success">Registrado</span>
+                      <span class="badge bg-success">{{ mucosaData.totalHallazgos }} hallazgo(s)</span>
                     </div>
                     <div v-else class="empty-record">
                       <i class="fas fa-plus-circle text-muted fa-2x mb-2"></i>
@@ -311,6 +320,179 @@
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detalle del Odontograma -->
+          <div v-if="showOdontogramDetail && odontogramData" class="odontogram-detail mb-4">
+            <div class="clinical-card">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="section-title mb-0">
+                  <i class="fas fa-tooth me-2"></i>
+                  Detalle del Odontograma
+                </h6>
+                <button class="btn btn-sm btn-outline-secondary" @click="showOdontogramDetail = false">
+                  <i class="fas fa-times me-1"></i>
+                  Cerrar
+                </button>
+              </div>
+              
+              <div class="odontogram-grid">
+                <div class="row g-3">
+                  <div v-for="odontograma in odontogramData.odontogramas" :key="odontograma.id" class="col-md-6 col-lg-4">
+                    <div class="odontogram-card">
+                      <div class="card-header bg-light">
+                        <h6 class="mb-0">
+                          <i class="fas fa-tooth me-1"></i>
+                          Pieza {{ odontograma.diente }}
+                        </h6>
+                      </div>
+                      <div class="card-body">
+                        <div class="condition-info mb-2">
+                          <strong>Condiciones:</strong>
+                          <div class="conditions-list mt-1">
+                            <template v-if="odontograma.condicion && typeof odontograma.condicion === 'object'">
+                              <span 
+                                v-for="(superficie, key) in odontograma.condicion" 
+                                :key="key"
+                                class="badge me-1 mb-1"
+                                :class="getConditionBadgeClass(superficie)"
+                              >
+                                {{ key }}: {{ superficie }}
+                              </span>
+                            </template>
+                            <span v-else class="text-muted">Sin condiciones específicas</span>
+                          </div>
+                        </div>
+                        
+                        <div v-if="odontograma.conclusion" class="conclusion-info">
+                          <strong>Conclusión:</strong>
+                          <p class="mb-0 text-muted small">{{ odontograma.conclusion }}</p>
+                        </div>
+                        
+                        <div class="date-info mt-2">
+                          <small class="text-muted">
+                            <i class="far fa-calendar me-1"></i>
+                            {{ formatDate(odontograma.fechaCreacion) }}
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div v-if="!odontogramData.odontogramas || odontogramData.odontogramas.length === 0" class="text-center py-4">
+                <i class="fas fa-tooth text-muted fa-3x mb-2"></i>
+                <p class="text-muted">No hay datos de odontograma disponibles</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detalle de la Topografía de Mucosa -->
+          <div v-if="showMucosaDetail && mucosaData" class="mucosa-detail mb-4">
+            <div class="clinical-card">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="section-title mb-0">
+                  <i class="fas fa-microscope me-2"></i>
+                  Detalle de Topografía de Mucosa Oral
+                </h6>
+                <button class="btn btn-sm btn-outline-secondary" @click="showMucosaDetail = false">
+                  <i class="fas fa-times me-1"></i>
+                  Cerrar
+                </button>
+              </div>
+              
+              <div class="mucosa-sections">
+                <!-- Mucosa Superior -->
+                <div class="mucosa-section mb-4">
+                  <h6 class="text-primary mb-3">
+                    <i class="fas fa-arrow-up me-1"></i>
+                    Mucosa Superior
+                  </h6>
+                  <div class="row g-3">
+                    <div 
+                      v-for="hallazgo in hallazgosSuperior" 
+                      :key="hallazgo.id" 
+                      class="col-md-6 col-lg-4"
+                    >
+                      <div class="hallazgo-card">
+                        <div class="card-header bg-light">
+                          <h6 class="mb-0">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            Zona {{ hallazgo.codigoZona }}
+                          </h6>
+                        </div>
+                        <div class="card-body">
+                          <div class="type-info mb-2">
+                            <strong>Tipo:</strong>
+                            <span class="badge bg-secondary ms-1">{{ hallazgo.tipo }}</span>
+                          </div>
+                          
+                          <div v-if="hallazgo.descripcion" class="description-info">
+                            <strong>Descripción:</strong>
+                            <p class="mb-0 text-muted small">{{ hallazgo.descripcion }}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div 
+                    v-if="hallazgosSuperior.length === 0"
+                    class="text-center py-3 text-muted"
+                  >
+                    <i class="fas fa-info-circle me-1"></i>
+                    No hay hallazgos en mucosa superior
+                  </div>
+                </div>
+
+                <!-- Mucosa Inferior -->
+                <div class="mucosa-section">
+                  <h6 class="text-success mb-3">
+                    <i class="fas fa-arrow-down me-1"></i>
+                    Mucosa Inferior
+                  </h6>
+                  <div class="row g-3">
+                    <div 
+                      v-for="hallazgo in hallazgosInferior" 
+                      :key="hallazgo.id" 
+                      class="col-md-6 col-lg-4"
+                    >
+                      <div class="hallazgo-card">
+                        <div class="card-header bg-light">
+                          <h6 class="mb-0">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            Zona {{ hallazgo.codigoZona }}
+                          </h6>
+                        </div>
+                        <div class="card-body">
+                          <div class="type-info mb-2">
+                            <strong>Tipo:</strong>
+                            <span class="badge bg-secondary ms-1">{{ hallazgo.tipo }}</span>
+                          </div>
+                          
+                          <div v-if="hallazgo.descripcion" class="description-info">
+                            <strong>Descripción:</strong>
+                            <p class="mb-0 text-muted small">{{ hallazgo.descripcion }}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div 
+                    v-if="hallazgosInferior.length === 0"
+                    class="text-center py-3 text-muted"
+                  >
+                    <i class="fas fa-info-circle me-1"></i>
+                    No hay hallazgos en mucosa inferior
+                  </div>
+                </div>
+              </div>
+              
+              <div v-if="!mucosaData.hallazgos || mucosaData.hallazgos.length === 0" class="text-center py-4">
+                <i class="fas fa-microscope text-muted fa-3x mb-2"></i>
+                <p class="text-muted">No hay datos de topografía de mucosa disponibles</p>
               </div>
             </div>
           </div>
@@ -448,6 +630,10 @@ const mucosaData = ref<any>(null)
 const files = ref<any[]>([])
 const comments = ref<any[]>([])
 
+// Estado para vistas expandidas
+const showOdontogramDetail = ref(false)
+const showMucosaDetail = ref(false)
+
 // Computed properties
 const canEdit = computed(() => {
   if (!caseData.value) return false
@@ -460,6 +646,17 @@ const canEdit = computed(() => {
   
   // Los profesores y administradores pueden editar siempre
   return ['profesor', 'admin'].includes(authStore.user?.role || '')
+})
+
+// Computed properties para los hallazgos de mucosa
+const hallazgosSuperior = computed(() => {
+  if (!mucosaData.value?.hallazgos) return []
+  return mucosaData.value.hallazgos.filter((h: any) => h.codigoZona && h.codigoZona.startsWith('M-S'))
+})
+
+const hallazgosInferior = computed(() => {
+  if (!mucosaData.value?.hallazgos) return []
+  return mucosaData.value.hallazgos.filter((h: any) => h.codigoZona && h.codigoZona.startsWith('M-I'))
 })
 
 // Métodos
@@ -581,16 +778,27 @@ const loadCaseDetails = async () => {
     }
 
     // Procesar respuestas adicionales
-    if (odontogramResponse) {
-      odontogramData.value = odontogramResponse
-      console.log('Odontograma cargado:', odontogramResponse)
+    if (odontogramResponse && Array.isArray(odontogramResponse) && odontogramResponse.length > 0) {
+      odontogramData.value = {
+        odontogramas: odontogramResponse,
+        piezasAfectadas: odontogramResponse.map(o => o.diente).join(', '),
+        fechaActualizacion: odontogramResponse[0].fechaCreacion,
+        totalPiezas: odontogramResponse.length
+      }
+      console.log('Odontograma cargado:', odontogramData.value)
     } else {
       odontogramData.value = null
     }
 
-    if (mucosaResponse) {
-      mucosaData.value = mucosaResponse
-      console.log('Mucosa cargada:', mucosaResponse)
+    if (mucosaResponse && Array.isArray(mucosaResponse) && mucosaResponse.length > 0) {
+      mucosaData.value = {
+        hallazgos: mucosaResponse,
+        zonasSuperior: mucosaResponse.filter(h => h.codigoZona && h.codigoZona.startsWith('M-S')).length,
+        zonasInferior: mucosaResponse.filter(h => h.codigoZona && h.codigoZona.startsWith('M-I')).length,
+        fechaActualizacion: mucosaResponse[0]?.casoClinico?.fechaCreacion || new Date().toISOString(),
+        totalHallazgos: mucosaResponse.length
+      }
+      console.log('Mucosa cargada:', mucosaData.value)
     } else {
       mucosaData.value = null
     }
@@ -769,8 +977,9 @@ const getSpecialtyName = () => {
 }
 
 const viewOdontogram = () => {
-  // Implementar navegación al odontograma
-  console.log('View odontogram for case:', props.caseId)
+  // Mostrar vista expandida del odontograma
+  showOdontogramDetail.value = true
+  console.log('Showing odontogram detail for case:', props.caseId)
 }
 
 const editOdontogram = () => {
@@ -779,13 +988,29 @@ const editOdontogram = () => {
 }
 
 const viewMucosa = () => {
-  // Implementar navegación a la topografía de mucosa
-  console.log('View mucosa for case:', props.caseId)
+  // Mostrar vista expandida de la topografía de mucosa
+  showMucosaDetail.value = true
+  console.log('Showing mucosa detail for case:', props.caseId)
 }
 
 const editMucosa = () => {
   // Implementar edición de la topografía de mucosa
   console.log('Edit mucosa for case:', props.caseId)
+}
+
+const getConditionBadgeClass = (condition: string) => {
+  const conditionMap: Record<string, string> = {
+    'healthy': 'bg-success',
+    'caries': 'bg-danger',
+    'filling': 'bg-primary',
+    'crown': 'bg-warning',
+    'missing': 'bg-dark',
+    'root-canal': 'bg-info',
+    'implant': 'bg-secondary',
+    'bridge': 'bg-light text-dark',
+    'extraction': 'bg-dark'
+  }
+  return conditionMap[condition] || 'bg-secondary'
 }
 
 const manageFiles = () => {
@@ -1192,6 +1417,90 @@ watch(() => props.caseId, (newCaseId) => {
   padding: 3rem;
 }
 
+/* Odontogram detail styles */
+.odontogram-detail .clinical-card {
+  border-left: 4px solid #0d6efd;
+}
+
+.odontogram-grid .odontogram-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.odontogram-grid .odontogram-card:hover {
+  border-color: #0d6efd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.odontogram-card .card-header {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.75rem;
+}
+
+.odontogram-card .card-body {
+  padding: 1rem;
+}
+
+.conditions-list .badge {
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+
+.condition-info, .conclusion-info {
+  margin-bottom: 0.75rem;
+}
+
+/* Mucosa detail styles */
+.mucosa-detail .clinical-card {
+  border-left: 4px solid #198754;
+}
+
+.mucosa-section {
+  padding: 1rem 0;
+}
+
+.mucosa-section:not(:last-child) {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.hallazgo-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.hallazgo-card:hover {
+  border-color: #198754;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.hallazgo-card .card-header {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.75rem;
+}
+
+.hallazgo-card .card-body {
+  padding: 1rem;
+}
+
+.type-info, .description-info {
+  margin-bottom: 0.75rem;
+}
+
+.type-info .badge {
+  font-size: 0.8rem;
+}
+
+.date-info {
+  border-top: 1px solid #f8f9fa;
+  padding-top: 0.5rem;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .modal-dialog {
@@ -1243,6 +1552,35 @@ watch(() => props.caseId, (newCaseId) => {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
+  }
+  
+  /* Responsive odontogram detail */
+  .odontogram-grid .row {
+    margin: 0;
+  }
+  
+  .odontogram-grid .col-md-6, 
+  .odontogram-grid .col-lg-4 {
+    padding: 0.5rem;
+  }
+  
+  .odontogram-card .card-body,
+  .hallazgo-card .card-body {
+    padding: 0.75rem;
+  }
+  
+  /* Responsive mucosa detail */
+  .mucosa-section h6 {
+    font-size: 1rem;
+  }
+  
+  .mucosa-sections .row {
+    margin: 0;
+  }
+  
+  .mucosa-sections .col-md-6,
+  .mucosa-sections .col-lg-4 {
+    padding: 0.5rem;
   }
 }
 </style>

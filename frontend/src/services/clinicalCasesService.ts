@@ -250,19 +250,40 @@ export async function fetchPatientSurveyStatus(pacienteId: number | string): Pro
 // ==================== ODONTOGRAMA Y MUCOSA ====================
 
 export async function fetchClinicalCaseOdontogram(casoId: number | string): Promise<any> {
-	const res = await fetch(`${API_URL}/casos-clinicos/${casoId}/odontograma`, {
-		headers: getAuthHeaders(),
-	});
-	if (!res.ok) throw new Error('Error al obtener odontograma del caso');
-	return await res.json();
+	try {
+		const res = await fetch(`${API_URL}/odontogramas/caso-clinico/${casoId}`, {
+			headers: getAuthHeaders(),
+		});
+		if (!res.ok) {
+			throw new Error(`Error ${res.status}: ${res.statusText}`);
+		}
+		return await res.json();
+	} catch (error) {
+		console.error('Error al obtener odontograma del caso clínico:', error);
+		// Retornar array vacío si no hay odontogramas
+		return [];
+	}
 }
 
 export async function fetchClinicalCaseMucosa(casoId: number | string): Promise<any> {
-	const res = await fetch(`${API_URL}/casos-clinicos/${casoId}/mucosa`, {
-		headers: getAuthHeaders(),
-	});
-	if (!res.ok) throw new Error('Error al obtener registro de mucosa del caso');
-	return await res.json();
+	try {
+		const res = await fetch(`${API_URL}/hallazgos-clinicos/caso-clinico/${casoId}`, {
+			headers: getAuthHeaders(),
+		});
+		if (!res.ok) {
+			throw new Error(`Error ${res.status}: ${res.statusText}`);
+		}
+		const hallazgos = await res.json();
+		
+		// Filtrar solo los hallazgos de mucosa (códigos que empiecen con M-)
+		return hallazgos.filter((hallazgo: any) => 
+			hallazgo.codigoZona && hallazgo.codigoZona.startsWith('M-')
+		);
+	} catch (error) {
+		console.error('Error al obtener topografía de mucosa del caso clínico:', error);
+		// Retornar array vacío si no hay hallazgos de mucosa
+		return [];
+	}
 }
 
 export async function createClinicalCaseOdontogram(casoId: number | string, data: Record<string, any>): Promise<any> {

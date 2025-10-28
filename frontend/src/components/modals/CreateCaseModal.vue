@@ -1,6 +1,7 @@
 <template>
   <div class="modal fade" :class="{ show: show }" :style="{ display: show ? 'block' : 'none' }" @click.self="closeModal">
     <div class="modal-dialog modal-lg">
+      <!-- ... resto del template sin cambios ... -->
       <div class="modal-content">
         <div class="modal-header clinical-header">
           <h5 class="modal-title">
@@ -233,6 +234,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '@/store/auth'
+import { useToast } from '@/composables/useToast'
 import * as clinicalService from '@/services/clinicalCasesService'
 
 // Props y emits
@@ -267,6 +269,7 @@ interface CaseForm {
 
 // Estado del componente
 const authStore = useAuthStore()
+const { showToast } = useToast()
 const currentStep = ref(1)
 const creating = ref(false)
 
@@ -419,11 +422,11 @@ const createCase = async () => {
     emit('case-created')
     closeModal()
     
-    // Notificación de éxito (podrías usar una librería de notificaciones)
-    alert('Caso clínico creado exitosamente')
+    // Notificación de éxito
+    showToast('Éxito', 'success', 'Caso clínico creado exitosamente')
   } catch (error) {
     console.error('Error creating case:', error)
-    alert('Error al crear el caso clínico. Inténtalo nuevamente.')
+    showToast('Error', 'error', 'Error al crear el caso clínico. Inténtalo nuevamente.')
   } finally {
     creating.value = false
   }

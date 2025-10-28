@@ -170,6 +170,53 @@ export class OdontogramaService {
     }
 
     /**
+     * Obtener odontogramas por caso clínico
+     */
+    async obtenerOdontogramasPorCasoClinico(casoClinicoId: number, usuarioId: number): Promise<IOdontogramaCompleto[]> {
+        // Verificar que el usuario tiene acceso al caso clínico
+        const casoClinico = await this.prisma.casoClinico.findUnique({
+            where: { id: casoClinicoId },
+            select: { 
+                id: true, 
+                estudianteId: true, 
+                profesorId: true 
+            }
+        });
+
+        if (!casoClinico) {
+            throw new NotFoundException('Caso clínico no encontrado');
+        }
+
+        // Verificar permisos de acceso
+        if (casoClinico.estudianteId !== usuarioId && casoClinico.profesorId !== usuarioId) {
+            throw new ForbiddenException('No tiene permisos para acceder a este caso clínico');
+        }
+
+        const odontogramas = await this.prisma.odontograma.findMany({
+            where: { casoClinicoId },
+            include: {
+                casoClinico: {
+                    include: {
+                        estudiante: {
+                            select: { id: true, nombre: true, apellido: true, email: true }
+                        },
+                        especialidad: {
+                            select: { id: true, nombre: true }
+                        }
+                    }
+                },
+                docente: {
+                    select: { id: true, nombre: true, apellido: true, email: true }
+                },
+                observaciones: true
+            },
+            orderBy: { diente: 'asc' }
+        });
+
+        return odontogramas.map(o => this.mapearOdontogramaCompleto(o));
+    }
+
+    /**
      * Obtener un odontograma específico por ID
      */
     async obtenerOdontogramaPorId(id: number, usuarioId: number): Promise<IOdontogramaCompleto> {

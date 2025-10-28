@@ -207,6 +207,61 @@ export class HallazgoClinicoController {
   }
 
   /**
+   * Obtener hallazgos clínicos por caso clínico
+   * 
+   * Endpoint para obtener todos los hallazgos clínicos asociados
+   * a un caso clínico específico.
+   * 
+   * @param casoClinicoId - ID del caso clínico
+   * @param request - Request object con información del usuario autenticado
+   * @returns Promise<any[]> - Lista de hallazgos clínicos del caso
+   */
+  @Get('caso-clinico/:casoClinicoId')
+  @ApiOperation({
+    summary: 'Obtener hallazgos por caso clínico',
+    description: 'Obtiene todos los hallazgos clínicos asociados a un caso clínico específico'
+  })
+  @ApiParam({
+    name: 'casoClinicoId',
+    type: Number,
+    description: 'ID único del caso clínico'
+  })
+  @ApiOkResponse({
+    description: 'Hallazgos clínicos del caso obtenidos exitosamente',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', example: 1 },
+          casoClinicoId: { type: 'number', example: 1 },
+          tipo: { type: 'string', example: 'Caries' },
+          codigoZona: { type: 'string', example: 'D-16' },
+          descripcion: { type: 'string', example: 'Caries profunda en cara oclusal' },
+          archivoId: { type: 'number', example: 5, nullable: true }
+        }
+      }
+    }
+  })
+  @ApiNotFoundResponse({
+    description: 'Caso clínico no encontrado'
+  })
+  @ApiForbiddenResponse({
+    description: 'No tiene permisos para acceder a este caso clínico'
+  })
+  async obtenerHallazgosPorCasoClinico(
+    @Param('casoClinicoId', ParseIntPipe) casoClinicoId: number,
+    @Request() request: any
+  ) {
+    this.logger.log(`Solicitud para obtener hallazgos del caso clínico ${casoClinicoId} del usuario ${request.user.id}`);
+    
+    return await this.hallazgoClinicoService.obtenerHallazgosPorCasoClinico(
+      casoClinicoId,
+      request.user.id
+    );
+  }
+
+  /**
    * Obtener hallazgo clínico por ID
    * 
    * Endpoint para obtener un hallazgo clínico específico

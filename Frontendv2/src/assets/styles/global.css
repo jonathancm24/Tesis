@@ -1,0 +1,220 @@
+/* ========== SISTEMA DE TEMAS GLOBAL ========== */
+/* Variables CSS para temas claro y oscuro con colores principales */
+
+:root {
+  /* === TEMA CLARO (por defecto) === */
+
+  /* Colores principales - Verde institucional ULEAM */
+  --color-primary: #2d5a3d; /* Verde institucional principal */
+  --color-primary-light: #4a7c5a; /* Verde claro */
+  --color-primary-dark: #1f4529; /* Verde oscuro */
+  --color-secondary: #4a7c5a; /* Verde secundario */
+  --color-secondary-light: #5d8f6d; /* Verde claro secundario */
+  --color-secondary-dark: #2d5a3d; /* Verde oscuro secundario */
+
+  /* Colores de fondo */
+  --color-background: #ffffff;
+  --color-background-secondary: #f8f9fa;
+  --color-background-tertiary: #e9ecef;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f5f5f5;
+
+  /* Colores de texto */
+  --color-text-primary: #2c3e50;
+  --color-text-secondary: #6c757d;
+  --color-text-muted: #adb5bd;
+  --color-text-inverse: #ffffff;
+
+  /* Colores de acento */
+  --color-success: #4a7c5a;
+  --color-warning: #ffc107;
+  --color-error: #dc3545;
+  --color-info: #2d5a3d;
+
+  /* Bordes y sombras */
+  --color-border: #dee2e6;
+  --color-border-light: #e9ecef;
+  --color-border-dark: #ced4da;
+  --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+
+  /* Gradientes */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  --gradient-primary-light: linear-gradient(135deg, var(--color-primary-light), var(--color-secondary-light));
+
+  /* Elementos de formulario */
+  --input-background: #ffffff;
+  --input-border: #ced4da;
+  --input-border-focus: var(--color-primary);
+  --input-text: var(--color-text-primary);
+  --input-placeholder: var(--color-text-muted);
+
+  /* Botones */
+  --btn-primary-bg: var(--color-primary);
+  --btn-primary-hover: var(--color-primary-dark);
+  --btn-primary-text: #ffffff;
+
+  /* Espaciado y tipografía */
+  --border-radius: 0.375rem;
+  --border-radius-lg: 0.75rem;
+  --transition-base: all 0.3s ease;
+}
+
+/* === TEMA OSCURO === */
+[data-theme="dark"] {
+  /* Colores principales - Verde institucional para tema oscuro */
+  --color-primary: #5d8f6d; /* Verde más brillante para oscuro */
+  --color-primary-light: #6ba078; /* Verde claro para oscuro */
+  --color-primary-dark: #4a7c5a; /* Verde medio para oscuro */
+  --color-secondary: #6ba078; /* Verde secundario para oscuro */
+  --color-secondary-light: #7ab387; /* Verde claro secundario para oscuro */
+  --color-secondary-dark: #5d8f6d; /* Verde medio secundario para oscuro */
+
+  /* Colores de fondo */
+  --color-background: #0f1419;
+  --color-background-secondary: #1a1f26;
+  --color-background-tertiary: #252d36;
+  --color-surface: #1a1f26;
+  --color-surface-alt: #252d36;
+
+  /* Colores de texto */
+  --color-text-primary: #e8eaed;
+  --color-text-secondary: #b8bcc8;
+  --color-text-muted: #8e8e93;
+  --color-text-inverse: #0f1419;
+
+  /* Colores de acento */
+  --color-success: #6ba078;
+  --color-warning: #ffcc02;
+  --color-error: #f85149;
+  --color-info: #5d8f6d;
+
+  /* Bordes y sombras */
+  --color-border: #3a4249;
+  --color-border-light: #454d56;
+  --color-border-dark: #2d3339;
+  --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.5);
+
+  /* Gradientes para tema oscuro */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  --gradient-primary-light: linear-gradient(135deg, var(--color-primary-light), var(--color-secondary-light));
+
+  /* Elementos de formulario */
+  --input-background: #252d36;
+  --input-border: #3a4249;
+  --input-border-focus: var(--color-primary-light);
+  --input-text: var(--color-text-primary);
+  --input-placeholder: var(--color-text-muted);
+
+  /* Botones */
+  --btn-primary-bg: var(--color-primary);
+  --btn-primary-hover: var(--color-primary-light);
+  --btn-primary-text: #ffffff;
+}
+
+/* === ESTILOS BASE === */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+  transition: var(--transition-base);
+}
+
+/* === CLASES UTILITARIAS === */
+.text-primary {
+  color: var(--color-primary);
+}
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+.text-muted {
+  color: var(--color-text-muted);
+}
+.text-success {
+  color: var(--color-success);
+}
+.text-warning {
+  color: var(--color-warning);
+}
+.text-error {
+  color: var(--color-error);
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+.bg-surface {
+  background-color: var(--color-surface);
+}
+.bg-surface-alt {
+  background-color: var(--color-surface-alt);
+}
+
+.border {
+  border: 1px solid var(--color-border);
+}
+.border-light {
+  border: 1px solid var(--color-border-light);
+}
+.border-dark {
+  border: 1px solid var(--color-border-dark);
+}
+
+.rounded {
+  border-radius: var(--border-radius);
+}
+.rounded-lg {
+  border-radius: var(--border-radius-lg);
+}
+
+.shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+.shadow-md {
+  box-shadow: var(--shadow-md);
+}
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+/* === TRANSICIONES === */
+.transition-base {
+  transition: var(--transition-base);
+}
+
+/* === ACCESIBILIDAD === */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  :root {
+    --color-border: #000000;
+    --color-text-primary: #000000;
+  }
+
+  [data-theme="dark"] {
+    --color-border: #ffffff;
+    --color-text-primary: #ffffff;
+  }
+}

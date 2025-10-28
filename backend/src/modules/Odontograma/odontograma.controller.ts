@@ -235,6 +235,59 @@ export class OdontogramaController {
   }
 
   /**
+   * Obtener odontogramas por caso clínico
+   * 
+   * Endpoint para obtener todos los odontogramas asociados
+   * a un caso clínico específico.
+   * 
+   * @route GET /odontogramas/caso-clinico/:casoClinicoId
+   * @access Estudiantes y Docentes (según permisos del caso)
+   */
+  @Get('caso-clinico/:casoClinicoId')
+  @ApiOperation({ 
+    summary: 'Obtener odontogramas por caso clínico', 
+    description: 'Recupera todos los odontogramas asociados a un caso clínico específico. Solo accesible para el estudiante propietario y el docente supervisor.' 
+  })
+  @ApiParam({ 
+    name: 'casoClinicoId', 
+    type: Number, 
+    description: 'ID único del caso clínico' 
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Odontogramas obtenidos exitosamente',
+    type: [Object]
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Caso clínico no encontrado' 
+  })
+  @ApiResponse({ 
+    status: 403, 
+    description: 'Sin permisos para acceder al caso clínico' 
+  })
+  @ApiResponse({ 
+    status: 401, 
+    description: 'No autorizado - Token inválido' 
+  })
+  async obtenerOdontogramasPorCasoClinico(
+    @Param('casoClinicoId', ParseIntPipe) casoClinicoId: number,
+    @Request() req: any
+  ): Promise<IOdontogramaCompleto[]> {
+    try {
+      return await this.odontogramaService.obtenerOdontogramasPorCasoClinico(
+        casoClinicoId,
+        req.user.id
+      );
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Error al obtener odontogramas del caso clínico',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  /**
    * Obtener un odontograma específico
    * 
    * Endpoint para recuperar un odontograma por su ID,

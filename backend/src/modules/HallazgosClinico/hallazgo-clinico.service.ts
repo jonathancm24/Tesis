@@ -250,6 +250,82 @@ export class HallazgoClinicoService {
   }
 
   /**
+   * Obtener hallazgos clínicos por caso clínico
+   * 
+   * Busca todos los hallazgos asociados a un caso clínico específico
+   * y verifica permisos de acceso.
+   * 
+   * @param casoClinicoId - ID del caso clínico
+   * @param usuarioId - ID del usuario que consulta
+   * @returns Promise<IHallazgoClinicoCompleto[]> - Lista de hallazgos con relaciones
+   * @throws NotFoundException - Si el caso clínico no existe
+   * @throws ForbiddenException - Si el usuario no tiene permisos
+   */
+  async obtenerHallazgosPorCasoClinico(
+    casoClinicoId: number,
+    usuarioId: number
+  ): Promise<IHallazgoClinicoCompleto[]> {
+    this.logger.log(`Obteniendo hallazgos del caso clínico ${casoClinicoId} para usuario ${usuarioId}`);
+
+    // Verificar que el caso clínico existe y el usuario tiene acceso
+    const casoClinico = await this.prisma.casoClinico.findUnique({
+      where: { id: casoClinicoId },
+      select: { 
+        id: true, 
+        estudianteId: true, 
+        profesorId: true 
+      }
+    });
+
+    if (!casoClinico) {
+      throw new NotFoundException('Caso clínico no encontrado');
+    }
+
+    // Verificar permisos de acceso
+    if (casoClinico.estudianteId !== usuarioId && casoClinico.profesorId !== usuarioId) {
+      throw new ForbiddenException('No tiene permisos para acceder a este caso clínico');
+    }
+
+    const hallazgos = await this.prisma.hallazgoClinico.findMany({
+      where: { casoClinicoId },
+      include: {
+        casoClinico: {
+          include: {
+            paciente: {
+              select: { id: true, nombre: true, apellido: true, numeroDocumento: true }
+            },
+            estudiante: {
+              select: { id: true, nombre: true, apellido: true, email: true }
+            },
+            profesor: {
+              select: { id: true, nombre: true, apellido: true, email: true }
+            },
+            especialidad: {
+              select: { id: true, nombre: true, descripcion: true }
+            }
+          }
+        },
+        archivo: {
+          select: { 
+            id: true, 
+            nombre: true, 
+            tipo: true, 
+            url: true, 
+            fechaSubida: true, 
+            descripcion: true 
+          }
+        }
+      },
+      orderBy: [
+        { codigoZona: 'asc' },
+        { tipo: 'asc' }
+      ]
+    });
+
+    return hallazgos;
+  }
+
+  /**
    * Obtener un hallazgo clínico por ID
    * 
    * Busca un hallazgo específico por su ID y verifica permisos de acceso.
