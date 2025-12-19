@@ -6,6 +6,10 @@ import { RolesModule } from './modules/roles/roles.module';
 import { PermisosModule } from './modules/permisos/permisos.module';
 import { UsuariosModule } from './modules/usuarios/usuarios.module';
 import { PermisosInicializadorService } from './modules/permisos/permisos-inicializador.service';
+import { PaisModule } from './modules/Pais/pais.module';
+import { ParroquiaModule } from './modules/Parroquia/parroquia.module';
+import { ProvinciaModule } from './modules/Provincia/provincia.module';
+import { CantonModule } from './modules/Canton/canton.module';
 
 @Module({
   imports: [
@@ -17,6 +21,10 @@ import { PermisosInicializadorService } from './modules/permisos/permisos-inicia
     RolesModule,
     PermisosModule,
     UsuariosModule,
+    PaisModule,
+    ParroquiaModule,
+    ProvinciaModule,
+    CantonModule,
   ],
   providers: [PermisosInicializadorService],
 })

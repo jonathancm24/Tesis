@@ -46,6 +46,11 @@ export class UsuarioResponseDto {
       provincia?: {
         id: number;
         nombre: string;
+        pais?: {
+          id: number;
+          nombre: string;
+        };
+      
       };
     };
   };

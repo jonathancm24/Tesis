@@ -19,12 +19,12 @@ import { RequirePermissions } from '../../common/decorators/permissions.decorato
 import { PermisoEnum } from '../../common/enums/permisos.enum';
 
 @Controller('roles')
-@UseGuards(JwtAuthGuard, PermissionsGuard)
+@UseGuards(/*JwtAuthGuard,*/ PermissionsGuard)
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Get('/todos')
-  @RequirePermissions(PermisoEnum.VER_ROLES)
+  //@RequirePermissions(PermisoEnum.VER_ROLES)
   async findAll() {
     return this.rolesService.findAll();
   }

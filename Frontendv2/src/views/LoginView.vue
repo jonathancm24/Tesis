@@ -72,7 +72,7 @@
                   class="password-toggle"
                   @click="showPassword = !showPassword"
                   :disabled="authStore.isLoading"
-                  tabindex="-1"
+                  tabindex="100"
                 >
                   <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
                 </button>
