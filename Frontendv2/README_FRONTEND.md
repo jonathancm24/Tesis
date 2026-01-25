@@ -241,5 +241,5 @@ npm run test:e2e
 **Versión**: 2.3.0  
 **Institución**: Universidad Laica Eloy Alfaro de Manabí (ULEAM)  
 **Facultad**: Odontología  
-**Autor**: Sistema Odontológico Team  
-**Licencia**: Privada
+**Autor**: Jonathan Alexander Cedeño Moran  
+**Licencia**: Propiedad Intelectual de la ULEAM y el Autor. Uso estrictamente académico.

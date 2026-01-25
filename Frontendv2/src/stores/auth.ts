@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { AxiosError } from 'axios'
 import { authService, type LoginRequest, type User } from '@/Config/api'
 
 /**
@@ -65,11 +66,12 @@ export const useAuthStore = defineStore('auth', () => {
       authService.saveAuthData(response.access_token, response.user)
       
       return response
-    } catch (err: any) {
+    } catch (caughtError: unknown) {
+      const err = caughtError as AxiosError<{ message: string }>
       // Manejar diferentes tipos de errores
       if (err.response?.status === 401) {
         error.value = 'Credenciales inválidas. Verifica tu email y contraseña.'
-      } else if (err.response?.status >= 500) {
+      } else if (err.response?.status && err.response.status >= 500) {
         error.value = 'Error del servidor. Intenta nuevamente más tarde.'
       } else if (err.code === 'NETWORK_ERROR' || !err.response) {
         error.value = 'Error de conexión. Verifica tu conexión a internet.'

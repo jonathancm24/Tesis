@@ -11,7 +11,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'root',
-    redirect: (to) => {
+    redirect: () => {
       // Esta lógica se ejecuta en tiempo de navegación
       const authStore = useAuthStore()
       return authStore.isAuthenticated ? '/dashboard' : '/login'
@@ -112,7 +112,7 @@ router.beforeEach(async (to, from, next) => {
  * Guard posterior a la navegación
  * Maneja acciones después de completar la navegación
  */
-router.afterEach((to, from) => {
+router.afterEach((to) => {
   // Limpiar cualquier mensaje de error del store de auth en rutas que no sean login
   if (to.name !== 'login') {
     const authStore = useAuthStore()

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import type { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 
 // Configuración base de la API
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -20,12 +20,12 @@ export const apiClient: AxiosInstance = axios.create({
  * Interceptor para agregar el token de autenticación a las peticiones
  */
 apiClient.interceptors.request.use(
-  (config: AxiosRequestConfig): any => {
+  (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
     // Obtener token del localStorage
     const token = localStorage.getItem('auth-token')
     
     if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers.set('Authorization', `Bearer ${token}`)
     }
     
     return config
@@ -61,7 +61,7 @@ apiClient.interceptors.response.use(
 /**
  * Tipos para las respuestas de la API
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T
   message?: string
   status?: number
