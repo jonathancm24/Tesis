@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { setupRouterGuards } from './guards'
 
 /**
  * Definición de rutas de la aplicación
@@ -29,19 +30,79 @@ const routes: RouteRecordRaw[] = [
     }
   },
 
-  // Dashboard - Ruta protegida principal
+  // ========== RUTAS AUTENTICADAS CON LAYOUT ==========
+  // Todas estas rutas usan el AppLayout (header + sidebar + contenido)
   {
-    path: '/dashboard',
-    name: 'dashboard',
-    component: () => import('../views/DashboardView.vue'),
-    meta: {
-      requiresAuth: true, // Requiere autenticación
-      title: 'Dashboard'
-    }
+    path: '/',
+    component: () => import('../components/layout/AppLayout.vue'),
+    meta: { requiresAuth: true },
+    children: [
+      // Dashboard - Página principal
+      {
+        path: 'dashboard',
+        name: 'dashboard',
+        component: () => import('../views/DashboardView.vue'),
+        meta: {
+          title: 'Dashboard'
+        }
+      },
+
+      // ========== MÓDULO DE ADMINISTRACIÓN ==========
+      {
+        path: 'admin/usuarios',
+        name: 'admin-usuarios',
+        component: () => import('../views/Admin/UsuariosView.vue'),
+        meta: {
+          title: 'Gestión de usuarios',
+          roles: ['ADMIN']
+        }
+      },
+      {
+        path: 'admin/especialidades',
+        name: 'admin-especialidades',
+        component: () => import('../views/Admin/EspecialidadesView.vue'),
+        meta: {
+          title: 'Gestión de especialidades',
+          roles: ['ADMIN']
+        }
+      },
+      // ========== MÓDULO DE PROFESOR ==========
+      {
+        path: 'profesor/estudiantes',
+        name: 'profesor-estudiantes',
+        component: () => import('../views/Profesor/EstudiantesView.vue'),
+        meta: {
+          title: 'Seguimiento de estudiantes',
+          roles: ['PROFESOR', 'ADMIN']
+        }
+      }
+
+      // ========== RUTAS FUTURAS (comentadas) ==========
+      /*
+      {
+        path: 'admin/roles',
+        name: 'admin-roles',
+        component: () => import('../views/Admin/RolesView.vue'),
+        meta: {
+          title: 'Gestión de roles',
+          roles: ['administrador']
+        }
+      },
+      {
+        path: 'profesor/pacientes',
+        name: 'profesor-pacientes',
+        component: () => import('../views/Profesor/PacientesView.vue'),
+        meta: {
+          title: 'Mis pacientes',
+          roles: ['profesor', 'administrador']
+        }
+      }
+      */
+    ]
   },
 
   // Ruta About - Temporal para desarrollo
-  {
+  /*{
     path: '/about',
     name: 'about',
     component: () => import('../views/AboutView.vue'),
@@ -49,7 +110,7 @@ const routes: RouteRecordRaw[] = [
       title: 'Acerca de'
     }
   },
-
+*/
   // Ruta 404 - Catch all
   {
     path: '/:pathMatch(.*)*',
@@ -66,58 +127,6 @@ const router = createRouter({
   routes
 })
 
-/**
- * Guard de navegación global
- * Maneja la autenticación y autorización antes de cada ruta
- */
-router.beforeEach(async (to, from, next) => {
-  const authStore = useAuthStore()
-
-  // Inicializar autenticación si no se ha hecho
-  if (!authStore.token && !authStore.user) {
-    authStore.initializeAuth()
-  }
-
-  // Establecer título de la página
-  if (to.meta.title) {
-    document.title = `${to.meta.title} - Sistema Odontológico`
-  }
-
-  // Verificar si la ruta requiere autenticación
-  if (to.meta.requiresAuth) {
-    if (!authStore.isAuthenticated) {
-      // No autenticado, redirigir a login
-      next({
-        name: 'login',
-        query: { redirect: to.fullPath } // Guardar ruta de destino
-      })
-      return
-    }
-  }
-
-  // Verificar si la ruta requiere ser invitado (no autenticado)
-  if (to.meta.requiresGuest) {
-    if (authStore.isAuthenticated) {
-      // Ya autenticado, redirigir a dashboard
-      next({ name: 'dashboard' })
-      return
-    }
-  }
-
-  // Continuar con la navegación
-  next()
-})
-
-/**
- * Guard posterior a la navegación
- * Maneja acciones después de completar la navegación
- */
-router.afterEach((to) => {
-  // Limpiar cualquier mensaje de error del store de auth en rutas que no sean login
-  if (to.name !== 'login') {
-    const authStore = useAuthStore()
-    authStore.clearError()
-  }
-})
+setupRouterGuards(router)
 
 export default router

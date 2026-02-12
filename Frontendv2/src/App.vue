@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
+import ToastNotification from '@/components/common/ToastNotification.vue'
 
 // Inicializar el sistema de temas al cargar la aplicación
 useTheme()
@@ -12,6 +13,9 @@ useTheme()
     El layout y navegación se manejan en cada vista individual
   -->
   <RouterView />
+  
+  <!-- Sistema de notificaciones global -->
+  <ToastNotification />
 </template>
 
 <style>

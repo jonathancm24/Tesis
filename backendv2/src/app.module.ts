@@ -5,6 +5,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermisosModule } from './modules/permisos/permisos.module';
 import { UsuariosModule } from './modules/usuarios/usuarios.module';
+import { EspecialidadesModule } from './modules/especialidades/especialidades.module';
 import { PermisosInicializadorService } from './modules/permisos/permisos-inicializador.service';
 import { PaisModule } from './modules/Pais/pais.module';
 import { ParroquiaModule } from './modules/Parroquia/parroquia.module';
@@ -21,6 +22,7 @@ import { CantonModule } from './modules/Canton/canton.module';
     RolesModule,
     PermisosModule,
     UsuariosModule,
+    EspecialidadesModule,
     PaisModule,
     ParroquiaModule,
     ProvinciaModule,

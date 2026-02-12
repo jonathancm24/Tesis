@@ -11,7 +11,14 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  Res,
+  StreamableFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 import { UsuariosService } from './usuarios.service';
 import {
   CreateUsuarioDto,
@@ -95,6 +102,107 @@ export class UsuariosController {
     return this.usuariosService.findAll(filters);
   }
 
+    /**
+   * Descargar plantilla de importación de usuarios
+   * GET /usuarios/template
+   * Requiere permisos: VER_USUARIOS
+   *
+   * Genera y descarga un archivo Excel de plantilla con instrucciones y ejemplos
+   */
+  @Get('template')
+  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
+  // @RequirePermissions(Permisos.VER_USUARIOS) // Descomenta para requerir permiso específico
+  async downloadTemplate(
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    const buffer = await this.usuariosService.generateImportTemplate();
+
+    // Configurar headers para descarga de archivo
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename="plantilla_usuarios.xlsx"`,
+    });
+
+    return new StreamableFile(buffer);
+  }
+
+  /**
+   * Importar usuarios desde archivo Excel
+   * POST /usuarios/import
+   * Requiere permisos: CREAR_USUARIOS
+   *
+   * Acepta un archivo Excel con las columnas especificadas en la documentación del servicio
+   */
+  @Post('import')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileInterceptor('file'))
+  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
+  // @RequirePermissions(Permisos.CREAR_USUARIOS) // Descomenta para requerir permiso específico
+  async importFromExcel(
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<{ imported: number; errors: string[] }> {
+    if (!file) {
+      throw new BadRequestException('No se ha proporcionado ningún archivo');
+    }
+
+    const result = await this.usuariosService.importFromExcel(file.buffer);
+    
+    // Transformar el resultado al formato esperado por el frontend
+    const errors = result.detalles
+      .filter(d => d.estado === 'error')
+      .map(d => `Fila ${d.fila}: ${d.mensaje}`);
+
+    return {
+      imported: result.creados + result.actualizados,
+      errors: errors,
+    };
+  }
+
+  /**
+   * Exportar usuarios a Excel
+   * GET /usuarios/export
+   * Requiere permisos: VER_USUARIOS
+   *
+   * Exporta todos los usuarios (con filtros opcionales) a un archivo Excel
+   */
+  @Get('export')
+  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
+  // @RequirePermissions(Permisos.VER_USUARIOS) // Descomenta para requerir permiso específico
+  async exportToExcel(
+    @Query() query: any,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    // Construir filtros desde query params (similar a findAll)
+    const filters = new UsuarioFiltersDto({
+      nombre: query.nombre,
+      apellido: query.apellido,
+      email: query.email,
+      activo: query.activo ? query.activo === 'true' : undefined,
+      roleId: query.roleId ? parseInt(query.roleId) : undefined,
+      parroquiaId: query.parroquiaId ? parseInt(query.parroquiaId) : undefined,
+      tipoDocumento: query.tipoDocumento,
+      fechaNacimientoDesde: query.fechaNacimientoDesde,
+      fechaNacimientoHasta: query.fechaNacimientoHasta,
+      fechaCreacionDesde: query.fechaCreacionDesde,
+      fechaCreacionHasta: query.fechaCreacionHasta,
+      // Para exportar, no usar paginación (o usar límites muy altos)
+      page: 1,
+      limit: 10000,
+      orderBy: query.orderBy || 'fechaRegistro',
+      orderDirection: query.orderDirection || 'desc',
+    });
+
+    const buffer = await this.usuariosService.exportToExcel(filters);
+
+    // Configurar headers para descarga de archivo
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename="usuarios_${new Date().toISOString().split('T')[0]}.xlsx"`,
+    });
+
+    return new StreamableFile(buffer);
+  }
+  
   /**
    * Obtener un usuario por ID
    * GET /usuarios/:id
@@ -202,7 +310,7 @@ export class UsuariosController {
    * Buscar usuarios por texto libre
    * GET /usuarios/search/:searchTerm
    * Requiere permisos: VER_USUARIOS
-   * 
+   *
    * Busca en nombre, apellido y email
    */
   @Get('search/:searchTerm')
@@ -221,4 +329,6 @@ export class UsuariosController {
 
     return this.usuariosService.findAll(filters);
   }
+
+
 }

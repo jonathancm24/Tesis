@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { AxiosError } from 'axios'
 import { authService, type LoginRequest, type User } from '@/Config/api'
+import { normalizeRoleName, rolePermissions, type Permission } from '@/Config/permissions'
 
 /**
  * Store de Pinia para manejar el estado de autenticación
@@ -17,6 +18,11 @@ export const useAuthStore = defineStore('auth', () => {
   // Computed properties
   const isAuthenticated = computed(() => !!token.value && !!user.value)
   const userRole = computed(() => user.value?.role?.nombre || null)
+  const normalizedRole = computed(() => normalizeRoleName(userRole.value))
+  const permissions = computed<Permission[]>(() => {
+    const role = normalizedRole.value
+    return role ? rolePermissions[role] : []
+  })
 
   /**
    * Inicializar el store con datos de localStorage si existen
@@ -99,13 +105,21 @@ export const useAuthStore = defineStore('auth', () => {
    * @param role - Nombre del rol a verificar
    */
   const hasRole = (role: string): boolean => {
-    return userRole.value === role
+    const normalized = normalizeRoleName(role)
+    return normalized !== null && normalized === normalizedRole.value
   }
 
   /**
    * Verificar si el usuario es administrador
    */
   const isAdmin = computed(() => hasRole('admin') || hasRole('administrador'))
+
+  /**
+   * Verificar si el usuario tiene un permiso especifico
+   */
+  const hasPermission = (permission: Permission): boolean => {
+    return permissions.value.includes(permission)
+  }
 
   /**
    * Obtener nombre completo del usuario
@@ -132,6 +146,7 @@ export const useAuthStore = defineStore('auth', () => {
     // Computed
     isAuthenticated,
     userRole,
+    permissions,
     isAdmin,
     fullName,
     
@@ -141,6 +156,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     clearAuth,
     hasRole,
+    hasPermission,
     clearError
   }
 })

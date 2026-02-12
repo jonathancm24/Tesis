@@ -1,0 +1,63 @@
+/**
+ * Estilos para el modal de importación de estudiantes
+ * Reutiliza estilos del modal de usuarios
+ */
+
+/* Este archivo importa los estilos base del modal de usuarios */
+@import '../../admin/usuarios.css';
+@import '../../admin/components/ImportUsuariosModal.css';
+
+/* Estilos adicionales específicos para estudiantes */
+.import-warning {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--border-radius-md);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+[data-theme="dark"] .import-warning {
+  background: #7f1d1d;
+  border-color: #ef4444;
+}
+
+.import-warning-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.import-warning-content h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9375rem;
+  color: var(--color-text-primary);
+}
+
+.import-warning-content p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.validation-error {
+  background: #fef2f2;
+  border-left: 4px solid #ef4444;
+  border-radius: var(--border-radius);
+  padding: 0.75rem 1rem;
+  margin-top: 1rem;
+}
+
+[data-theme="dark"] .validation-error {
+  background: #7f1d1d;
+  border-color: #f87171;
+}
+
+.validation-error p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
