@@ -8,7 +8,8 @@ import type {
   CreatePacienteDto,
   UpdatePacienteDto,
   PaginatedPacientes,
-  PacienteFilters
+  PacienteFilters,
+  HistorialCompletoPaciente
 } from '@/types/pacientes.types'
 
 export const pacientesService = {
@@ -73,6 +74,14 @@ export const pacientesService = {
    */
   async activate(id: number): Promise<Paciente> {
     const response = await apiClient.patch<Paciente>(`/pacientes/${id}/activate`)
+    return response.data
+  },
+
+  /**
+   * Obtener historial completo de un paciente
+   */
+  async getHistorialCompleto(id: number): Promise<HistorialCompletoPaciente> {
+    const response = await apiClient.get<HistorialCompletoPaciente>(`/pacientes/${id}/historial-completo`)
     return response.data
   }
 }

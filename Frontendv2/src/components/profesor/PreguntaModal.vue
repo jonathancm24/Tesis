@@ -23,11 +23,11 @@
 						<select id="tipo" v-model="form.tipo" required>
 							<option value="" disabled>Seleccione el tipo</option>
 							<option value="TEXTO">Texto corto</option>
-							<option value="TEXTO_LARGO">Texto largo</option>
+							<option value="TEXTAREA">Texto largo</option>
 							<option value="NUMERO">Número</option>
 							<option value="FECHA">Fecha</option>
-							<option value="BOOLEANO">Sí/No</option>
-							<option value="SELECCION_MULTIPLE">Selección múltiple</option>
+							<option value="SI_NO">Sí/No</option>
+							<option value="MULTIPLE_SELECCION">Selección múltiple</option>
 						</select>
 					</div>
 
@@ -62,6 +62,7 @@
 </template>
 
 <script setup lang="ts">
+import type { AxiosError } from 'axios'
 import { reactive, ref } from 'vue'
 import { preguntasClinicasService } from '@/services/Profesores/preguntas-clinicas.service'
 import { useToast } from '@/composables/useToast'
@@ -106,7 +107,7 @@ const handleSubmit = async () => {
 			texto: form.texto,
 			tipo: form.tipo as TipoPregunta,
 			obligatoria: form.obligatoria,
-			especialidadId: form.especialidadId > 0 ? form.especialidadId : undefined
+			especialidadId: form.especialidadId > 0 ? form.especialidadId : props.pregunta ? null : undefined
 		}
 
 		if (props.pregunta) {
@@ -117,7 +118,10 @@ const handleSubmit = async () => {
 
 		emit('save')
 	} catch (error) {
-		toast.error('No se pudo guardar la pregunta')
+		const axiosError = error as AxiosError<{ message?: string | string[] }>
+		const message = axiosError.response?.data?.message
+		const detail = Array.isArray(message) ? message[0] : message
+		toast.error(detail || 'No se pudo guardar la pregunta')
 	} finally {
 		isSaving.value = false
 	}

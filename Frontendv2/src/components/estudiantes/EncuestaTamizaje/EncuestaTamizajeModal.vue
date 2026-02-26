@@ -86,8 +86,8 @@
             <div :key="currentQuestionKey" class="current-question">
               <QuestionRenderer
                 :question="currentQuestion"
-                :model-value="respuestasActuales.get(currentQuestion?.id || 0) || null"
-                :detalle="detallesActuales.get(currentQuestion?.id || 0) || null"
+                :model-value="respuestasActuales.get(currentQuestion?.id || 0) ?? null"
+                :detalle="detallesActuales.get(currentQuestion?.id || 0) ?? null"
                 :index="globalQuestionIndex"
                 :show-error="showErrors"
                 @update:model-value="
@@ -142,13 +142,13 @@
       <!-- Footer with Actions -->
       <div class="modal-footer">
         <div class="footer-buttons">
-          <button class="btn-secondary" @click="handleLimpiar">
+          <button class="btn-secondary" :disabled="isReadOnly" @click="handleLimpiar">
             🔄 Limpiar
           </button>
           <button class="btn-secondary" @click="handleClose">Cancelar</button>
           <button
             class="btn-primary"
-            :disabled="isLoading"
+            :disabled="isLoading || isReadOnly"
             @click="handleGuardar"
           >
             <span v-if="!isLoading">💾 Guardar Respuestas</span>
@@ -198,6 +198,8 @@ const showErrors = ref(false)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const success = ref<string | null>(null)
+
+const isReadOnly = computed(() => store.encuestaPacienteActual?.estado === 'COMPLETADA')
 
 // Local state for responses
 const respuestasActuales = ref<Map<number, string | boolean | null>>(
@@ -404,6 +406,11 @@ const handleClose = () => {
 
 /* Limpia las respuestas */
 const handleLimpiar = () => {
+  if (isReadOnly.value) {
+    error.value = 'La encuesta está completada y solo puede visualizarse. Cree una nueva versión para editar.'
+    return
+  }
+
   if (confirm('¿Está seguro de que desea limpiar todas las respuestas?')) {
     respuestasActuales.value.clear()
     detallesActuales.value.clear()
@@ -415,6 +422,11 @@ const handleLimpiar = () => {
 const handleGuardar = async () => {
   error.value = null
   success.value = null
+
+  if (isReadOnly.value) {
+    error.value = 'La encuesta está completada y no se puede modificar. Cree una nueva versión para editar.'
+    return
+  }
 
   // Validar que todas las preguntas obligatorias tengan respuesta (solo las filtradas)
   const preguntasObligatorias = preguntasFiltradas.value.filter(
@@ -459,6 +471,39 @@ const handleGuardar = async () => {
   }
 }
 
+const cargarDatosEncuestaActual = async () => {
+  if (!props.pacienteId) return
+
+  await store.cargarEncuestaPaciente(props.pacienteId)
+
+  respuestasActuales.value.clear()
+  detallesActuales.value.clear()
+
+  if (store.encuestaPacienteActual?.respuestas) {
+    store.encuestaPacienteActual.respuestas.forEach((r) => {
+      if (r.respuesta !== null && r.respuesta !== '') {
+        const pregunta = store.todasLasPreguntas.find(p => p.id === r.preguntaId)
+
+        let valorRespuesta: string | boolean | null = r.respuesta
+
+        if (pregunta?.tipo === 'SI_NO') {
+          if (r.respuesta === 'SI' || r.respuesta === true) {
+            valorRespuesta = true
+          } else if (r.respuesta === 'NO' || r.respuesta === false) {
+            valorRespuesta = false
+          }
+        }
+
+        respuestasActuales.value.set(r.preguntaId, valorRespuesta)
+
+        if (r.detalle) {
+          detallesActuales.value.set(r.preguntaId, r.detalle)
+        }
+      }
+    })
+  }
+}
+
 /* Atajos de teclado */
 const handleKeydown = (event: KeyboardEvent) => {
   if (!props.isOpen) return
@@ -489,37 +534,7 @@ onMounted(async () => {
       await store.cargarTodasLasPreguntas()
     }
 
-    // Cargar encuesta del paciente
-    if (props.pacienteId) {
-      await store.cargarEncuestaPaciente(props.pacienteId)
-
-      // Inicializar respuestasActuales con las respuestas existentes
-      if (store.encuestaPacienteActual?.respuestas) {
-        store.encuestaPacienteActual.respuestas.forEach((r) => {
-          if (r.respuesta !== null && r.respuesta !== '') {
-            // Buscar el tipo de pregunta
-            const pregunta = store.todasLasPreguntas.find(p => p.id === r.preguntaId)
-            
-            let valorRespuesta: string | boolean | null = r.respuesta
-            
-            // Si es una pregunta SI_NO, convertir string a boolean
-            if (pregunta?.tipo === 'SI_NO') {
-              if (r.respuesta === 'SI' || r.respuesta === true) {
-                valorRespuesta = true
-              } else if (r.respuesta === 'NO' || r.respuesta === false) {
-                valorRespuesta = false
-              }
-            }
-            
-            respuestasActuales.value.set(r.preguntaId, valorRespuesta)
-            
-            if (r.detalle) {
-              detallesActuales.value.set(r.preguntaId, r.detalle)
-            }
-          }
-        })
-      }
-    }
+    await cargarDatosEncuestaActual()
   } catch (err) {
     console.error('Error cargando datos:', err)
     error.value = 'Error al cargar las preguntas'
@@ -537,12 +552,24 @@ onUnmounted(() => {
 /* Watch para resetear tab cuando se abre el modal */
 watch(
   () => props.isOpen,
-  (newVal) => {
+  async (newVal) => {
     if (newVal) {
       activeTab.value = 0
       currentQuestionIndex.value = 0
       showErrors.value = false
+      error.value = null
+      success.value = null
+      await cargarDatosEncuestaActual()
     }
+  }
+)
+
+watch(
+  () => props.pacienteId,
+  async (newPacienteId, oldPacienteId) => {
+    if (!props.isOpen) return
+    if (!newPacienteId || newPacienteId === oldPacienteId) return
+    await cargarDatosEncuestaActual()
   }
 )
 </script>

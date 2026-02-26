@@ -27,11 +27,11 @@
 					<select id="filterTipo" v-model="filtroTipo">
 						<option value="">Todos los tipos</option>
 						<option value="TEXTO">Texto</option>
-						<option value="TEXTO_LARGO">Texto largo</option>
+						<option value="TEXTAREA">Texto largo</option>
 						<option value="NUMERO">Número</option>
 						<option value="FECHA">Fecha</option>
-						<option value="BOOLEANO">Sí/No</option>
-						<option value="SELECCION_MULTIPLE">Selección múltiple</option>
+						<option value="SI_NO">Sí/No</option>
+						<option value="MULTIPLE_SELECCION">Selección múltiple</option>
 					</select>
 				</div>
 			</div>
@@ -127,11 +127,11 @@ const preguntasFiltradas = computed(() => {
 const formatTipo = (tipo: string): string => {
 	const tipos: Record<string, string> = {
 		TEXTO: 'Texto',
-		TEXTO_LARGO: 'Texto largo',
+		TEXTAREA: 'Texto largo',
 		NUMERO: 'Número',
 		FECHA: 'Fecha',
-		BOOLEANO: 'Sí/No',
-		SELECCION_MULTIPLE: 'Selección múltiple'
+		SI_NO: 'Sí/No',
+		MULTIPLE_SELECCION: 'Selección múltiple'
 	}
 	return tipos[tipo] || tipo
 }

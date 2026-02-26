@@ -17,5 +17,5 @@ export class UpdatePreguntaDto {
 
   @IsOptional()
   @IsInt()
-  especialidadId?: number
+  especialidadId?: number | null
 }

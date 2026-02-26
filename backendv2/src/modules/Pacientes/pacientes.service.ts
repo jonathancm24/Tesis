@@ -141,6 +141,162 @@ export class PacientesService {
   }
 
   /**
+   * Obtener historial completo del paciente con todos sus registros clínicos
+   */
+  async getHistorialCompleto(id: number) {
+    const paciente = await this.prisma.paciente.findUnique({
+      where: { id },
+      include: {
+        parroquia: {
+          include: {
+            canton: {
+              include: {
+                provincia: {
+                  include: {
+                    pais: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        casosClinicos: {
+          orderBy: { fechaCreacion: 'desc' },
+          include: {
+            especialidad: { select: { id: true, nombre: true } },
+            profesor: {
+              select: { id: true, nombre: true, apellido: true, email: true },
+            },
+            estudiante: {
+              select: { id: true, nombre: true, apellido: true, email: true },
+            },
+            observaciones: {
+              orderBy: { fecha: 'desc' },
+              include: {
+                docente: { select: { id: true, nombre: true, apellido: true } },
+                estudiante: { select: { id: true, nombre: true, apellido: true } },
+              },
+            },
+            tratamientos: {
+              orderBy: { fechaCreacion: 'desc' },
+              include: {
+                docente: { select: { id: true, nombre: true, apellido: true } },
+                estudiante: { select: { id: true, nombre: true, apellido: true } },
+                observaciones: {
+                  orderBy: { fecha: 'desc' },
+                  include: {
+                    docente: { select: { id: true, nombre: true, apellido: true } },
+                    estudiante: { select: { id: true, nombre: true, apellido: true } },
+                  },
+                },
+              },
+            },
+            prescripciones: {
+              orderBy: { fechaCreacion: 'desc' },
+              include: {
+                observaciones: {
+                  orderBy: { fecha: 'desc' },
+                  include: {
+                    docente: { select: { id: true, nombre: true, apellido: true } },
+                    estudiante: { select: { id: true, nombre: true, apellido: true } },
+                  },
+                },
+              },
+            },
+            odontograma: {
+              orderBy: [{ diente: 'asc' }, { id: 'asc' }],
+            },
+          },
+        },
+        EncuestaTamizaje: {
+          orderBy: { fecha: 'desc' },
+        },
+      },
+    });
+
+    if (!paciente) {
+      throw new NotFoundException(`Paciente con ID ${id} no encontrado`);
+    }
+
+    const todasLasPreguntas = await this.prisma.preguntaTamizaje.findMany({
+      select: { id: true, soloMujer: true },
+    });
+
+    const generoPaciente = paciente.genero?.toLowerCase();
+    const esMujer =
+      generoPaciente === 'femenino' || generoPaciente === 'f' || generoPaciente === 'mujer';
+
+    const preguntasAplicables = todasLasPreguntas.filter((pregunta) => {
+      if (pregunta.soloMujer && !esMujer) {
+        return false;
+      }
+      return true;
+    });
+
+    const respuestasTamizaje = await this.prisma.respuestaTamizaje.findMany({
+      where: { pacienteId: id },
+      include: {
+        pregunta: true,
+      },
+      orderBy: { id: 'asc' },
+    });
+
+    const respuestasCompletadas = respuestasTamizaje.filter(
+      (respuesta) => respuesta.respuesta !== null && respuesta.respuesta !== '',
+    ).length;
+
+    const totalPreguntas = preguntasAplicables.length;
+
+    const encuestas = paciente.EncuestaTamizaje.map((encuesta, index) => {
+      const porcentaje =
+        totalPreguntas > 0 ? Math.round((respuestasCompletadas / totalPreguntas) * 100) : 0;
+
+      const estado =
+        respuestasCompletadas === 0
+          ? 'PENDIENTE'
+          : respuestasCompletadas >= totalPreguntas
+            ? 'COMPLETADA'
+            : 'BORRADOR';
+
+      return {
+        encuestaId: encuesta.id,
+        pacienteId: encuesta.pacienteId,
+        fecha: encuesta.fecha,
+        totalPreguntas,
+        respuestasCompletadas,
+        porcentaje,
+        estado,
+        esUltimaVersion: index === 0,
+        respuestas: respuestasTamizaje,
+      };
+    });
+
+    return {
+      paciente: this.transformToResponseDto(paciente),
+      resumen: {
+        totalCasosClinicos: paciente.casosClinicos.length,
+        totalEncuestas: encuestas.length,
+        totalObservaciones: paciente.casosClinicos.reduce(
+          (acc, caso) => acc + caso.observaciones.length,
+          0,
+        ),
+        totalTratamientos: paciente.casosClinicos.reduce(
+          (acc, caso) => acc + caso.tratamientos.length,
+          0,
+        ),
+        totalPrescripciones: paciente.casosClinicos.reduce(
+          (acc, caso) => acc + caso.prescripciones.length,
+          0,
+        ),
+      },
+      encuestas,
+      casosClinicos: paciente.casosClinicos,
+      notaVersionado:
+        'El esquema actual almacena respuestas de tamizaje por paciente. Las versiones de encuesta comparten el mismo conjunto de respuestas.',
+    };
+  }
+
+  /**
    * Actualizar un paciente existente
    */
   async update(id: number, updatePacienteDto: UpdatePacienteDto): Promise<PacienteResponseDto> {

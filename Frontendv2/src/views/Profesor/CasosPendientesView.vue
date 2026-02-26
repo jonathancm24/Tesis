@@ -107,7 +107,7 @@
                   <button
                     class="btn btn-link"
                     type="button"
-                    @click.stop="handleSelectCaso(caso.id)"
+                    @click.stop="handleVerDetalleCaso(caso.id, caso.paciente?.id)"
                   >
                     Ver detalle
                   </button>
@@ -123,9 +123,18 @@
         <div class="card info-card">
           <div class="card-header">
             <h3>Detalle del caso</h3>
-            <span :class="['badge', `badge-${getEstadoBadge(casoSeleccionado.estado)}`]">
-              {{ getEstadoLabel(casoSeleccionado.estado) }}
-            </span>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span :class="['badge', `badge-${getEstadoBadge(casoSeleccionado.estado)}`]">
+                {{ getEstadoLabel(casoSeleccionado.estado) }}
+              </span>
+              <button
+                class="btn btn-secondary"
+                type="button"
+                @click="abrirHistorialPaciente(casoSeleccionado.paciente?.id)"
+              >
+                Historial paciente
+              </button>
+            </div>
           </div>
 
           <div class="info-section">
@@ -306,6 +315,12 @@
         </div>
       </aside>
     </div>
+
+    <HistorialCompletoModal
+      :is-open="isHistorialModalOpen"
+      :paciente-id="pacienteHistorialId || 0"
+      @close="isHistorialModalOpen = false"
+    />
   </section>
 </template>
 
@@ -314,6 +329,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import { casosClinicosService } from '@/services/estudiantes/CasosClinicos/casos-clinicos.service'
+import HistorialCompletoModal from '@/components/estudiantes/pacientes/HistorialCompletoModal.vue'
 import type { CasoClinico, CasoClinicoListItem, EstadoCasoClinico } from '@/types/casosClinicos.types'
 import { getErrorMessage } from '@/utils/errorHandler'
 
@@ -328,6 +344,8 @@ const isSavingObservacion = ref(false)
 const filtroEstado = ref<string>('EN_REVISION')
 const nuevaObservacion = ref('')
 const calificacion = ref<number | undefined>()
+const isHistorialModalOpen = ref(false)
+const pacienteHistorialId = ref<number | null>(null)
 
 const estadisticas = computed(() => {
   const enRevision = casos.value.filter(c => c.estado === 'EN_REVISION').length
@@ -364,6 +382,21 @@ const cargarDetalleCaso = async (casoId: number) => {
 
 const handleSelectCaso = async (casoId: number) => {
   await cargarDetalleCaso(casoId)
+}
+
+const abrirHistorialPaciente = async (pacienteId?: number) => {
+  if (!pacienteId) {
+    toast.error('No se encontró el paciente para mostrar el historial')
+    return
+  }
+
+  pacienteHistorialId.value = pacienteId
+  isHistorialModalOpen.value = true
+}
+
+const handleVerDetalleCaso = async (casoId: number, pacienteId?: number) => {
+  await handleSelectCaso(casoId)
+  await abrirHistorialPaciente(pacienteId)
 }
 
 const handleFiltroChange = async () => {

@@ -69,7 +69,7 @@ export class PreguntasClinicasService {
   async update(id: number, dto: UpdatePreguntaDto) {
     await this.findOne(id)
 
-    if (dto.especialidadId) {
+    if (dto.especialidadId !== undefined && dto.especialidadId !== null) {
       const especialidad = await this.prisma.especialidad.findUnique({
         where: { id: dto.especialidadId }
       })
@@ -78,14 +78,24 @@ export class PreguntasClinicasService {
       }
     }
 
+    const data: {
+      texto?: string
+      tipo?: UpdatePreguntaDto['tipo']
+      obligatoria?: boolean
+      especialidadId?: number | null
+    } = {
+      texto: dto.texto,
+      tipo: dto.tipo,
+      obligatoria: dto.obligatoria
+    }
+
+    if (dto.especialidadId !== undefined) {
+      data.especialidadId = dto.especialidadId
+    }
+
     return this.prisma.preguntaClinica.update({
       where: { id },
-      data: {
-        texto: dto.texto,
-        tipo: dto.tipo,
-        obligatoria: dto.obligatoria,
-        especialidadId: dto.especialidadId
-      },
+      data,
       include: {
         especialidad: true
       }

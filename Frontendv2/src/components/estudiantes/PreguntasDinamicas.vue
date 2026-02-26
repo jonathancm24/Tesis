@@ -6,7 +6,7 @@
 				v-for="pregunta in preguntas"
 				:key="pregunta.id"
 				class="form-field"
-				:class="{ 'form-field-full': pregunta.tipo === 'TEXTO_LARGO' }"
+				:class="{ 'form-field-full': pregunta.tipo === 'TEXTAREA' }"
 			>
 				<label :for="`pregunta-${pregunta.id}`">
 					{{ pregunta.texto }}
@@ -24,7 +24,7 @@
 				/>
 
 				<textarea
-					v-else-if="pregunta.tipo === 'TEXTO_LARGO'"
+					v-else-if="pregunta.tipo === 'TEXTAREA'"
 					:id="`pregunta-${pregunta.id}`"
 					rows="3"
 					:value="getRespuesta(pregunta.id)"
@@ -54,7 +54,7 @@
 				/>
 
 				<select
-					v-else-if="pregunta.tipo === 'BOOLEANO'"
+					v-else-if="pregunta.tipo === 'SI_NO'"
 					:id="`pregunta-${pregunta.id}`"
 					:value="getRespuesta(pregunta.id)"
 					:required="pregunta.obligatoria"

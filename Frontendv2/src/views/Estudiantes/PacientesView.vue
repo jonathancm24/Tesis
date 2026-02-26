@@ -216,6 +216,13 @@
       @close="isCitaModalOpen = false"
       @cita-creada="handleCitaCreada"
     />
+
+    <HistorialCompletoModal
+      v-if="selectedPaciente"
+      :is-open="isHistorialModalOpen"
+      :paciente-id="selectedPaciente.id"
+      @close="isHistorialModalOpen = false"
+    />
   </section>
 </template>
 
@@ -231,6 +238,7 @@ import { casosClinicosService } from '@/services/estudiantes/CasosClinicos/casos
 import PacienteModal from '@/components/estudiantes/PacienteModal.vue'
 import AntecedentesMedicosWidget from '@/components/estudiantes/pacientes/AntecedentesMedicosWidget.vue'
 import HistorialCasosWidget from '@/components/estudiantes/pacientes/HistorialCasosWidget.vue'
+import HistorialCompletoModal from '@/components/estudiantes/pacientes/HistorialCompletoModal.vue'
 import AccionesRapidasWidget from '@/components/estudiantes/pacientes/AccionesRapidasWidget.vue'
 import CitasModal from '@/components/estudiantes/pacientes/CitasModal.vue'
 import type { Paciente } from '@/types/pacientes.types'
@@ -249,6 +257,7 @@ const selectedPaciente = ref<Paciente | null>(null)
 const isModalOpen = ref(false)
 const editingPaciente = ref<Paciente | null>(null)
 const isCitaModalOpen = ref(false)
+const isHistorialModalOpen = ref(false)
 const casosDelPaciente = ref<CasoClinicoListItem[]>([])
 const loadingCasos = ref(false)
 
@@ -455,9 +464,12 @@ const handleSelectCaso = (casoId: number) => {
 
 // Abrir historial completo
 const handleOpenHistorialCompleto = () => {
-  console.log('Abrir historial completo')
-  toast.info('Abrir historial completo (Por implementar)')
-  // TODO: Navegar a página de historial completo o modal
+  if (!selectedPaciente.value) {
+    toast.error('Seleccione un paciente para ver el historial completo')
+    return
+  }
+
+  isHistorialModalOpen.value = true
 }
 
 // Manejar acciones rápidas

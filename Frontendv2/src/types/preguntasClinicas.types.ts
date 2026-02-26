@@ -1,4 +1,4 @@
-export type TipoPregunta = 'TEXTO' | 'TEXTO_LARGO' | 'NUMERO' | 'FECHA' | 'BOOLEANO' | 'SELECCION_MULTIPLE'
+export type TipoPregunta = 'TEXTO' | 'TEXTAREA' | 'NUMERO' | 'FECHA' | 'SI_NO' | 'MULTIPLE_SELECCION'
 
 export interface PreguntaClinica {
   id: number
@@ -16,14 +16,14 @@ export interface CreatePreguntaDto {
   texto: string
   tipo: TipoPregunta
   obligatoria: boolean
-  especialidadId?: number
+  especialidadId?: number | null
 }
 
 export interface UpdatePreguntaDto {
   texto?: string
   tipo?: TipoPregunta
   obligatoria?: boolean
-  especialidadId?: number
+  especialidadId?: number | null
 }
 
 export interface RespuestaClinicaInput {

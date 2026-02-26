@@ -66,6 +66,15 @@ export class PacientesController {
   }
 
   /**
+   * Obtener historial completo de un paciente
+   * GET /pacientes/:id/historial-completo
+   */
+  @Get(':id/historial-completo')
+  async getHistorialCompleto(@Param('id', ParseIntPipe) id: number) {
+    return this.pacientesService.getHistorialCompleto(id);
+  }
+
+  /**
    * Obtener un paciente por ID
    * GET /pacientes/:id
    */

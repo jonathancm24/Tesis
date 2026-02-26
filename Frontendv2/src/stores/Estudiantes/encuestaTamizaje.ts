@@ -20,7 +20,7 @@ export const useEncuestaTamizajeStore = defineStore('encuestaTamizaje', () => {
   const error = ref<string | null>(null)
 
   // Respuestas del formulario
-  const respuestasActuales = ref<Map<number, string>>(new Map())
+  const respuestasActuales = ref<Map<number, string | boolean | null>>(new Map())
 
   // Getters
   const categorias = computed(() => Object.keys(preguntasPorCategoria.value))
@@ -53,6 +53,9 @@ export const useEncuestaTamizajeStore = defineStore('encuestaTamizaje', () => {
       const encuesta = await encuestaTamizajeService.obtenerEncuestaPaciente(
         pacienteId
       )
+
+      // Reiniciar respuestas locales para evitar mezclar datos entre pacientes/versiones
+      respuestasActuales.value.clear()
       
       // Asegurarse de que la estructura tenga los campos necesarios
       if (encuesta) {
@@ -69,10 +72,9 @@ export const useEncuestaTamizajeStore = defineStore('encuestaTamizaje', () => {
 
       // Cargar respuestas existentes
       if (encuesta && encuesta.respuestas) {
-        respuestasActuales.value.clear()
         encuesta.respuestas.forEach((r: any) => {
           // Convertir SI/NO a boolean cuando corresponda
-          let valor: string | boolean = r.respuesta || ''
+          let valor: string | boolean = r.respuesta ?? ''
           if (valor === 'SI') {
             valor = true
           } else if (valor === 'NO') {
@@ -200,7 +202,7 @@ export const useEncuestaTamizajeStore = defineStore('encuestaTamizaje', () => {
     }
   }
 
-  function actualizarRespuesta(preguntaId: number, respuesta: string) {
+  function actualizarRespuesta(preguntaId: number, respuesta: string | boolean | null) {
     respuestasActuales.value.set(preguntaId, respuesta)
   }
 
