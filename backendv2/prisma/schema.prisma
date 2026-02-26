@@ -572,9 +572,10 @@ enum EstadoPrescripcion {
 enum TipoPregunta {
   SI_NO
   TEXTO
-  NUMERICO
+  NUMERO
   FECHA
-  OPCION_MULTIPLE
+  MULTIPLE_SELECCION
+  TEXTAREA
 }
 
 enum EstadoCita {

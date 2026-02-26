@@ -121,6 +121,24 @@
 
               <!-- Sección 3: Seguridad -->
               <div class="form-section">
+                <h3>🎯 Especialidades</h3>
+
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label for="especialidades">Especialidades del estudiante *</label>
+                    <select id="especialidades" v-model="formData.especialidadIds" multiple required>
+                      <option v-for="especialidad in especialidades" :key="especialidad.id" :value="especialidad.id">
+                        {{ especialidad.nombre }}
+                      </option>
+                    </select>
+                    <small class="hint-text">Mantén presionado Ctrl para seleccionar varias</small>
+                    <small v-if="errors.especialidadIds" class="error-text">{{ errors.especialidadIds }}</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sección 4: Seguridad -->
+              <div class="form-section">
                 <h3>🔐 Seguridad</h3>
 
                 <div class="form-row">
@@ -189,9 +207,11 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { estudiantesService } from '@/services/estudiantes/estudiantes.service'
+import { estudiantesService } from '@/services/Profesores/estudiantes.service'
+import { especialidadesService } from '@/services/Admin/especialidades.service'
 import { getErrorMessage } from '@/utils/errorHandler'
 import type { TipoDocumento } from '@/types/usuarios.types'
+import type { Especialidad } from '@/types/especialidades.types'
 import '@/assets/styles/Profesor/components/CreateEstudianteModal.css'
 
 interface Props {
@@ -205,6 +225,7 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+const especialidades = ref<Especialidad[]>([])
 
 // Formulario reactivo
 const formData = reactive({
@@ -216,6 +237,7 @@ const formData = reactive({
   direccion: '',
   tipoDocumento: '' as TipoDocumento | '',
   numeroDocumento: '',
+  especialidadIds: [] as number[],
   password: '',
   confirmPassword: ''
 })
@@ -227,9 +249,18 @@ const errors = reactive({
   fechaNacimiento: '',
   tipoDocumento: '',
   numeroDocumento: '',
+  especialidadIds: '',
   password: '',
   confirmPassword: ''
 })
+
+const loadEspecialidades = async () => {
+  try {
+    especialidades.value = await especialidadesService.getAll()
+  } catch {
+    generalError.value = 'No se pudieron cargar las especialidades'
+  }
+}
 
 const submitting = ref(false)
 const generalError = ref<string | null>(null)
@@ -274,6 +305,11 @@ const validateForm = (): boolean => {
     isValid = false
   }
 
+  if (!formData.especialidadIds.length) {
+    errors.especialidadIds = 'Debe seleccionar al menos una especialidad'
+    isValid = false
+  }
+
   if (!formData.password || formData.password.length < 8) {
     errors.password = 'La contraseña debe tener al menos 8 caracteres'
     isValid = false
@@ -306,6 +342,7 @@ const handleSubmit = async () => {
       direccion: formData.direccion.trim() || undefined,
       tipoDocumento: formData.tipoDocumento as TipoDocumento,
       numeroDocumento: formData.numeroDocumento.trim(),
+      especialidadIds: formData.especialidadIds,
       password: formData.password,
       activo: true
     })
@@ -337,6 +374,7 @@ const resetForm = () => {
   formData.direccion = ''
   formData.tipoDocumento = '' as TipoDocumento | ''
   formData.numeroDocumento = ''
+  formData.especialidadIds = []
   formData.password = ''
   formData.confirmPassword = ''
   Object.keys(errors).forEach(key => {
@@ -344,4 +382,6 @@ const resetForm = () => {
   })
   generalError.value = null
 }
+
+loadEspecialidades()
 </script>

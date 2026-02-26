@@ -91,7 +91,7 @@ export const usuariosService = {
    * Cambiar contraseña de un usuario
    */
   async changePassword(id: number, data: ChangePasswordDto): Promise<void> {
-    await apiClient.patch(`${USUARIOS_BASE_URL}/${id}/password`, data)
+    await apiClient.patch(`${USUARIOS_BASE_URL}/${id}/change-password`, data)
   },
 
   /**

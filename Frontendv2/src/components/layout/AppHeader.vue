@@ -1,13 +1,12 @@
 <!--
   Componente: AppHeader
-  
+
   Header reutilizable de la aplicación con:
-  - Logo y branding institucional (CONFIGURABLE - ver sección BRANDING)
+  - Logo y branding institucional
   - Selector de tema claro/oscuro
   - Información del usuario actual
+  - Acceso a perfil
   - Botón de cerrar sesión
-  
-  Responsive: Se adapta a móviles colapsando elementos
 -->
 
 <script setup lang="ts">
@@ -15,45 +14,29 @@ import { useAuthStore } from '@/stores/auth'
 import { useTheme } from '@/composables/useTheme'
 import { useRouter } from 'vue-router'
 
-// Store de autenticación para obtener datos del usuario
 const authStore = useAuthStore()
-
-// Composable para manejar temas
 const { toggleTheme, isDark } = useTheme()
-
-// Router para navegación
 const router = useRouter()
 
-/**
- * Manejar cierre de sesión
- * Limpia el store y redirige al login
- */
 const handleLogout = () => {
   authStore.logout()
   router.push('/login')
+}
+
+const handleGoProfile = () => {
+  router.push('/perfil')
 }
 </script>
 
 <template>
   <header class="app-header">
     <div class="header-content">
-      <!-- ========== SECCIÓN DE BRANDING - CONFIGURABLE ========== -->
-      <!--
-        Esta sección contiene el logo y nombre del sistema.
-        PERSONALIZACIÓN:
-        1. Cambiar el ícono: modifica la clase del <i> (ej: fa-hospital, fa-clinic-medical)
-        2. Cambiar el texto: modifica el contenido del <span>
-        3. Agregar logo imagen: reemplaza el <i> con <img src="ruta-logo.png" alt="Logo">
-      -->
       <div class="logo-section">
         <i class="fas fa-tooth"></i>
         <span class="logo-text">Sistema Odontológico</span>
       </div>
-      <!-- ========== FIN SECCIÓN CONFIGURABLE ========== -->
 
-      <!-- Acciones del header (tema, usuario, logout) -->
       <div class="header-actions">
-        <!-- Botón para cambiar tema (claro/oscuro) -->
         <button
           @click="toggleTheme"
           class="theme-btn"
@@ -63,13 +46,16 @@ const handleLogout = () => {
           <i :class="isDark() ? 'fas fa-sun' : 'fas fa-moon'"></i>
         </button>
 
-        <!-- Información del usuario actual -->
         <div class="user-info" v-if="authStore.user">
           <span class="user-name">{{ authStore.fullName }}</span>
           <span class="user-role">{{ authStore.userRole }}</span>
         </div>
 
-        <!-- Botón para cerrar sesión -->
+        <button @click="handleGoProfile" class="profile-btn" aria-label="Ir a mi perfil">
+          <i class="fas fa-user-circle"></i>
+          <span class="profile-text">Mi Perfil</span>
+        </button>
+
         <button @click="handleLogout" class="logout-btn" aria-label="Cerrar sesión">
           <i class="fas fa-sign-out-alt"></i>
           <span class="logout-text">Cerrar Sesión</span>
@@ -80,7 +66,6 @@ const handleLogout = () => {
 </template>
 
 <style scoped>
-/* ========== HEADER PRINCIPAL ========== */
 .app-header {
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
@@ -110,7 +95,6 @@ const handleLogout = () => {
   overflow: hidden;
 }
 
-/* ========== LOGO Y BRANDING ========== */
 .logo-section {
   display: flex;
   align-items: center;
@@ -133,11 +117,10 @@ const handleLogout = () => {
   text-overflow: ellipsis;
 }
 
-/* ========== ACCIONES DEL HEADER ========== */
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   flex-shrink: 0;
 }
 
@@ -191,20 +174,27 @@ const handleLogout = () => {
   white-space: nowrap;
 }
 
+.profile-btn,
 .logout-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.85rem;
   border-radius: var(--border-radius);
   border: 1px solid var(--color-border);
   background: transparent;
   color: var(--color-text-primary);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   transition: var(--transition-base);
   flex-shrink: 0;
+}
+
+.profile-btn:hover {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
 }
 
 .logout-btn:hover {
@@ -213,7 +203,6 @@ const handleLogout = () => {
   border-color: var(--color-error);
 }
 
-/* ========== RESPONSIVE - TABLETS Y MÓVILES ========== */
 @media (max-width: 1024px) {
   .app-header {
     left: 60px;
@@ -224,12 +213,8 @@ const handleLogout = () => {
     padding: 0 0.75rem;
   }
 
-  .header-actions {
-    gap: 0.75rem;
-  }
-
   .user-name {
-    max-width: 120px;
+    max-width: 110px;
   }
 }
 
@@ -242,6 +227,7 @@ const handleLogout = () => {
 
   .logo-text,
   .user-info,
+  .profile-text,
   .logout-text {
     display: none;
   }
@@ -250,6 +236,7 @@ const handleLogout = () => {
     font-size: 1.25rem;
   }
 
+  .profile-btn,
   .logout-btn {
     padding: 0.5rem;
     width: 36px;
@@ -260,10 +247,6 @@ const handleLogout = () => {
   .theme-btn {
     width: 36px;
     height: 36px;
-  }
-
-  .header-actions {
-    gap: 0.5rem;
   }
 }
 
@@ -283,14 +266,16 @@ const handleLogout = () => {
   }
 
   .theme-btn,
+  .profile-btn,
   .logout-btn {
     width: 32px;
     height: 32px;
   }
 
   .theme-btn i,
+  .profile-btn i,
   .logout-btn i {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 }
 </style>

@@ -48,6 +48,41 @@ export const menuSections: MenuSection[] = [
         to: '/profesor/estudiantes',
         icon: 'fas fa-user-graduate',
         roles: ['PROFESOR', 'ADMIN']
+      },
+      {
+        label: 'Buzón de casos',
+        to: '/profesor/casos-pendientes',
+        icon: 'fas fa-inbox',
+        roles: ['PROFESOR', 'ADMIN']
+      },
+      {
+        label: 'Preguntas clínicas',
+        to: '/profesor/preguntas-clinicas',
+        icon: 'fas fa-question-circle',
+        roles: ['PROFESOR', 'ADMIN']
+      }
+    ]
+  },
+  {
+    title: 'Clínica',
+    items: [
+      {
+        label: 'Pacientes',
+        to: '/estudiantes/pacientes',
+        icon: 'fas fa-stethoscope',
+        roles: ['ESTUDIANTE', 'PROFESOR', 'ADMIN']
+      },
+      {
+        label: 'Agenda',
+        to: '/estudiantes/agenda',
+        icon: 'fas fa-calendar-alt',
+        roles: ['ESTUDIANTE', 'PROFESOR', 'ADMIN']
+      },
+      {
+        label: 'Casos clínicos',
+        to: '/estudiantes/casos-clinicos/nuevo',
+        icon: 'fas fa-file-medical',
+        roles: ['ESTUDIANTE', 'ADMIN']
       }
     ]
   }

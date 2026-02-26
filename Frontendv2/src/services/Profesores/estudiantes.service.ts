@@ -3,7 +3,7 @@
  * Extiende la funcionalidad de usuarios.service con filtros específicos para estudiantes
  */
 
-import { usuariosService } from '../usuarios.service'
+import { usuariosService } from '../Admin/usuarios.service'
 import type {
   Usuario,
   CreateUsuarioDto,

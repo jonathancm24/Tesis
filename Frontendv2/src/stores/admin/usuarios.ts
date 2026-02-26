@@ -5,7 +5,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { usuariosService } from '@/services/usuarios.service'
+import { usuariosService } from '@/services/Admin/usuarios.service'
 import { getErrorMessage } from '@/utils/errorHandler'
 import type {
   Usuario,

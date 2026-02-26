@@ -4,7 +4,7 @@
 
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { especialidadesService } from '@/services/especialidades.service'
+import { especialidadesService } from '@/services/Admin/especialidades.service'
 import type {
   Especialidad,
   CreateEspecialidadDto,

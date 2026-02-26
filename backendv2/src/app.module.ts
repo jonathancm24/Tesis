@@ -11,6 +11,12 @@ import { PaisModule } from './modules/Pais/pais.module';
 import { ParroquiaModule } from './modules/Parroquia/parroquia.module';
 import { ProvinciaModule } from './modules/Provincia/provincia.module';
 import { CantonModule } from './modules/Canton/canton.module';
+import { PacientesModule } from './modules/Pacientes/pacientes.module';
+import { EncuestaTamizajeModule } from './modules/EncuestaTamizaje/encuesta-tamizaje.module';
+import { CasosClinicosModule } from './modules/CasosClinicos/casos-clinicos.module';
+import { CitasModule } from './modules/Citas/citas.module';
+import { OdontogramaModule } from './modules/Odontograma/odontograma.module';
+import { PreguntasClinicasModule } from './modules/PreguntasClinicas/preguntas-clinicas.module';
 
 @Module({
   imports: [
@@ -27,6 +33,12 @@ import { CantonModule } from './modules/Canton/canton.module';
     ParroquiaModule,
     ProvinciaModule,
     CantonModule,
+    PacientesModule,
+    EncuestaTamizajeModule,
+    CasosClinicosModule,
+    CitasModule,
+    OdontogramaModule,
+    PreguntasClinicasModule,
   ],
   providers: [PermisosInicializadorService],
 })

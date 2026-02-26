@@ -112,7 +112,9 @@ export class UsuariosService {
       createUsuarioDto.tipoDocumento,
       createUsuarioDto.numeroDocumento,
     );
-    await this.validateRoleExists(createUsuarioDto.roleId);
+    const role = await this.validateRoleExists(createUsuarioDto.roleId);
+
+    this.validateEspecialidadesRequirement(role.nombre, createUsuarioDto.especialidadIds);
 
     if (createUsuarioDto.parroquiaId) {
       await this.validateParroquiaExists(createUsuarioDto.parroquiaId);
@@ -221,7 +223,7 @@ export class UsuariosService {
    * Actualizar un usuario existente.
    */
   async update(id: number, updateUsuarioDto: UpdateUsuarioDto): Promise<UsuarioResponseDto> {
-    await this.findOneWithRelations(id);
+    const usuarioActual = await this.findOneWithRelations(id);
 
     if (updateUsuarioDto.email) {
       await this.validateUniqueEmail(updateUsuarioDto.email, id);
@@ -235,8 +237,19 @@ export class UsuariosService {
       );
     }
 
+    let roleNombre = usuarioActual.role.nombre;
     if (updateUsuarioDto.roleId) {
-      await this.validateRoleExists(updateUsuarioDto.roleId);
+      const role = await this.validateRoleExists(updateUsuarioDto.roleId);
+      roleNombre = role.nombre;
+    }
+
+    // Solo validar especialidades si se están actualizando explícitamente
+    if (updateUsuarioDto.especialidadIds !== undefined) {
+      this.validateEspecialidadesRequirement(roleNombre, updateUsuarioDto.especialidadIds);
+      // Validar que existan en BD
+      if (updateUsuarioDto.especialidadIds.length > 0) {
+        await this.validateEspecialidadesExist(updateUsuarioDto.especialidadIds);
+      }
     }
 
     if (updateUsuarioDto.parroquiaId) {
@@ -245,23 +258,37 @@ export class UsuariosService {
 
     try {
       await this.prisma.$transaction(async (prisma) => {
+        // Desestructurar para separar parroquiaId y especialidadIds
+        const { parroquiaId, especialidadIds, ...dataToUpdate } = updateUsuarioDto;
+
+        // Preparar el data para Prisma
+        const updateData: any = {
+          ...dataToUpdate,
+          fechaNacimiento: dataToUpdate.fechaNacimiento
+            ? new Date(dataToUpdate.fechaNacimiento)
+            : undefined,
+        };
+
+        // Manejar parroquiaId como relación
+        if (parroquiaId !== undefined) {
+          if (parroquiaId) {
+            updateData.parroquia = { connect: { id: parroquiaId } };
+          } else {
+            updateData.parroquia = { disconnect: true };
+          }
+        }
+
         await prisma.usuario.update({
           where: { id },
-          data: {
-            ...updateUsuarioDto,
-            fechaNacimiento: updateUsuarioDto.fechaNacimiento
-              ? new Date(updateUsuarioDto.fechaNacimiento)
-              : undefined,
-          },
+          data: updateData,
         });
 
-        if (updateUsuarioDto.especialidadIds !== undefined) {
+        if (especialidadIds !== undefined) {
           await prisma.usuarioEspecialidad.deleteMany({ where: { usuarioId: id } });
 
-          if (updateUsuarioDto.especialidadIds.length > 0) {
-            await this.validateEspecialidadesExist(updateUsuarioDto.especialidadIds);
+          if (especialidadIds.length > 0) {
             await prisma.usuarioEspecialidad.createMany({
-              data: updateUsuarioDto.especialidadIds.map((especialidadId) => ({
+              data: especialidadIds.map((especialidadId) => ({
                 usuarioId: id,
                 especialidadId,
               })),
@@ -1025,9 +1052,40 @@ export class UsuariosService {
     }
   }
 
-  private async validateRoleExists(roleId: number): Promise<void> {
+  private async validateRoleExists(roleId: number): Promise<{ id: number; nombre: string }> {
     const role = await this.prisma.role.findUnique({ where: { id: roleId } });
     if (!role) throw new NotFoundException(`Rol con ID ${roleId} no encontrado`);
+    return role;
+  }
+
+  private validateEspecialidadesRequirement(
+    roleName: string,
+    especialidadIds?: number[],
+  ): void {
+    const normalizedRole = this.normalizeRoleName(roleName);
+    const isEstudiante = normalizedRole === 'ESTUDIANTE';
+    const isProfesor = normalizedRole === 'PROFESOR' || normalizedRole === 'DOCENTE';
+    const totalEspecialidades = especialidadIds?.length ?? 0;
+
+    if ((isEstudiante || isProfesor) && totalEspecialidades === 0) {
+      throw new BadRequestException(
+        'Debe seleccionar al menos una especialidad para usuarios con rol Estudiante o Profesor',
+      );
+    }
+
+    if (isProfesor && totalEspecialidades > 2) {
+      throw new BadRequestException(
+        'Los usuarios con rol Profesor/Docente pueden tener máximo 2 especialidades',
+      );
+    }
+  }
+
+  private normalizeRoleName(roleName: string): string {
+    return roleName
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .toUpperCase()
+      .trim();
   }
 
   private async validateParroquiaExists(parroquiaId: number): Promise<void> {

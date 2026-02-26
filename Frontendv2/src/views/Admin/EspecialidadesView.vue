@@ -130,7 +130,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useEspecialidadesStore } from '@/stores/especialidades'
+import { useEspecialidadesStore } from '@/stores/admin/especialidades'
 import { useToast } from '@/composables/useToast'
 import { getErrorMessage } from '@/utils/errorHandler'
 import type { Especialidad, CreateEspecialidadDto } from '@/types/especialidades.types'

@@ -1,0 +1,307 @@
+.agenda-page {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.agenda-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1rem;
+}
+
+.eyebrow {
+	color: var(--color-text-secondary);
+	font-size: 0.8rem;
+	text-transform: uppercase;
+	font-weight: 600;
+}
+
+.agenda-header h1 {
+	color: var(--color-text-primary);
+	margin: 0.15rem 0;
+}
+
+.subtitle {
+	color: var(--color-text-secondary);
+}
+
+.agenda-layout {
+	display: grid;
+	grid-template-columns: 1.2fr 1fr;
+	gap: 1rem;
+}
+
+.card {
+	background: var(--color-surface);
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius-lg);
+	box-shadow: var(--shadow-sm);
+	padding: 1rem;
+}
+
+.calendar-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 1rem;
+}
+
+.calendar-toolbar h2 {
+	margin: 0;
+	text-transform: capitalize;
+	color: var(--color-text-primary);
+}
+
+.nav-btn,
+.btn-primary,
+.btn-secondary {
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius);
+	padding: 0.5rem 0.8rem;
+	cursor: pointer;
+	transition: var(--transition-base);
+}
+
+.btn-primary {
+	background: var(--btn-primary-bg);
+	color: var(--btn-primary-text);
+	border-color: var(--btn-primary-bg);
+}
+
+.btn-primary:hover {
+	background: var(--btn-primary-hover);
+}
+
+.btn-secondary,
+.nav-btn {
+	background: var(--color-background-secondary);
+	color: var(--color-text-primary);
+}
+
+.btn-secondary:hover,
+.nav-btn:hover {
+	background: var(--color-background-tertiary);
+}
+
+.weekday-row,
+.days-grid {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 0.4rem;
+}
+
+.weekday-row {
+	margin-bottom: 0.35rem;
+}
+
+.weekday-row span {
+	text-align: center;
+	color: var(--color-text-secondary);
+	font-size: 0.82rem;
+	font-weight: 600;
+}
+
+.day-cell {
+	border: 1px solid var(--color-border-light);
+	min-height: 72px;
+	border-radius: 10px;
+	background: var(--color-background);
+	color: var(--color-text-primary);
+	position: relative;
+	text-align: left;
+	padding: 0.35rem;
+	cursor: pointer;
+}
+
+.day-cell:hover {
+	border-color: var(--color-primary-light);
+}
+
+.day-cell.selected {
+	border-color: var(--color-primary);
+	background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.day-cell.today {
+	box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.day-cell.muted {
+	opacity: 0.45;
+}
+
+.day-number {
+	font-weight: 600;
+}
+
+.badge-reservadas {
+	position: absolute;
+	right: 0.35rem;
+	bottom: 0.35rem;
+	background: var(--color-primary);
+	color: var(--color-text-inverse);
+	border-radius: 999px;
+	font-size: 0.7rem;
+	padding: 0.1rem 0.4rem;
+}
+
+.list-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 0.8rem;
+}
+
+.list-header h2 {
+	margin: 0;
+	font-size: 1rem;
+	text-transform: capitalize;
+}
+
+.count-pill {
+	background: var(--color-background-secondary);
+	border: 1px solid var(--color-border-light);
+	border-radius: 999px;
+	padding: 0.2rem 0.5rem;
+	font-size: 0.75rem;
+}
+
+.state-msg {
+	padding: 1rem;
+	color: var(--color-text-secondary);
+}
+
+.citas-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.65rem;
+}
+
+.cita-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.7rem;
+	border: 1px solid var(--color-border-light);
+	border-radius: var(--border-radius);
+	padding: 0.7rem;
+}
+
+.cita-main p,
+.cita-main small {
+	margin: 0;
+}
+
+.cita-main p {
+	color: var(--color-text-primary);
+}
+
+.cita-main small {
+	color: var(--color-text-secondary);
+}
+
+.modal-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.45);
+	display: grid;
+	place-items: center;
+	z-index: 1000;
+}
+
+.modal-container {
+	width: min(780px, 92vw);
+	background: var(--color-surface);
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius-lg);
+	box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 1rem;
+	border-bottom: 1px solid var(--color-border);
+}
+
+.modal-header h3 {
+	margin: 0;
+}
+
+.close-btn {
+	background: transparent;
+	border: none;
+	font-size: 1.5rem;
+	cursor: pointer;
+	color: var(--color-text-secondary);
+}
+
+.modal-body {
+	padding: 1rem;
+}
+
+.form-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.75rem;
+}
+
+.form-group {
+	display: flex;
+	flex-direction: column;
+}
+
+.form-group.full-width {
+	grid-column: 1 / -1;
+}
+
+.form-group label {
+	font-size: 0.85rem;
+	margin-bottom: 0.25rem;
+	color: var(--color-text-secondary);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+	border: 1px solid var(--input-border);
+	background: var(--input-background);
+	color: var(--input-text);
+	border-radius: var(--border-radius);
+	padding: 0.55rem;
+}
+
+.error-text {
+	margin-top: 0.7rem;
+	color: var(--color-error);
+}
+
+.modal-actions {
+	margin-top: 1rem;
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.5rem;
+}
+
+@media (max-width: 1024px) {
+	.agenda-layout {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 720px) {
+	.agenda-header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.form-grid {
+		grid-template-columns: 1fr;
+	}
+}

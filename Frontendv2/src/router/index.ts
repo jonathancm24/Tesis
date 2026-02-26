@@ -46,6 +46,15 @@ const routes: RouteRecordRaw[] = [
           title: 'Dashboard'
         }
       },
+      {
+        path: 'perfil',
+        name: 'perfil',
+        component: () => import('../views/Perfil.vue'),
+        meta: {
+          title: 'Mi perfil',
+          roles: ['ESTUDIANTE', 'ADMIN', 'PROFESOR']
+        }
+      },
 
       // ========== MÓDULO DE ADMINISTRACIÓN ==========
       {
@@ -74,6 +83,53 @@ const routes: RouteRecordRaw[] = [
         meta: {
           title: 'Seguimiento de estudiantes',
           roles: ['PROFESOR', 'ADMIN']
+        }
+      },
+      {
+        path: 'profesor/casos-pendientes',
+        name: 'profesor-casos-pendientes',
+        component: () => import('../views/Profesor/CasosPendientesView.vue'),
+        meta: {
+          title: 'Buzón de casos clínicos',
+          roles: ['PROFESOR', 'ADMIN']
+        }
+      },
+      {
+        path: 'profesor/preguntas-clinicas',
+        name: 'profesor-preguntas-clinicas',
+        component: () => import('../views/Profesor/PreguntasClinicasView.vue'),
+        meta: {
+          title: 'Preguntas clínicas',
+          roles: ['PROFESOR', 'ADMIN']
+        }
+      },
+
+      // ========== MÓDULO DE ESTUDIANTES ==========
+      {
+        path: 'estudiantes/pacientes',
+        name: 'estudiantes-pacientes',
+        component: () => import('../views/Estudiantes/PacientesView.vue'),
+        meta: {
+          title: 'Gestión de pacientes',
+          roles: ['ESTUDIANTE', 'ADMIN', 'PROFESOR']
+        }
+      },
+      {
+        path: 'estudiantes/agenda',
+        name: 'estudiantes-agenda',
+        component: () => import('../views/Estudiantes/Agenda.vue'),
+        meta: {
+          title: 'Agenda de citas',
+          roles: ['ESTUDIANTE', 'ADMIN', 'PROFESOR']
+        }
+      },
+      {
+        path: 'estudiantes/casos-clinicos/nuevo',
+        name: 'estudiantes-casos-clinicos-nuevo',
+        component: () => import('../views/Estudiantes/CasoClinico.vue'),
+        meta: {
+          title: 'Nuevo caso clinico',
+          roles: ['ESTUDIANTE', 'ADMIN']
         }
       }
 

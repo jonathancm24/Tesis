@@ -4,7 +4,7 @@
 
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { estudiantesService } from '@/services/estudiantes/estudiantes.service'
+import { estudiantesService } from '@/services/Profesores/estudiantes.service'
 import type { Usuario, PaginatedUsuarios } from '@/types/usuarios.types'
 
 export const useEstudiantesStore = defineStore('estudiantes', () => {

@@ -153,7 +153,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
-import { useEstudiantesStore } from '@/stores/estudiantes'
+import { useEstudiantesStore } from '@/stores/Profesor/estudiantes'
 import { useToast } from '@/composables/useToast'
 import { getErrorMessage } from '@/utils/errorHandler'
 import ImportEstudiantesModal from '@/components/profesor/ImportEstudiantesModal.vue'

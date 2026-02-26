@@ -148,6 +148,38 @@
                 <option value="Secretario">Secretario</option>
               </select>
             </label>
+
+            <div class="full-width" v-if="requiereEspecialidades(form.role)">
+              <label class="label-title">
+                Especialidades * 
+                <span class="label-hint">(selecciona al menos una)</span>
+              </label>
+              <div class="especialidades-grid">
+                <div
+                  v-for="especialidad in especialidades"
+                  :key="especialidad.id"
+                  class="checkbox-item"
+                >
+                  <input
+                    :id="`esp-create-${especialidad.id}`"
+                    type="checkbox"
+                    :value="especialidad.id"
+                    :checked="form.especialidadIds.includes(especialidad.id)"
+                    @change="toggleEspecialidad(especialidad.id)"
+                  />
+                  <label :for="`esp-create-${especialidad.id}`" class="checkbox-label">
+                    {{ especialidad.nombre }}
+                  </label>
+                </div>
+              </div>
+              <p v-if="form.especialidadIds.length === 0 && requiereEspecialidades(form.role)" class="hint-text error">
+                Debes seleccionar al menos una especialidad
+              </p>
+              <p v-else-if="form.especialidadIds.length > 0" class="hint-text success">
+                {{ form.especialidadIds.length }} especialidad(es) seleccionada(s)
+              </p>
+            </div>
+
             <label>
               Tipo documento
               <select v-model="form.tipoDocumento" required>
@@ -180,13 +212,6 @@
             </button>
           </div>
         </form>
-
-        <div class="import-preview">
-          <h3>Previsualización de carga</h3>
-          <p>
-            La carga masiva desde Excel se habilitará en una próxima iteración.
-          </p>
-        </div>
       </aside>
     </div>
 
@@ -201,10 +226,12 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, onMounted } from 'vue'
-import { useUsuariosStore } from '@/stores/usuarios'
+import { useUsuariosStore } from '@/stores/admin/usuarios'
 import { useToast } from '@/composables/useToast'
 import { getErrorMessage } from '@/utils/errorHandler'
+import { especialidadesService } from '@/services/Admin/especialidades.service'
 import { TipoDocumento, type Usuario } from '@/types/usuarios.types'
+import type { Especialidad } from '@/types/especialidades.types'
 import ImportUsuariosModal from '@/components/admin/ImportUsuariosModal.vue'
 
 const usuariosStore = useUsuariosStore()
@@ -214,14 +241,37 @@ const searchTerm = ref('')
 const statusFilter = ref<'all' | 'active' | 'inactive'>('all')
 const selectedUserId = ref<number | null>(null)
 const isImportModalOpen = ref(false)
+const especialidades = ref<Especialidad[]>([])
 
 // Mapeo de roles (IDs del backend)
 const rolesMap = ref<{ [key: string]: number }>({
   'Administrador': 1,
   'Docente': 2,
+  'Profesor': 2,
+  'PROFESOR': 2,
   'Estudiante': 3,
+  'ESTUDIANTE': 3,
+  'ADMIN': 1,
   'Secretario': 4
 })
+
+const roleIdToLabel: Record<number, string> = {
+  1: 'Administrador',
+  2: 'Docente',
+  3: 'Estudiante',
+  4: 'Secretario'
+}
+
+const requiereEspecialidades = (role: string) => {
+  const normalized = role.trim().toUpperCase()
+  return normalized === 'DOCENTE' || normalized === 'PROFESOR' || normalized === 'ESTUDIANTE'
+}
+
+const resolveRoleId = (role: string) => {
+  const direct = rolesMap.value[role]
+  if (direct) return direct
+  return rolesMap.value[role.trim().toUpperCase()] || 0
+}
 
 const form = reactive({
   nombre: '',
@@ -230,6 +280,7 @@ const form = reactive({
   fechaNacimiento: '',
   password: '',
   role: '',
+  especialidadIds: [] as number[],
   tipoDocumento: TipoDocumento.CEDULA,
   numeroDocumento: '',
   telefono: '',
@@ -239,7 +290,11 @@ const form = reactive({
 // Cargar usuarios al montar el componente
 onMounted(async () => {
   try {
-    await usuariosStore.fetchUsuarios()
+    const [_, especialidadesData] = await Promise.all([
+      usuariosStore.fetchUsuarios(),
+      especialidadesService.getAll()
+    ])
+    especialidades.value = especialidadesData
   } catch (err) {
     showError(getErrorMessage(err))
   }
@@ -275,13 +330,23 @@ const handleEdit = (user: Usuario) => {
   form.nombre = user.nombre
   form.apellido = user.apellido
   form.email = user.email
-  form.fechaNacimiento = user.fechaNacimiento.split('T')[0] // Formato YYYY-MM-DD
-  form.role = user.role?.nombre || ''
+  form.fechaNacimiento = user.fechaNacimiento?.split('T')[0] ?? '' // Formato YYYY-MM-DD
+  form.role = roleIdToLabel[user.role?.id || 0] || user.role?.nombre || ''
+  form.especialidadIds = user.especialidades?.map((esp) => esp.id) || []
   form.tipoDocumento = user.tipoDocumento
   form.numeroDocumento = user.numeroDocumento
   form.telefono = user.telefono || ''
   form.direccion = user.direccion || ''
   form.password = '' // No mostrar contraseña actual
+}
+
+const toggleEspecialidad = (especialidadId: number) => {
+  const index = form.especialidadIds.indexOf(especialidadId)
+  if (index > -1) {
+    form.especialidadIds.splice(index, 1)
+  } else {
+    form.especialidadIds.push(especialidadId)
+  }
 }
 
 const handleReset = () => {
@@ -291,6 +356,7 @@ const handleReset = () => {
   form.fechaNacimiento = ''
   form.password = ''
   form.role = ''
+  form.especialidadIds = []
   form.tipoDocumento = TipoDocumento.CEDULA
   form.numeroDocumento = ''
   form.telefono = ''
@@ -314,12 +380,24 @@ const handleSubmit = async () => {
 
     if (isEditing.value && selectedUserId.value) {
       // Actualizar usuario existente
+      const roleId = resolveRoleId(form.role)
+      if (!roleId) {
+        showError('Rol no válido')
+        return
+      }
+
+      if (requiereEspecialidades(form.role) && form.especialidadIds.length === 0) {
+        showError('Debes seleccionar al menos una especialidad para este rol')
+        return
+      }
+      
       const updateData = {
         nombre: form.nombre.trim(),
         apellido: form.apellido.trim(),
         email: form.email.trim().toLowerCase(),
         fechaNacimiento: form.fechaNacimiento,
-        roleId: rolesMap.value[form.role],
+        roleId: roleId,
+        especialidadIds: form.especialidadIds,
         tipoDocumento: form.tipoDocumento,
         numeroDocumento: form.numeroDocumento.trim(),
         telefono: form.telefono?.trim() || undefined,
@@ -336,13 +414,25 @@ const handleSubmit = async () => {
       }
 
       // Crear nuevo usuario
+      const roleId = resolveRoleId(form.role)
+      if (!roleId) {
+        showError('Rol no válido')
+        return
+      }
+
+      if (requiereEspecialidades(form.role) && form.especialidadIds.length === 0) {
+        showError('Debes seleccionar al menos una especialidad para este rol')
+        return
+      }
+      
       const createData = {
         nombre: form.nombre.trim(),
         apellido: form.apellido.trim(),
         email: form.email.trim().toLowerCase(),
         fechaNacimiento: form.fechaNacimiento,
         password: form.password,
-        roleId: rolesMap.value[form.role],
+        roleId: roleId,
+        especialidadIds: form.especialidadIds,
         tipoDocumento: form.tipoDocumento,
         numeroDocumento: form.numeroDocumento.trim(),
         telefono: form.telefono?.trim() || undefined,

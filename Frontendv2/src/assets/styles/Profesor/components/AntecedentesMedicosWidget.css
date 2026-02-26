@@ -1,0 +1,148 @@
+/** Estilos para AntecedentesMedicosWidget */
+
+.antecedentes-widget-container {
+  width: 100%;
+}
+
+.antecedentes-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.antecedentes-widget .widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.antecedentes-widget .widget-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Status Badge */
+.antecedentes-widget .status-badge {
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.antecedentes-widget .status-pendiente {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.antecedentes-widget .status-borrador {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.antecedentes-widget .status-completada {
+  background-color: #10b981;
+  color: white;
+}
+
+/* Progreso de Encuesta */
+.antecedentes-widget .progreso-encuesta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.antecedentes-widget .progreso-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.antecedentes-widget .progreso-info .label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.antecedentes-widget .progreso-info .porcentaje {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.antecedentes-widget .progreso-bar {
+  width: 100%;
+  height: 8px;
+  background-color: var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.antecedentes-widget .progreso-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #1e40af);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.antecedentes-widget .respuestas-count {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* Estado Vacío */
+.antecedentes-widget .estado-vacio {
+  padding: 1rem;
+  text-align: center;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.antecedentes-widget .estado-vacio p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* Nota Encuesta */
+.antecedentes-widget .nota-encuesta {
+  padding: 0.75rem;
+  background-color: #fef3c7;
+  border-left: 3px solid #f59e0b;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: #92400e;
+}
+
+.antecedentes-widget .nota-encuesta p {
+  margin: 0;
+}
+
+.antecedentes-widget .nota-encuesta strong {
+  font-weight: 600;
+}
+
+/* Acciones */
+.antecedentes-widget .widget-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.antecedentes-widget .btn-small {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}

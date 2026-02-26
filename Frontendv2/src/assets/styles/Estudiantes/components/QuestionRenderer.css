@@ -1,0 +1,276 @@
+/** Estilos para QuestionRenderer */
+
+.question-item {
+  padding: 1rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-lg, var(--border-radius));
+  background: var(--color-background);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-base);
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.question-item:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.question-header {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.question-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  background: var(--gradient-primary);
+  color: white;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(45, 90, 61, 0.2);
+}
+
+.question-text {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+  gap: 0.375rem;
+  font-size: 0.9375rem;
+}
+
+.required-badge {
+  color: var(--color-error);
+  font-weight: 700;
+}
+
+.question-input {
+  margin: 0;
+  margin-left: 2.75rem;
+  flex: 1;
+}
+
+/* Radio Buttons y Checkboxes */
+.radio-group,
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.radio-option,
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  gap: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius);
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.radio-option:hover,
+.checkbox-option:hover {
+  background: var(--color-background-secondary);
+  border-color: var(--color-primary);
+  transform: translateX(4px);
+}
+
+input[type='radio'],
+input[type='checkbox'] {
+  width: 1.125rem;
+  height: 1.125rem;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.radio-label,
+.checkbox-label {
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* Text Inputs */
+.text-input,
+.number-input,
+.date-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius);
+  background: var(--input-background);
+  color: var(--input-text);
+  font-size: 0.875rem;
+  transition: var(--transition-base);
+}
+
+.text-input:focus,
+.number-input:focus,
+.date-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(45, 90, 61, 0.12);
+}
+
+.text-input::placeholder,
+.number-input::placeholder,
+.date-input::placeholder {
+  color: var(--input-placeholder);
+}
+
+/* Textarea */
+.textarea-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius);
+  background: var(--input-background);
+  color: var(--input-text);
+  font-family: inherit;
+  font-size: 0.875rem;
+  resize: vertical;
+  transition: var(--transition-base);
+  min-height: 70px;
+  line-height: 1.4;
+}
+
+.textarea-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(45, 90, 61, 0.12);
+}
+
+.textarea-input::placeholder {
+  color: var(--input-placeholder);
+}
+
+/* Detail Section */
+.detail-section {
+  margin-top: 0.75rem;
+  margin-left: 2.75rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--color-background-secondary);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--border-radius);
+}
+
+.detail-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.375rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-textarea {
+  width: 100%;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  background: var(--input-background);
+  color: var(--input-text);
+  font-family: inherit;
+  font-size: 0.75rem;
+  resize: vertical;
+  transition: var(--transition-base);
+  min-height: 50px;
+}
+
+.detail-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(45, 90, 61, 0.1);
+}
+
+/* Error Message */
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 0.625rem;
+  margin-left: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(220, 53, 69, 0.1);
+  color: var(--color-error);
+  border-radius: var(--border-radius);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.error-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .question-item {
+    padding: 0.75rem;
+    min-height: 180px;
+  }
+
+  .question-header {
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .question-number {
+    min-width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.75rem;
+  }
+
+  .question-text {
+    font-size: 0.875rem;
+  }
+
+  .question-input {
+    margin-left: 0;
+  }
+
+  .detail-section,
+  .error-message {
+    margin-left: 0;
+  }
+
+  .radio-group,
+  .checkbox-group {
+    gap: 0.25rem;
+  }
+
+  .radio-option,
+  .checkbox-option {
+    padding: 0.5rem 0.625rem;
+  }
+
+  .text-input,
+  .number-input,
+  .date-input,
+  .textarea-input {
+    font-size: 0.8125rem;
+    padding: 0.5rem 0.625rem;
+  }
+
+  .textarea-input {
+    min-height: 60px;
+  }
+}

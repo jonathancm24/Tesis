@@ -77,6 +77,10 @@
   transition: var(--transition-base);
 }
 
+.user-form select[multiple] {
+  min-height: 120px;
+}
+
 .search-bar input:focus,
 .search-bar select:focus,
 .user-form input:focus,
@@ -478,4 +482,68 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+/* Estilos para especialidades */
+.label-title {
+  display: block;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.label-hint {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin-left: 0.5rem;
+}
+
+.especialidades-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--btn-primary-bg);
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.checkbox-label {
+  margin: 0;
+  cursor: pointer;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  user-select: none;
+}
+
+.hint-text {
+  font-size: 0.8rem;
+  margin: 0.5rem 0 0;
+  display: block;
+}
+
+.hint-text.error {
+  color: var(--color-error);
+}
+
+.hint-text.success {
+  color: var(--color-success);
 }

@@ -179,7 +179,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { estudiantesService, ROL_ADMIN_ID } from '@/services/estudiantes/estudiantes.service'
+import { estudiantesService, ROL_ADMIN_ID } from '@/services/Profesores/estudiantes.service'
 import { getErrorMessage } from '@/utils/errorHandler'
 import '@/assets/styles/admin/usuarios.css'
 import '@/assets/styles/Profesor/components/ImportEstudiantesModal.css'

@@ -82,7 +82,7 @@ export function getValidationErrors(error: any): Record<string, string[]> {
     error.response.data.message.forEach((msg: string) => {
       // Intentar extraer el campo del mensaje
       const match = msg.match(/^(\w+)\s/)
-      if (match) {
+      if (match && match[1]) {
         const field = match[1].toLowerCase()
         if (!errors[field]) errors[field] = []
         errors[field].push(msg)

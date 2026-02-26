@@ -91,23 +91,36 @@
 	overflow-x: auto;
 }
 
-.estudiantes-table {
+.estudiantes-table,
+.pacientes-table {
 	width: 100%;
 	border-collapse: collapse;
 }
 
 .estudiantes-table th,
-.estudiantes-table td {
+.estudiantes-table td,
+.pacientes-table th,
+.pacientes-table td {
 	padding: 0.9rem 0.75rem;
 	text-align: left;
 	border-bottom: 1px solid var(--color-border-light);
 }
 
-.estudiantes-table thead th {
+.estudiantes-table thead th,
+.pacientes-table thead th {
 	font-size: 0.85rem;
 	color: var(--color-text-secondary);
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
+}
+
+.estudiantes-table tbody tr:hover,
+.pacientes-table tbody tr:hover {
+	background: var(--color-background-secondary);
+}
+
+.pacientes-table tbody tr.active-row {
+	background: color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
 .actions-col {
@@ -126,6 +139,21 @@
 }
 
 .student-doc {
+	font-size: 0.85rem;
+	color: var(--color-text-muted);
+}
+
+.patient-info {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+}
+
+.patient-name {
+	font-weight: 600;
+}
+
+.patient-meta {
 	font-size: 0.85rem;
 	color: var(--color-text-muted);
 }
@@ -205,6 +233,25 @@
 	text-align: center;
 	color: var(--color-text-muted);
 	padding: 2rem 0;
+}
+
+.summary-section {
+	padding: 1rem;
+	background: var(--color-background-secondary);
+	border-radius: var(--border-radius);
+	border-left: 3px solid var(--color-primary);
+}
+
+.summary-section h4 {
+	margin: 0 0 0.5rem;
+	font-size: 0.95rem;
+	color: var(--color-text-primary);
+}
+
+.summary-section p {
+	margin: 0.25rem 0;
+	font-size: 0.9rem;
+	color: var(--color-text-secondary);
 }
 
 .btn {
@@ -315,6 +362,153 @@
 .icon {
 	margin-right: 0.5rem;
 }
+
+/* ==================== Sidebar de Pacientes ==================== */
+
+.summary-sidebar {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	max-height: calc(100vh - 250px);
+	overflow-y: auto;
+	padding-right: 0.5rem;
+}
+
+.summary-sidebar::-webkit-scrollbar {
+	width: 6px;
+}
+
+.summary-sidebar::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.summary-sidebar::-webkit-scrollbar-thumb {
+	background: var(--color-border-light);
+	border-radius: 3px;
+}
+
+.summary-sidebar::-webkit-scrollbar-thumb:hover {
+	background: var(--color-text-muted);
+}
+
+.summary-sidebar .card {
+	margin: 0;
+}
+
+/* Tarjeta de Estado Vacío */
+.summary-sidebar .empty-state-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 1rem;
+	padding: 3rem 1.5rem;
+	text-align: center;
+	background: linear-gradient(135deg, var(--color-background-secondary) 0%, transparent 100%);
+	border: 2px dashed var(--color-border-light);
+	min-height: 300px;
+}
+
+.summary-sidebar .empty-state-card .empty-icon {
+	font-size: 3rem;
+	opacity: 0.4;
+}
+
+.summary-sidebar .empty-state-card p {
+	color: var(--color-text-secondary);
+	margin: 0;
+	font-size: 0.95rem;
+}
+
+/* Tarjeta de Información General */
+.summary-sidebar .info-card {
+	background: var(--color-surface);
+	border: 1px solid var(--color-border-light);
+	border-radius: var(--border-radius-lg);
+	box-shadow: var(--shadow-sm);
+	padding: 1.5rem;
+}
+
+.summary-sidebar .paciente-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 1rem;
+	margin-bottom: 1.25rem;
+	padding-bottom: 1rem;
+	border-bottom: 1px solid var(--color-border-light);
+}
+
+.summary-sidebar .paciente-info-main h2 {
+	margin: 0;
+	font-size: 1.25rem;
+	color: var(--color-text-primary);
+}
+
+.summary-sidebar .email {
+	margin: 0.25rem 0 0;
+	color: var(--color-text-secondary);
+	font-size: 0.9rem;
+}
+
+/* Grid de Información */
+.summary-sidebar .info-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 1rem;
+	margin-bottom: 1.5rem;
+}
+
+.summary-sidebar .info-item {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	padding: 0.75rem;
+	background: var(--color-background-secondary);
+	border-radius: var(--border-radius);
+}
+
+.summary-sidebar .info-item .label {
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--color-text-muted);
+	font-weight: 600;
+}
+
+.summary-sidebar .info-item .value {
+	font-size: 0.95rem;
+	color: var(--color-text-primary);
+	font-weight: 500;
+}
+
+/* Sección de Representante */
+.summary-sidebar .representante-section {
+	padding: 1rem;
+	background: var(--color-background-secondary);
+	border-radius: var(--border-radius);
+	border-left: 3px solid var(--color-primary);
+	margin-top: 1rem;
+}
+
+.summary-sidebar .representante-section h4 {
+	margin: 0 0 0.5rem;
+	font-size: 0.95rem;
+	color: var(--color-text-primary);
+}
+
+.summary-sidebar .representante-section p {
+	margin: 0.25rem 0;
+	font-size: 0.9rem;
+	color: var(--color-text-secondary);
+}
+
+.summary-sidebar .representante-section .phone {
+	font-weight: 500;
+	color: var(--color-text-primary);
+}
+
+/* ==================== Fin Sidebar de Pacientes ==================== */
 
 @media (max-width: 1024px) {
 	.layout {

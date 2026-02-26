@@ -75,6 +75,10 @@
   transition: all 0.2s ease;
 }
 
+.form-group select[multiple] {
+  min-height: 110px;
+}
+
 [data-theme="dark"] .form-group input,
 [data-theme="dark"] .form-group select {
   background: #111827;
