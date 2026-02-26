@@ -252,25 +252,6 @@ const {
   isValidCombination,
 } = useProfesoresEspecialidades(todosProfesores, todasEspecialidades)
 
-// Cargar preguntas dinámicas cuando cambia la especialidad
-watch(
-  () => form.especialidadId,
-  async (newEspecialidadId) => {
-    if (newEspecialidadId > 0) {
-      try {
-        preguntasDinamicas.value = await preguntasClinicasService.getAll({
-          especialidadId: newEspecialidadId
-        })
-      } catch (error) {
-        console.error('Error cargando preguntas dinámicas:', error)
-        preguntasDinamicas.value = []
-      }
-    } else {
-      preguntasDinamicas.value = []
-    }
-  }
-)
-
 const form = reactive({
   profesorId: 0,
   especialidadId: 0,
@@ -285,6 +266,25 @@ const form = reactive({
   peso: 0,
   talla: 0
 })
+
+// Cargar preguntas dinámicas cuando cambia la especialidad
+watch(
+	() => form.especialidadId,
+	async (newEspecialidadId) => {
+		if (newEspecialidadId > 0) {
+			try {
+				preguntasDinamicas.value = await preguntasClinicasService.getAll({
+					especialidadId: newEspecialidadId
+				})
+			} catch (error) {
+				console.error('Error cargando preguntas dinámicas:', error)
+				preguntasDinamicas.value = []
+			}
+		} else {
+			preguntasDinamicas.value = []
+		}
+	}
+)
 
 const isFormValid = computed(() => {
   return Boolean(
