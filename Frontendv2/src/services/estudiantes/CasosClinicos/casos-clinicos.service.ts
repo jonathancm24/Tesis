@@ -40,6 +40,16 @@ export const casosClinicosService = {
     return response.data
   },
 
+  async getByEstudiante(estudianteId: number, estado?: string): Promise<CasoClinicoListItem[]> {
+    const params = new URLSearchParams()
+    if (estado) {
+      params.append('estado', estado)
+    }
+    const query = params.toString() ? `?${params.toString()}` : ''
+    const response = await apiClient.get<CasoClinicoListItem[]>(`${BASE_URL}/estudiante/${estudianteId}${query}`)
+    return response.data
+  },
+
   async updateEstado(id: number, data: UpdateEstadoCasoDto): Promise<CasoClinico> {
     const response = await apiClient.patch<CasoClinico>(`${BASE_URL}/${id}/estado`, data)
     return response.data

@@ -180,6 +180,12 @@ export class PacientesService {
             tratamientos: {
               orderBy: { fechaCreacion: 'desc' },
               include: {
+                cie10: {
+                  select: { codigo: true, descripcion: true, tipo: true },
+                },
+                procedimiento: {
+                  select: { codigo: true, descripcion: true, tipo: true },
+                },
                 docente: { select: { id: true, nombre: true, apellido: true } },
                 estudiante: { select: { id: true, nombre: true, apellido: true } },
                 observaciones: {

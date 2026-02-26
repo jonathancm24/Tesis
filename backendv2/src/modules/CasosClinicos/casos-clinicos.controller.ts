@@ -34,6 +34,14 @@ export class CasosClinicosController {
     return this.service.findByProfesor(profesorId, estado)
   }
 
+  @Get('estudiante/:estudianteId')
+  async findByEstudiante(
+    @Param('estudianteId', ParseIntPipe) estudianteId: number,
+    @Query('estado') estado?: string
+  ) {
+    return this.service.findByEstudiante(estudianteId, estado)
+  }
+
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     return this.service.findOne(id)

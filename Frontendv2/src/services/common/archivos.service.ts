@@ -59,6 +59,14 @@ export const archivosService = {
     return response.data
   },
 
+  async listByEntity(entidadTipo: string, entidadId: number): Promise<ArchivoItem[]> {
+    const response = await apiClient.get<ArchivoItem[]>(
+      `${ARCHIVOS_BASE_URL}/entidad/${encodeURIComponent(entidadTipo)}/${entidadId}`
+    )
+
+    return response.data
+  },
+
   async remove(id: number): Promise<void> {
     await apiClient.delete(`${ARCHIVOS_BASE_URL}/${id}`)
   },

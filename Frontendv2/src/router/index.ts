@@ -75,6 +75,15 @@ const routes: RouteRecordRaw[] = [
           roles: ['ADMIN']
         }
       },
+      {
+        path: 'admin/cie10',
+        name: 'admin-cie10',
+        component: () => import('../views/Admin/Cie10View.vue'),
+        meta: {
+          title: 'Gestión CIE10',
+          roles: ['ADMIN']
+        }
+      },
       // ========== MÓDULO DE PROFESOR ==========
       {
         path: 'profesor/estudiantes',
@@ -147,6 +156,15 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/Estudiantes/CasoClinico.vue'),
         meta: {
           title: 'Nuevo caso clinico',
+          roles: ['ESTUDIANTE', 'ADMIN']
+        }
+      },
+      {
+        path: 'estudiantes/tratamientos-prescripciones',
+        name: 'estudiantes-tratamientos-prescripciones',
+        component: () => import('../views/Estudiantes/TratamientosPrescripcionesView.vue'),
+        meta: {
+          title: 'Tratamientos y prescripciones',
           roles: ['ESTUDIANTE', 'ADMIN']
         }
       }

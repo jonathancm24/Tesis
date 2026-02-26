@@ -89,6 +89,10 @@
                   <p class="historial-meta">
                     Creado: {{ formatDate(caso.fechaCreacion) }} · Profesor: {{ formatPersona(caso.profesor) }} · Estudiante: {{ formatPersona(caso.estudiante) }}
                   </p>
+
+                  <p class="historial-meta">
+                    Archivos adjuntos: {{ getArchivosCaso(caso.id).length }}
+                  </p>
                   <div class="historial-datos-grid">
                     <div><span class="historial-label">Motivo de consulta</span><p>{{ caso.motivoConsulta }}</p></div>
                     <div><span class="historial-label">Enfermedad actual</span><p>{{ caso.enfermedadActual }}</p></div>
@@ -132,6 +136,18 @@
                       <div v-for="tratamiento in caso.tratamientos" :key="tratamiento.id" class="historial-mini-card">
                         <p><strong>Estado:</strong> {{ tratamiento.estado }} · {{ formatDate(tratamiento.fechaCreacion) }}</p>
                         <p>{{ tratamiento.descripcion }}</p>
+                        <p v-if="tratamiento.cie10" class="historial-meta">
+                          <strong>CIE10:</strong> {{ tratamiento.cie10.codigo }} · {{ tratamiento.cie10.descripcion }}
+                        </p>
+                        <p v-else-if="tratamiento.cie10Codigo" class="historial-meta">
+                          <strong>CIE10:</strong> {{ tratamiento.cie10Codigo }}
+                        </p>
+                        <p v-if="tratamiento.procedimiento" class="historial-meta">
+                          <strong>Procedimiento:</strong> {{ tratamiento.procedimiento.codigo }} · {{ tratamiento.procedimiento.descripcion }}
+                        </p>
+                        <p v-else-if="tratamiento.procedimientoCodigo" class="historial-meta">
+                          <strong>Procedimiento:</strong> {{ tratamiento.procedimientoCodigo }}
+                        </p>
                       </div>
                     </div>
                   </details>
@@ -145,6 +161,25 @@
                           <strong>{{ prescripcion.medicamento }}</strong> · {{ prescripcion.estado }} · {{ formatDate(prescripcion.fechaCreacion) }}
                         </p>
                         <p>Dosis: {{ prescripcion.dosis }} · Frecuencia: {{ prescripcion.frecuencia }} · Duración: {{ prescripcion.duracion }}</p>
+                      </div>
+                    </div>
+                  </details>
+
+                  <details class="historial-detail-block">
+                    <summary>Archivos adjuntos ({{ getArchivosCaso(caso.id).length }})</summary>
+                    <div v-if="getArchivosCaso(caso.id).length === 0" class="historial-sub-empty">Sin archivos adjuntos.</div>
+                    <div v-else class="historial-stack">
+                      <div v-for="archivo in getArchivosCaso(caso.id)" :key="archivo.id" class="historial-mini-card">
+                        <p><strong>{{ archivo.nombre }}</strong></p>
+                        <p class="historial-meta">
+                          {{ archivo.tipo }} · {{ formatDate(archivo.fechaSubida) }} · {{ archivo.subidoPor.nombre }} {{ archivo.subidoPor.apellido }}
+                        </p>
+                        <p v-if="archivo.descripcion">{{ archivo.descripcion }}</p>
+                        <div class="historial-actions-row">
+                          <button class="historial-link-btn" type="button" @click="handleDescargarArchivo(archivo.id, archivo.nombre)">
+                            Descargar
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </details>
@@ -162,8 +197,12 @@
 import { ref, watch } from 'vue'
 import OdontogramaEditor from '@/components/estudiantes/Odontograma/OdontogramaEditor.vue'
 import { pacientesService } from '@/services/estudiantes/Pacientes/pacientes.service'
+import { archivosService } from '@/services/common/archivos.service'
+import { useToast } from '@/composables/useToast'
+import { getErrorMessage } from '@/utils/errorHandler'
 import type { HistorialCompletoPaciente } from '@/types/pacientes.types'
 import type { DienteOdontogramaInput } from '@/types/odontograma.types'
+import type { ArchivoItem } from '@/types/archivos.types'
 import '@/assets/styles/Estudiantes/components/HistorialCompletoModal.css'
 
 interface Props {
@@ -180,8 +219,10 @@ const emit = defineEmits<{
 }>()
 
 const historial = ref<HistorialCompletoPaciente | null>(null)
+const archivosPorCaso = ref<Record<number, ArchivoItem[]>>({})
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const toast = useToast()
 
 const formatDate = (date: string | Date | null | undefined): string => {
   if (!date) return '—'
@@ -224,6 +265,46 @@ const getOdontogramaObservacionGeneral = (
   return observacion?.descripcion || ''
 }
 
+const getArchivosCaso = (casoId: number): ArchivoItem[] => {
+  return archivosPorCaso.value[casoId] || []
+}
+
+const cargarArchivosPorCaso = async (casoIds: number[]) => {
+  if (!casoIds.length) {
+    archivosPorCaso.value = {}
+    return
+  }
+
+  const resultados = await Promise.all(
+    casoIds.map(async (casoId) => {
+      try {
+        const archivos = await archivosService.listByEntity('CASO_CLINICO', casoId)
+        return [casoId, archivos] as const
+      } catch {
+        return [casoId, []] as const
+      }
+    })
+  )
+
+  archivosPorCaso.value = Object.fromEntries(resultados)
+}
+
+const handleDescargarArchivo = async (archivoId: number, nombreArchivo: string) => {
+  try {
+    const blob = await archivosService.download(archivoId)
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = nombreArchivo
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  } catch (err) {
+    toast.error(getErrorMessage(err))
+  }
+}
+
 const cargarHistorial = async () => {
   if (!props.pacienteId) return
 
@@ -231,8 +312,10 @@ const cargarHistorial = async () => {
     isLoading.value = true
     error.value = null
     historial.value = await pacientesService.getHistorialCompleto(props.pacienteId)
+    await cargarArchivosPorCaso(historial.value.casosClinicos.map((caso) => caso.id))
   } catch (err) {
     historial.value = null
+    archivosPorCaso.value = {}
     error.value = 'No se pudo cargar el historial completo del paciente.'
   } finally {
     isLoading.value = false

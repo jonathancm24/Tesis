@@ -33,13 +33,13 @@
       <!-- Nota informativa -->
       <div class="nota-encuesta">
         <p v-if="encuestaEstado?.estado === 'PENDIENTE' || !encuestaEstado">
-          ⚠️ <strong>Requerida:</strong> Debe completarse antes de crear un caso clínico
+          ℹ️ <strong>Opcional:</strong> Puede completarse ahora o más adelante
         </p>
         <p v-else-if="encuestaEstado?.estado === 'BORRADOR'">
-          🔄 <strong>En progreso:</strong> Puede continuarse o completarse
+          🔄 <strong>En progreso:</strong> Puede continuarse cuando lo necesites
         </p>
         <p v-else-if="encuestaEstado?.estado === 'COMPLETADA'">
-          ✅ <strong>Completada:</strong> Lista para crear casos clínicos
+          ✅ <strong>Completada:</strong> Antecedentes médicos registrados
         </p>
       </div>
 

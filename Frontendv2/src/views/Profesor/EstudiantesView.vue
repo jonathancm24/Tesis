@@ -113,16 +113,47 @@
 						<p class="summary-meta">{{ selectedStudent.email }}</p>
 					</div>
 
-					<div class="summary-grid">
-						<div class="summary-item">
-							<span class="label">Fecha nacimiento</span>
-							<span>{{ formatDate(selectedStudent.fechaNacimiento) }}</span>
-						</div>
-						<div class="summary-item">
-							<span class="label">Telefono</span>
-							<span>{{ selectedStudent.telefono || 'No registrado' }}</span>
-						</div>
+					<div v-if="isCasesLoading" class="summary-empty">
+						<p>Cargando resumen de casos clínicos...</p>
 					</div>
+
+					<template v-else>
+
+						<div class="summary-grid">
+							<div class="summary-item">
+								<span class="label">Fecha nacimiento</span>
+								<span>{{ formatDate(selectedStudent.fechaNacimiento) }}</span>
+							</div>
+							<div class="summary-item">
+								<span class="label">Telefono</span>
+								<span>{{ selectedStudent.telefono || 'No registrado' }}</span>
+							</div>
+							<div class="summary-item">
+								<span class="label">Casos pendientes</span>
+								<span>{{ studentCaseStats.pendientes }}</span>
+							</div>
+							<div class="summary-item">
+								<span class="label">Casos aprobados</span>
+								<span>{{ studentCaseStats.aprobados }}</span>
+							</div>
+							<div class="summary-item">
+								<span class="label">Casos rechazados</span>
+								<span>{{ studentCaseStats.rechazados }}</span>
+							</div>
+							<div class="summary-item">
+								<span class="label">Casos calificados</span>
+								<span>{{ studentCaseStats.calificados }}</span>
+							</div>
+							<div class="summary-item">
+								<span class="label">Nota promedio</span>
+								<span>{{ studentCaseStats.notaPromedio }}</span>
+							</div>
+							<div class="summary-item">
+								<span class="label">Última nota</span>
+								<span>{{ studentCaseStats.ultimaNota }}</span>
+							</div>
+						</div>
+					</template>
 
 					<button class="btn btn-primary" type="button" @click="handleViewHistory">
 						Ver historial
@@ -154,13 +185,17 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import { useEstudiantesStore } from '@/stores/Profesor/estudiantes'
+import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import { getErrorMessage } from '@/utils/errorHandler'
 import ImportEstudiantesModal from '@/components/profesor/ImportEstudiantesModal.vue'
 import CreateEstudianteModal from '@/components/profesor/CreateEstudianteModal.vue'
+import { casosClinicosService } from '@/services/estudiantes/CasosClinicos/casos-clinicos.service'
 import type { Usuario } from '@/types/usuarios.types'
+import type { CasoClinico } from '@/types/casosClinicos.types'
 
 const store = useEstudiantesStore()
+const authStore = useAuthStore()
 const toast = useToast()
 
 const searchTerm = ref('')
@@ -168,8 +203,34 @@ const statusFilter = ref<'all' | 'active' | 'inactive'>('all')
 const selectedStudent = ref<Usuario | null>(null)
 const isImportModalOpen = ref(false)
 const isCreateModalOpen = ref(false)
+const studentCases = ref<CasoClinico[]>([])
+const isCasesLoading = ref(false)
+const studentCasesCache = ref<Record<number, CasoClinico[]>>({})
 
 const estudiantes = computed(() => store.estudiantes)
+
+const studentCaseStats = computed(() => {
+	const pendientes = studentCases.value.filter(caso => caso.estado !== 'APROBADO' && caso.estado !== 'RECHAZADO').length
+	const aprobados = studentCases.value.filter(caso => caso.estado === 'APROBADO').length
+	const rechazados = studentCases.value.filter(caso => caso.estado === 'RECHAZADO').length
+	const calificados = studentCases.value.filter(caso => caso.calificacion !== null && caso.calificacion !== undefined)
+	const sumaNotas = calificados.reduce((acc, caso) => acc + Number(caso.calificacion), 0)
+	const notaPromedio = calificados.length ? (sumaNotas / calificados.length).toFixed(1) : 'Sin calificar'
+	const ultimaNotaCaso = [...calificados].sort((a, b) => {
+		const fechaA = new Date(a.fechaActualizacion).getTime()
+		const fechaB = new Date(b.fechaActualizacion).getTime()
+		return fechaB - fechaA
+	})[0]
+
+	return {
+		pendientes,
+		aprobados,
+		rechazados,
+		calificados: calificados.length,
+		notaPromedio,
+		ultimaNota: ultimaNotaCaso?.calificacion ?? 'Sin calificar'
+	}
+})
 
 // Cargar estudiantes al montar
 onMounted(async () => {
@@ -196,13 +257,55 @@ const handleSearch = async () => {
 		}
 		
 		await store.fetchEstudiantes(filters)
+		selectedStudent.value = null
+		studentCases.value = []
+		studentCasesCache.value = {}
 	} catch (error) {
 		toast.error(getErrorMessage(error))
 	}
 }
 
-const handleExplore = (student: Usuario) => {
+const loadStudentCases = async (studentId: number) => {
+	if (studentCasesCache.value[studentId]) {
+		studentCases.value = studentCasesCache.value[studentId]
+		return
+	}
+
+	const profesorId = authStore.user?.id
+	if (!profesorId) {
+		studentCases.value = []
+		toast.error('No se pudo identificar al profesor')
+		return
+	}
+
+	isCasesLoading.value = true
+	try {
+		const casosProfesor = await casosClinicosService.getByProfesor(profesorId)
+		const casosDelEstudiante = casosProfesor.filter(caso => caso.estudiante?.id === studentId)
+
+		if (!casosDelEstudiante.length) {
+			studentCases.value = []
+			studentCasesCache.value[studentId] = []
+			return
+		}
+
+		const casosDetalle = await Promise.all(
+			casosDelEstudiante.map(caso => casosClinicosService.getById(caso.id))
+		)
+
+		studentCases.value = casosDetalle
+		studentCasesCache.value[studentId] = casosDetalle
+	} catch (error) {
+		studentCases.value = []
+		toast.error(getErrorMessage(error))
+	} finally {
+		isCasesLoading.value = false
+	}
+}
+
+const handleExplore = async (student: Usuario) => {
 	selectedStudent.value = student
+	await loadStudentCases(student.id)
 }
 
 const handleImportExcel = () => {
@@ -212,12 +315,14 @@ const handleImportExcel = () => {
 const handleImportSuccess = async () => {
 	toast.success('Estudiantes importados correctamente')
 	// Refrescar la lista
+	studentCasesCache.value = {}
 	await handleSearch()
 }
 
 const handleCreateSuccess = async () => {
 	toast.success('Estudiante creado correctamente')
 	// Refrescar la lista
+	studentCasesCache.value = {}
 	await handleSearch()
 }
 

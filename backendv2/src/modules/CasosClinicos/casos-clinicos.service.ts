@@ -142,6 +142,56 @@ export class CasosClinicosService {
     })
   }
 
+  async findByEstudiante(estudianteId: number, estado?: string) {
+    const where: any = { estudianteId }
+
+    if (estado) {
+      where.estado = estado
+    }
+
+    return this.prisma.casoClinico.findMany({
+      where,
+      orderBy: { fechaCreacion: 'desc' },
+      include: {
+        paciente: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+            numeroDocumento: true,
+            tipoDocumento: true
+          }
+        },
+        profesor: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+            email: true
+          }
+        },
+        estudiante: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+            email: true
+          }
+        },
+        especialidad: { select: { id: true, nombre: true } },
+        observaciones: {
+          select: { id: true }
+        },
+        tratamientos: {
+          select: { id: true }
+        },
+        prescripciones: {
+          select: { id: true }
+        }
+      }
+    })
+  }
+
   async updateEstado(id: number, dto: UpdateEstadoCasoDto) {
     const caso = await this.prisma.casoClinico.findUnique({ where: { id } })
     

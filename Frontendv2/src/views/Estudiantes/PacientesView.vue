@@ -193,7 +193,7 @@
           <!-- Card: Acciones Rápidas Widget -->
           <AccionesRapidasWidget
             :paciente-id="selectedPaciente.id"
-            :puede-crear-caso="puedeCrearCaso(selectedPaciente.id)"
+            :puede-crear-caso="true"
             @accion="handleAccionRapida"
           />
         </template>
@@ -436,14 +436,6 @@ const getCasosDelPaciente = (pacienteId: number): CasoClinicoListItem[] => {
   return pacienteId === selectedPaciente.value?.id ? casosDelPaciente.value : []
 }
 
-// Determinar si puede crearse un nuevo caso
-const puedeCrearCaso = (pacienteId: number): boolean => {
-  // TODO: Validar si la encuesta está completada
-  // Por ahora, ejemplo: solo si el progreso es 100%
-  const encuesta = getEncuestaProgreso(pacienteId)
-  return encuesta ? encuesta.estado === 'COMPLETADA' : false
-}
-
 // ==================== HANDLERS ====================
 
 // Encuesta guardada
@@ -488,10 +480,6 @@ const handleAccionRapida = (accion: 'historial-completo' | 'nueva-cita' | 'nuevo
     case 'nuevo-caso':
       if (!selectedPaciente.value) {
         toast.error('Seleccione un paciente antes de crear un caso clinico')
-        return
-      }
-      if (!puedeCrearCaso(selectedPaciente.value.id)) {
-        toast.error('Debe completar la encuesta medica antes de crear un caso')
         return
       }
       router.push({

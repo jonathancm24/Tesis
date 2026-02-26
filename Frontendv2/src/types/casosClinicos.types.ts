@@ -86,6 +86,8 @@ export interface CasoClinicoListItem {
     tipoDocumento?: string
   }
   observaciones?: { id: number }[]
+  tratamientos?: { id: number }[]
+  prescripciones?: { id: number }[]
 }
 
 export interface CrearCasoClinicoDto {

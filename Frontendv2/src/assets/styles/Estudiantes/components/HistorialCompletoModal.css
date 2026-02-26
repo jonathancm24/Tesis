@@ -171,6 +171,27 @@
   padding-top: 0;
 }
 
+.historial-actions-row {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.historial-link-btn {
+  border: 1px solid var(--color-border);
+  background: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+  border-radius: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.historial-link-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
 @media (max-width: 768px) {
   .historial-modal-content {
     width: 100%;

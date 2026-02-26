@@ -18,6 +18,9 @@ import { CitasModule } from './modules/Citas/citas.module';
 import { OdontogramaModule } from './modules/Odontograma/odontograma.module';
 import { PreguntasClinicasModule } from './modules/PreguntasClinicas/preguntas-clinicas.module';
 import { ArchivosModule } from './modules/Archivos/archivos.module';
+import { Cie10Module } from './modules/CIE10/cie10.module';
+import { TratamientosModule } from './modules/Tratamientos/tratamientos.module';
+import { PrescripcionesModule } from './modules/Prescripciones/prescripciones.module';
 
 @Module({
   imports: [
@@ -41,6 +44,9 @@ import { ArchivosModule } from './modules/Archivos/archivos.module';
     OdontogramaModule,
     PreguntasClinicasModule,
     ArchivosModule,
+    Cie10Module,
+    TratamientosModule,
+    PrescripcionesModule,
   ],
   providers: [PermisosInicializadorService],
 })

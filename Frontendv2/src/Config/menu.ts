@@ -37,6 +37,12 @@ export const menuSections: MenuSection[] = [
         to: '/admin/especialidades',
         icon: 'fas fa-stethoscope',
         roles: ['ADMIN']
+      },
+      {
+        label: 'CIE10 y Procedimientos',
+        to: '/admin/cie10',
+        icon: 'fas fa-notes-medical',
+        roles: ['ADMIN']
       }
     ]
   },
@@ -94,6 +100,12 @@ export const menuSections: MenuSection[] = [
         label: 'Casos clínicos',
         to: '/estudiantes/casos-clinicos/nuevo',
         icon: 'fas fa-file-medical',
+        roles: ['ESTUDIANTE', 'ADMIN']
+      },
+      {
+        label: 'Tratamientos',
+        to: '/estudiantes/tratamientos-prescripciones',
+        icon: 'fas fa-notes-medical',
         roles: ['ESTUDIANTE', 'ADMIN']
       }
     ]

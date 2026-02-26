@@ -150,6 +150,18 @@ export interface HistorialTratamiento {
   estado: string
   fechaCreacion: string
   fechaActualizacion: string
+  cie10Codigo?: string | null
+  procedimientoCodigo?: string | null
+  cie10?: {
+    codigo: string
+    tipo: string
+    descripcion: string
+  } | null
+  procedimiento?: {
+    codigo: string
+    tipo: string
+    descripcion: string
+  } | null
   observaciones?: HistorialObservacion[]
 }
 

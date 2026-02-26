@@ -27,19 +27,13 @@
 
       <!-- Botón: Nuevo Caso Clínico -->
       <button 
-        :class="['accion-btn', 'accion-primaria', { 'disabled': !puedeCrearCaso }]"
+        :class="['accion-btn', 'accion-primaria']"
         @click="emitAction('nuevo-caso')"
-        :disabled="!puedeCrearCaso"
-        :title="puedeCrearCaso ? 'Crear nuevo caso clínico' : 'Complete la encuesta médica primero'"
+        title="Crear nuevo caso clínico"
       >
         <span class="icon">🏥</span>
         <span class="label">Nuevo Caso</span>
       </button>
-    </div>
-
-    <!-- Advertencia si no puede crear caso -->
-    <div v-if="!puedeCrearCaso" class="advertencia-encuesta">
-      ⚠️ Complete la encuesta médica para crear un nuevo caso
     </div>
   </div>
 </template>
@@ -50,7 +44,7 @@ import type { EstadoEncuesta } from '@/types/encuestaTamizaje.types'
 
 interface Props {
   pacienteId: number
-  puedeCrearCaso: boolean // Basado en si la encuesta está completa
+  puedeCrearCaso: boolean
 }
 
 interface Emits {
@@ -104,14 +98,14 @@ const emitAction = (accion: 'historial-completo' | 'nueva-cita' | 'nuevo-caso') 
   min-height: 100px;
 }
 
-.accion-btn:hover:not(.disabled) {
+.accion-btn:hover {
   background-color: #f3f4f6;
   border-color: var(--color-primary);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
 }
 
-.accion-btn:active:not(.disabled) {
+.accion-btn:active {
   transform: translateY(0);
 }
 
@@ -121,17 +115,9 @@ const emitAction = (accion: 'historial-completo' | 'nueva-cita' | 'nuevo-caso') 
   color: white;
 }
 
-.accion-primaria:hover:not(.disabled) {
+.accion-primaria:hover {
   background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary-dark));
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.accion-btn.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background-color: var(--color-background);
-  border-color: var(--color-border);
-  color: var(--color-text-secondary);
 }
 
 .icon {
@@ -142,17 +128,6 @@ const emitAction = (accion: 'historial-completo' | 'nueva-cita' | 'nuevo-caso') 
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.2;
-}
-
-.advertencia-encuesta {
-  padding: 0.75rem;
-  background-color: #fef3c7;
-  border-left: 3px solid #f59e0b;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  color: #92400e;
-  text-align: center;
-  font-weight: 500;
 }
 
 @media (max-width: 768px) {
