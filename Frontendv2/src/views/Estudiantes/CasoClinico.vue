@@ -183,6 +183,39 @@
 					></textarea>
 				</div>
 
+				<h3 class="form-section-title">Adjuntos del caso</h3>
+				<div class="adjuntos-box">
+					<div class="adjuntos-actions">
+						<input
+							ref="adjuntosInputRef"
+							type="file"
+							class="adjuntos-input"
+							multiple
+							accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,.txt"
+							@change="handleAdjuntosSeleccionados"
+						/>
+						<button class="btn btn-secondary" type="button" :disabled="isSaving" @click="abrirSelectorAdjuntos">
+							Añadir archivos o imágenes
+						</button>
+					</div>
+
+					<p v-if="adjuntosSeleccionados.length === 0" class="adjuntos-empty">
+						No hay adjuntos seleccionados.
+					</p>
+
+					<ul v-else class="adjuntos-list">
+						<li v-for="(archivo, index) in adjuntosSeleccionados" :key="`${archivo.name}-${index}`" class="adjunto-item">
+							<div class="adjunto-info">
+								<strong>{{ archivo.name }}</strong>
+								<span>{{ formatFileSize(archivo.size) }}</span>
+							</div>
+							<button class="btn btn-link danger" type="button" :disabled="isSaving" @click="removeAdjunto(index)">
+								Quitar
+							</button>
+						</li>
+					</ul>
+				</div>
+
 				<div class="form-actions">
 					<button class="btn btn-secondary" type="button" @click="goBack">Cancelar</button>
 					<button class="btn btn-primary" type="submit" :disabled="isSaving || !isFormValid">
@@ -206,6 +239,7 @@ import { usuariosService } from '@/services/Admin/usuarios.service'
 import { casosClinicosService } from '@/services/estudiantes/CasosClinicos/casos-clinicos.service'
 import { odontogramaService } from '@/services/estudiantes/Odontograma/odontograma.service'
 import { preguntasClinicasService } from '@/services/Profesores/preguntas-clinicas.service'
+import { archivosService } from '@/services/common/archivos.service'
 import OdontogramaEditor from '@/components/estudiantes/Odontograma/OdontogramaEditor.vue'
 import PreguntasDinamicas from '@/components/estudiantes/PreguntasDinamicas.vue'
 import type { Paciente } from '@/types/pacientes.types'
@@ -237,6 +271,8 @@ const odontogramaConclusion = ref('')
 const isSavingOdontograma = ref(false)
 const preguntasDinamicas = ref<PreguntaClinica[]>([])
 const respuestasDinamicas = ref<RespuestaClinicaInput[]>([])
+const adjuntosInputRef = ref<HTMLInputElement | null>(null)
+const adjuntosSeleccionados = ref<File[]>([])
 
 const pacienteId = computed(() => Number(route.query.pacienteId || 0))
 const estudianteId = computed(() => authStore.user?.id || 0)
@@ -460,8 +496,28 @@ const handleSubmit = async () => {
 			}
 		}
 
-		if (odontogramaGuardado) {
+		let adjuntosFallidos = 0
+		if (adjuntosSeleccionados.value.length > 0) {
+			const resultados = await Promise.allSettled(
+				adjuntosSeleccionados.value.map((file) =>
+					archivosService.upload({
+						file,
+						entidadTipo: 'CASO_CLINICO',
+						entidadId: casoCreado.id,
+						descripcion: `Adjunto de caso clínico #${casoCreado.id}`
+					})
+				)
+			)
+
+			adjuntosFallidos = resultados.filter((resultado) => resultado.status === 'rejected').length
+		}
+
+		if (odontogramaGuardado && adjuntosFallidos === 0) {
 			toast.success('Caso clínico creado correctamente')
+		} else if (adjuntosFallidos > 0) {
+			toast.warning(
+				`Caso clínico creado, pero ${adjuntosFallidos} archivo(s) no se pudieron adjuntar`
+			)
 		}
 		router.push({ name: 'estudiantes-pacientes' })
 	} catch (error) {
@@ -474,6 +530,32 @@ const handleSubmit = async () => {
 
 const goBack = () => {
 	router.push({ name: 'estudiantes-pacientes' })
+}
+
+const abrirSelectorAdjuntos = () => {
+	adjuntosInputRef.value?.click()
+}
+
+const handleAdjuntosSeleccionados = (event: Event) => {
+	const input = event.target as HTMLInputElement
+	const files = input.files ? Array.from(input.files) : []
+
+	if (files.length === 0) {
+		return
+	}
+
+	adjuntosSeleccionados.value = [...adjuntosSeleccionados.value, ...files]
+	input.value = ''
+}
+
+const removeAdjunto = (index: number) => {
+	adjuntosSeleccionados.value.splice(index, 1)
+}
+
+const formatFileSize = (size: number) => {
+	if (size < 1024) return `${size} B`
+	if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`
+	return `${(size / (1024 * 1024)).toFixed(1)} MB`
 }
 
 onMounted(loadData)

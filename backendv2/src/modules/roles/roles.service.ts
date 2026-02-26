@@ -202,6 +202,9 @@ export class RolesService {
           PermisoEnum.CREAR_ENCUESTAS,
           PermisoEnum.VER_CONFIGURACION,
           PermisoEnum.VER_ESTADISTICAS,
+          PermisoEnum.VER_ARCHIVOS,
+          PermisoEnum.SUBIR_ARCHIVOS,
+          PermisoEnum.DESCARGAR_ARCHIVOS,
         ]
       },
       {
@@ -218,6 +221,9 @@ export class RolesService {
           PermisoEnum.VER_ESPECIALIDADES,
           PermisoEnum.VER_ENCUESTAS,
           PermisoEnum.CREAR_ENCUESTAS,
+          PermisoEnum.VER_ARCHIVOS,
+          PermisoEnum.SUBIR_ARCHIVOS,
+          PermisoEnum.DESCARGAR_ARCHIVOS,
         ]
       },
       {
@@ -237,6 +243,8 @@ export class RolesService {
           PermisoEnum.VER_TRATAMIENTOS,
           PermisoEnum.VER_SOLICITUDES,
           PermisoEnum.VER_ESPECIALIDADES,
+          PermisoEnum.VER_ARCHIVOS,
+          PermisoEnum.DESCARGAR_ARCHIVOS,
         ]
       }
     ];

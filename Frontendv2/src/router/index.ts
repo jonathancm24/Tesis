@@ -124,6 +124,24 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
+        path: 'estudiantes/archivos',
+        name: 'estudiantes-archivos',
+        component: () => import('../views/Estudiantes/ArchivosView.vue'),
+        meta: {
+          title: 'Biblioteca de archivos',
+          roles: ['ESTUDIANTE']
+        }
+      },
+      {
+        path: 'profesor/archivos',
+        name: 'profesor-archivos',
+        component: () => import('../views/Profesor/ArchivosGestionView.vue'),
+        meta: {
+          title: 'Gestión de archivos',
+          roles: ['ADMIN', 'PROFESOR']
+        }
+      },
+      {
         path: 'estudiantes/casos-clinicos/nuevo',
         name: 'estudiantes-casos-clinicos-nuevo',
         component: () => import('../views/Estudiantes/CasoClinico.vue'),

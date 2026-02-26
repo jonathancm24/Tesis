@@ -96,6 +96,9 @@ export class PermisosInicializadorService implements OnModuleInit {
       [PermisoEnum.CREAR_ENCUESTAS]: 'Permite crear nuevas encuestas de tamizaje para pacientes',
       [PermisoEnum.VER_ESTADISTICAS]: 'Permite acceder a estadísticas del sistema',
       [PermisoEnum.VER_CONFIGURACION]: 'Permite ver configuraciones del sistema como preguntas de tamizaje',
+      [PermisoEnum.VER_ARCHIVOS]: 'Permite visualizar listados de archivos en contextos autorizados',
+      [PermisoEnum.SUBIR_ARCHIVOS]: 'Permite cargar documentos e imágenes al sistema',
+      [PermisoEnum.DESCARGAR_ARCHIVOS]: 'Permite descargar archivos relacionados a casos y atención clínica',
     };
 
     return descripciones[permiso] || `Permiso: ${permiso}`;

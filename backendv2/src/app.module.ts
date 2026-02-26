@@ -17,6 +17,7 @@ import { CasosClinicosModule } from './modules/CasosClinicos/casos-clinicos.modu
 import { CitasModule } from './modules/Citas/citas.module';
 import { OdontogramaModule } from './modules/Odontograma/odontograma.module';
 import { PreguntasClinicasModule } from './modules/PreguntasClinicas/preguntas-clinicas.module';
+import { ArchivosModule } from './modules/Archivos/archivos.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { PreguntasClinicasModule } from './modules/PreguntasClinicas/preguntas-c
     CitasModule,
     OdontogramaModule,
     PreguntasClinicasModule,
+    ArchivosModule,
   ],
   providers: [PermisosInicializadorService],
 })

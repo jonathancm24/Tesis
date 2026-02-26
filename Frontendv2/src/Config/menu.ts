@@ -60,6 +60,12 @@ export const menuSections: MenuSection[] = [
         to: '/profesor/preguntas-clinicas',
         icon: 'fas fa-question-circle',
         roles: ['PROFESOR', 'ADMIN']
+      },
+      {
+        label: 'Gestión de archivos',
+        to: '/profesor/archivos',
+        icon: 'fas fa-folder-open',
+        roles: ['PROFESOR', 'ADMIN']
       }
     ]
   },
@@ -77,6 +83,12 @@ export const menuSections: MenuSection[] = [
         to: '/estudiantes/agenda',
         icon: 'fas fa-calendar-alt',
         roles: ['ESTUDIANTE', 'PROFESOR', 'ADMIN']
+      },
+      {
+        label: 'Biblioteca de archivos',
+        to: '/estudiantes/archivos',
+        icon: 'fas fa-folder-open',
+        roles: ['ESTUDIANTE']
       },
       {
         label: 'Casos clínicos',
