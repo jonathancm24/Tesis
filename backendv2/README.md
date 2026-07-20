@@ -56,6 +56,21 @@ Este repositorio contiene el código fuente del backend para el **Sistema de Ges
 $ npm install
 ```
 
+## Despliegue en Producción
+
+Si vas a subir el backend a un servidor, sigue este orden:
+
+1. Usa Node.js 20 LTS.
+2. Configura el archivo `.env` con al menos `DATABASE_URL` y `JWT_SECRET`.
+3. Instala dependencias con `npm install`.
+4. Genera el cliente de Prisma con `npx prisma generate`.
+5. Compila el proyecto con `npm run build`.
+6. Ejecuta el backend con `npm run start:prod`.
+
+Antes de publicar, valida que `npm audit --omit=dev` no reporte vulnerabilidades de producción.
+
+Si vas a desplegar con CI/CD o con una imagen de contenedor, deja las dependencias de desarrollo solo para la etapa de compilación y no para el runtime final.
+
 ## Running the app
 
 ```bash
@@ -95,14 +110,18 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 
 ## Notas de Seguridad
 
-Este proyecto evita intencionalmente el uso de `npm audit fix --force`.
+Este proyecto evita el uso de `npm audit fix --force` salvo revisión técnica explícita.
 
-Algunas vulnerabilidades reportadas corresponden a herramientas de desarrollo o dependencias transitivas que no se ejecutan en producción. Forzar correcciones automáticas introduciría cambios incompatibles en librerías críticas (como NestJS, ESLint o bcrypt) sin aportar beneficios reales de seguridad.
+Estado actual del backend:
+- El árbol de producción se mantiene libre de vulnerabilidades conocidas con `npm audit --omit=dev`.
+- `bcrypt` se usa para proteger contraseñas; no debe reemplazarse por texto plano.
+- Las cargas de archivos usan `multer` con límites de tamaño y validación de tipo.
+- La importación y exportación de Excel se hace con `exceljs`.
 
-En su lugar, el proyecto adopta un enfoque de seguridad controlado:
-- Se prioriza la seguridad en tiempo de ejecución.
-- Las vulnerabilidades conocidas se documentan y monitorean.
-- Se utilizan versiones LTS estables de Node.js y dependencias principales.
+Qué sigue requiriendo atención:
+- Las alertas que aparezcan solo en dependencias de desarrollo no bloquean el despliegue.
+- Cualquier nueva dependencia debe revisarse antes de incorporarla al árbol de producción.
+- Si cambias librerías de autenticación, Excel o subida de archivos, vuelve a ejecutar `npm audit --omit=dev` y las pruebas.
 
 Este enfoque está alineado con prácticas reales de ingeniería de software y estándares académicos.
 

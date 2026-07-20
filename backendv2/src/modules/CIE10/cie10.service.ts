@@ -6,15 +6,17 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { CreateCie10Dto, ListCie10Dto, UpdateCie10Dto } from './dto';
+import { readFirstWorksheetRows } from '../../common/utils/excel';
+import type { Multer } from 'multer';
 
 @Injectable()
 export class Cie10Service {
   constructor(private readonly prisma: PrismaService) {}
 
-  generateTemplateExcel(): Buffer {
-    const workbook = XLSX.utils.book_new();
+  async generateTemplateExcel(): Promise<Buffer> {
+    const workbook = new ExcelJS.Workbook();
 
     const dataRows = [
       { codigo: 'K02.1', tipo: 'CIE10', descripcion: 'Caries de dentina' },
@@ -24,10 +26,6 @@ export class Cie10Service {
         descripcion: 'Extracción de diente erupcionado o raíz expuesta',
       },
     ];
-
-    const dataSheet = XLSX.utils.json_to_sheet(dataRows, {
-      header: ['codigo', 'tipo', 'descripcion'],
-    });
 
     const instrucciones = [
       {
@@ -44,17 +42,24 @@ export class Cie10Service {
       },
     ];
 
-    const instructionsSheet = XLSX.utils.json_to_sheet(instrucciones, {
-      header: ['campo', 'detalle'],
-    });
+    const dataSheet = workbook.addWorksheet('plantilla_cie10');
+    dataSheet.addRows([
+      ['codigo', 'tipo', 'descripcion'],
+      ...dataRows.map((row) => [row.codigo, row.tipo, row.descripcion]),
+    ]);
+    dataSheet.columns = [{ width: 18 }, { width: 18 }, { width: 60 }];
+    dataSheet.getRow(1).font = { bold: true };
 
-    XLSX.utils.book_append_sheet(workbook, dataSheet, 'plantilla_cie10');
-    XLSX.utils.book_append_sheet(workbook, instructionsSheet, 'instrucciones');
+    const instructionsSheet = workbook.addWorksheet('instrucciones');
+    instructionsSheet.addRows([
+      ['campo', 'detalle'],
+      ...instrucciones.map((row) => [row.campo, row.detalle]),
+    ]);
+    instructionsSheet.columns = [{ width: 18 }, { width: 70 }];
+    instructionsSheet.getRow(1).font = { bold: true };
 
-    return XLSX.write(workbook, {
-      type: 'buffer',
-      bookType: 'xlsx',
-    }) as Buffer;
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
   }
 
   async create(dto: CreateCie10Dto) {
@@ -179,17 +184,17 @@ export class Cie10Service {
       throw new BadRequestException('Debe adjuntar un archivo Excel en el campo file');
     }
 
-    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
+    let rows: Record<string, string>[];
 
-    if (!sheetName) {
+    try {
+      rows = await readFirstWorksheetRows(file.buffer);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new BadRequestException(error.message);
+      }
+
       throw new BadRequestException('El archivo Excel no contiene hojas');
     }
-
-    const sheet = workbook.Sheets[sheetName];
-    const rows = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, {
-      defval: '',
-    });
 
     if (!rows.length) {
       throw new BadRequestException('El archivo Excel no contiene registros');

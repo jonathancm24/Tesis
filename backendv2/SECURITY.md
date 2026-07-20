@@ -1,89 +1,74 @@
 # Política de Seguridad – backendv2
 
-## Descripción General
+## Objetivo
 
-Este proyecto es una aplicación backend académica desarrollada con **NestJS**, diseñada para ejecutarse en entornos controlados.  
-La gestión de seguridad se realiza siguiendo **buenas prácticas del ecosistema Node.js**, priorizando la **estabilidad en tiempo de ejecución, la compatibilidad y la reproducibilidad** del entorno sobre actualizaciones forzadas que introduzcan cambios incompatibles.
+Este documento explica el estado real de seguridad del backend y cómo desplegarlo sin depender de conocimientos profundos del ecosistema Node.js.
 
----
+La regla principal es separar dos cosas:
+- Lo que afecta al runtime de producción.
+- Lo que solo afecta herramientas de desarrollo, pruebas o generación de código.
 
-## Gestión de Vulnerabilidades en Dependencias
+## Estado actual
 
-El proyecto utiliza `npm audit` como herramienta de monitoreo de vulnerabilidades en dependencias directas y transitivas.  
-Algunas vulnerabilidades reportadas **no se corrigen automáticamente** debido a que su impacto real es bajo o nulo en el contexto del proyecto, o porque su corrección implicaría **breaking changes** que afectarían la estabilidad del sistema.
+En la versión actual del proyecto, `npm audit --omit=dev` no reporta vulnerabilidades de producción conocidas.
 
----
+Eso significa que el backend puede desplegarse hoy con una base razonable de seguridad, siempre que se sigan los pasos de instalación y compilación definidos en el README.
 
-## Vulnerabilidades Conocidas y Evaluación de Riesgo
+## Superficies de riesgo reales
 
-### 1. ESLint (Severidad moderada – Dependencia de desarrollo)
+### Autenticación
 
-- **Paquete afectado**: `eslint < 9.x`
-- **Alcance**: Solo entorno de desarrollo
-- **Contexto**:
-  - ESLint se utiliza únicamente para análisis estático del código.
-  - No se ejecuta en producción ni procesa datos del usuario.
-- **Evaluación de riesgo**: Bajo
-- **Mitigación**:
-  - ESLint está correctamente aislado como `devDependency`.
-  - No existe impacto en el entorno de ejecución del backend.
+- El proyecto usa `bcrypt` para hashear contraseñas.
+- Esto es preferible a cualquier alternativa insegura como almacenar contraseñas en texto plano.
+- Si se cambia esta librería, se debe volver a validar el flujo de login, cambio de contraseña y creación de usuarios.
 
----
+### Subida de archivos
 
-### 2. Lodash (Severidad moderada – Dependencia transitiva)
+- Las cargas usan `multer` con límites de tamaño.
+- Se restringen tipos MIME permitidos.
+- Las rutas de subida deben seguir siendo consideradas una superficie de ataque y no exponerse sin autenticación.
 
-- **Paquete afectado**: `lodash`
-- **Introducido por**: `@nestjs/config`
-- **Contexto**:
-  - Lodash no es utilizado directamente por el código de la aplicación.
-  - La vulnerabilidad reportada afecta funciones específicas (`_.unset`, `_.omit`) bajo escenarios de uso inseguro.
-- **Evaluación de riesgo**: Bajo
-- **Mitigación**:
-  - Se aplican `overrides` y `resolutions` para asegurar versiones seguras cuando es posible.
-  - Forzar una corrección automática implicaría degradar o romper dependencias clave de NestJS, lo cual no es aceptable para este proyecto.
+### Archivos Excel
 
----
+- La importación y exportación de Excel usa `exceljs`.
+- Esta librería reemplazó a la anterior para evitar arrastrar vulnerabilidades conocidas de `xlsx`.
+- Los archivos subidos siguen necesitando validación de tamaño, tipo y contenido.
 
-### 3. tar / bcrypt (Severidad alta – Dependencias de instalación)
+### Base de datos
 
-- **Paquetes afectados**: `tar`, `@mapbox/node-pre-gyp`
-- **Contexto**:
-  - Estas dependencias se utilizan durante la instalación o compilación de binarios.
-  - No se ejecutan en tiempo de ejecución ni exponen operaciones al usuario final.
-- **Evaluación de riesgo**: Bajo en contexto de ejecución
-- **Mitigación**:
-  - El backend no expone operaciones de sistema de archivos relacionadas con estas dependencias.
-  - Forzar actualizaciones implicaría migrar a versiones mayores de `bcrypt`, introduciendo cambios incompatibles sin beneficio práctico.
+- Prisma usa `DATABASE_URL` y el despliegue debe apuntar solo a una base controlada.
+- No se debe exponer la base de datos directamente a internet.
 
----
+## Qué no bloquea la producción
 
-## Motivo por el cual no se utiliza `npm audit fix --force`
+- Vulnerabilidades presentes solo en `devDependencies`.
+- Alertas de `eslint`, `jest`, `ts-jest`, `@nestjs/cli` y herramientas parecidas.
+- Cambios de auditoría que no aparecen en `npm audit --omit=dev`.
 
-El uso de `npm audit fix --force` se evita deliberadamente porque:
+## Cuándo sí actuar
 
-- Introduce **breaking changes** en dependencias críticas (NestJS, ESLint, bcrypt).
-- Reduce la estabilidad y reproducibilidad del proyecto.
-- No aporta mejoras reales de seguridad en vulnerabilidades que no afectan el entorno de ejecución.
+Hay que intervenir si aparece alguno de estos casos:
 
-El proyecto adopta un enfoque de **gestión de riesgos controlada**, en lugar de correcciones automáticas agresivas.
+- `npm audit --omit=dev` vuelve a mostrar vulnerabilidades.
+- Se incorpora una nueva dependencia para runtime.
+- Se cambia la lógica de autenticación, subida de archivos o importación de Excel.
+- Se modifica la versión de Node.js o la cadena de despliegue.
 
----
+## Criterio de mantenimiento
 
-## Endurecimiento del Entorno
+- Se priorizan vulnerabilidades explotables en runtime.
+- No se usa `npm audit fix --force` sin revisar el impacto.
+- Las dependencias se actualizan de forma controlada y con build exitoso después de cada cambio.
+- Node.js 20 LTS es la línea recomendada para producción.
 
-- **Versión de Node.js**: 20 LTS (fijada explícitamente)
-- **Bloqueo de dependencias**: `package-lock.json`
-- Uso de `overrides` y `resolutions` cuando aplica
-- Auditorías periódicas con `npm audit`
+## Verificación mínima antes de publicar
 
----
+1. Ejecutar `npm install`.
+2. Ejecutar `npx prisma generate`.
+3. Ejecutar `npm run build`.
+4. Ejecutar `npm audit --omit=dev`.
+5. Confirmar que la aplicación arranca con `npm run start:prod`.
 
-## Monitoreo
+## Última revisión
 
-- Se ejecuta `npm audit` de forma regular.
-- Se priorizan vulnerabilidades **críticas o explotables en runtime**.
-- Este documento se actualiza conforme aparezca información relevante.
-
----
-
-**Última revisión**: Febrero 2026
+Junio 2026

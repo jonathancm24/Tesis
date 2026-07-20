@@ -15,8 +15,9 @@ import {
   UsuarioFiltersDto,
 } from './dto';
 import * as bcrypt from 'bcrypt';
+import ExcelJS from 'exceljs';
 import { Prisma, TipoDocumento } from '@prisma/client';
-import * as XLSX from 'xlsx';
+import { readFirstWorksheetRows } from '../../common/utils/excel';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tipos internos para el procesamiento del Excel
@@ -401,7 +402,7 @@ export class UsuariosService {
    */
   async importFromExcel(fileBuffer: Buffer): Promise<ImportExcelResult> {
     // 1. Parsear el archivo
-    const rows = this.parseExcelBuffer(fileBuffer);
+    const rows = await this.parseExcelBuffer(fileBuffer);
 
     if (rows.length === 0) {
       throw new BadRequestException(
@@ -467,7 +468,7 @@ export class UsuariosService {
       }),
     ]);
 
-    const wb = XLSX.utils.book_new();
+    const wb = new ExcelJS.Workbook();
 
     // ── Hoja 1: Plantilla de datos ──────────────────────────────────────────
     const headers = [
@@ -504,12 +505,11 @@ export class UsuariosService {
       especialidades.slice(0, 2).map((e) => e.nombre).join(', '),
     ];
 
-    const wsData = XLSX.utils.aoa_to_sheet([headers, exampleRow]);
-
-    // Anchos de columna para mejor lectura
-    wsData['!cols'] = headers.map(() => ({ wch: 22 }));
-
-    XLSX.utils.book_append_sheet(wb, wsData, 'Usuarios');
+    const wsData = wb.addWorksheet('Usuarios');
+    wsData.addRow(headers);
+    wsData.addRow(exampleRow);
+    wsData.columns = headers.map(() => ({ width: 22 }));
+    wsData.getRow(1).font = { bold: true };
 
     // ── Hoja 2: Instrucciones ────────────────────────────────────────────────
     const instruccionesData: (string | number)[][] = [
@@ -552,13 +552,14 @@ export class UsuariosService {
       ...especialidades.map((e) => [e.nombre]),
     ];
 
-    const wsInstrucciones = XLSX.utils.aoa_to_sheet(instruccionesData);
-    wsInstrucciones['!cols'] = [{ wch: 40 }, { wch: 18 }, { wch: 60 }];
-    XLSX.utils.book_append_sheet(wb, wsInstrucciones, 'Instrucciones');
+    const wsInstrucciones = wb.addWorksheet('Instrucciones');
+    wsInstrucciones.addRows(instruccionesData);
+    wsInstrucciones.columns = [{ width: 40 }, { width: 18 }, { width: 60 }];
+    wsInstrucciones.getRow(1).font = { bold: true };
 
     // Escribir a buffer
-    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
-    return Buffer.from(buffer);
+    const buffer = await wb.xlsx.writeBuffer();
+    return Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
   }
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -568,33 +569,18 @@ export class UsuariosService {
   /**
    * Lee el buffer del Excel y devuelve las filas como objetos planos.
    */
-  private parseExcelBuffer(buffer: Buffer): ExcelRow[] {
-    let workbook: XLSX.WorkBook;
-
+  private async parseExcelBuffer(buffer: Buffer): Promise<ExcelRow[]> {
     try {
-      workbook = XLSX.read(buffer, { type: 'buffer', cellDates: true });
-    } catch {
+      return await readFirstWorksheetRows(buffer);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new BadRequestException(error.message);
+      }
+
       throw new BadRequestException(
         'No se pudo leer el archivo. Asegúrese de subir un archivo Excel (.xlsx o .xls).',
       );
     }
-
-    const firstSheetName = workbook.SheetNames[0];
-
-    if (!firstSheetName) {
-      throw new BadRequestException('El archivo Excel no contiene hojas de datos');
-    }
-
-    const worksheet = workbook.Sheets[firstSheetName];
-
-    // header: 1 → usa la primera fila como cabecera de los objetos
-    const rows: ExcelRow[] = XLSX.utils.sheet_to_json(worksheet, {
-      header: undefined,
-      defval: undefined,
-      raw: false, // Convierte fechas y números a string para manejarlos uniformemente
-    });
-
-    return rows;
   }
 
   /**
@@ -1178,34 +1164,30 @@ export class UsuariosService {
     }));
 
     // Crear el libro de Excel
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Usuarios');
-
-    // Ajustar ancho de columnas
-    const columnWidths = [
-      { wch: 8 },  // ID
-      { wch: 20 }, // Nombre
-      { wch: 20 }, // Apellido
-      { wch: 30 }, // Email
-      { wch: 15 }, // Tipo Documento
-      { wch: 15 }, // Número Documento
-      { wch: 15 }, // Teléfono
-      { wch: 30 }, // Dirección
-      { wch: 15 }, // Fecha Nacimiento
-      { wch: 20 }, // Rol
-      { wch: 20 }, // Parroquia
-      { wch: 20 }, // Cantón
-      { wch: 20 }, // Provincia
-      { wch: 30 }, // Especialidades
-      { wch: 10 }, // Activo
-      { wch: 15 }, // Fecha Registro
-      { wch: 40 }, // Notas Adicionales
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Usuarios');
+    worksheet.columns = [
+      { header: 'ID', key: 'ID', width: 8 },
+      { header: 'Nombre', key: 'Nombre', width: 20 },
+      { header: 'Apellido', key: 'Apellido', width: 20 },
+      { header: 'Email', key: 'Email', width: 30 },
+      { header: 'Tipo Documento', key: 'Tipo Documento', width: 15 },
+      { header: 'Número Documento', key: 'Número Documento', width: 15 },
+      { header: 'Teléfono', key: 'Teléfono', width: 15 },
+      { header: 'Dirección', key: 'Dirección', width: 30 },
+      { header: 'Fecha Nacimiento', key: 'Fecha Nacimiento', width: 15 },
+      { header: 'Rol', key: 'Rol', width: 20 },
+      { header: 'Parroquia', key: 'Parroquia', width: 20 },
+      { header: 'Cantón', key: 'Cantón', width: 20 },
+      { header: 'Provincia', key: 'Provincia', width: 20 },
+      { header: 'Especialidades', key: 'Especialidades', width: 30 },
+      { header: 'Activo', key: 'Activo', width: 10 },
+      { header: 'Fecha Registro', key: 'Fecha Registro', width: 15 },
+      { header: 'Notas Adicionales', key: 'Notas Adicionales', width: 40 },
     ];
-    worksheet['!cols'] = columnWidths;
+    worksheet.addRows(excelData);
 
-    // Generar el buffer
-    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
-    return buffer;
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
   }
 }

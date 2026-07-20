@@ -38,21 +38,21 @@ export class Cie10Controller {
   }
 
   @Get('template/excel')
-  downloadTemplate(
+  async downloadTemplate(
     @Res({ passthrough: true }) res: Response,
-  ): StreamableFile {
+  ): Promise<StreamableFile> {
     return this.buildTemplateResponse(res);
   }
 
   @Get('template')
-  downloadTemplateAlias(
+  async downloadTemplateAlias(
     @Res({ passthrough: true }) res: Response,
-  ): StreamableFile {
+  ): Promise<StreamableFile> {
     return this.buildTemplateResponse(res);
   }
 
-  private buildTemplateResponse(res: Response): StreamableFile {
-    const buffer = this.cie10Service.generateTemplateExcel();
+  private async buildTemplateResponse(res: Response): Promise<StreamableFile> {
+    const buffer = await this.cie10Service.generateTemplateExcel();
 
     res.set({
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
