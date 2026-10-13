@@ -41,6 +41,33 @@ class CreatePrescripcionInlineDto {
   viadeadministracion: string;
 }
 
+class CreateObservacionInlineDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
+  titulo: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(1000)
+  descripcion: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  estado: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(1000)
+  contenidoEstudiante: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(1000)
+  contenidoDocente: string;
+}
+
 export class CreateTratamientoDto {
   @IsString()
   @IsNotEmpty()
@@ -87,4 +114,7 @@ export class CreateTratamientoDto {
 
   @IsOptional()
   prescripcion?: CreatePrescripcionInlineDto;
+
+  @IsOptional()
+  Observaciones?: CreateObservacionInlineDto;
 }

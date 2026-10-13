@@ -25,6 +25,9 @@ export class TratamientosService {
         estudiante: {
           select: { id: true, nombre: true, apellido: true, email: true },
         },
+        observaciones: {
+          select: { id: true, titulo: true,  fecha: true,  descripcion: true, estado: true, contenidoEstudiante: true, contenidoDocente: true, fechaActualizacion: true },
+        },
       },
     });
   }

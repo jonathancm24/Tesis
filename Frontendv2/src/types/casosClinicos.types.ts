@@ -59,6 +59,8 @@ export interface CasoClinico {
     tipoDocumento?: string
   }
   observaciones?: Observacion[]
+  tratamientos?: TratamientoDetalle[]
+  prescripciones?: PrescripcionDetalle[]
 }
 
 export interface CasoClinicoListItem {
@@ -125,6 +127,9 @@ export interface Observacion {
   contenidoEstudiante?: string
   fecha: Date | string
   estado: string
+  casoClinicoId?: number | null
+  tratamientoId?: number | null
+  prescripcionId?: number | null
   docente?: {
     id: number
     nombre: string
@@ -141,4 +146,46 @@ export interface CrearObservacionDto {
   casoClinicoId: number
   docenteId: number
   contenido: string
+}
+
+export interface TratamientoDetalle {
+  id: number
+  descripcion: string
+  estado: string
+  fechaCreacion: string
+  fechaActualizacion?: string
+  tipoDiagnostico?: string | null
+  frecuenciaCardiaca?: string | null
+  presArterial?: string | null
+  saturacionOxigeno?: string | null
+  temperatura?: string | null
+  cie10Codigo?: string | null
+  procedimientoCodigo?: string | null
+  cie10?: {
+    codigo: string
+    tipo?: string
+    descripcion: string
+  } | null
+  procedimiento?: {
+    codigo: string
+    tipo?: string
+    descripcion: string
+  } | null
+  observaciones?: Observacion[]
+}
+
+export interface PrescripcionDetalle {
+  id: number
+  medicamento: string
+  dosis: string
+  frecuencia: string
+  duracion: string
+  estado: string
+  fechaCreacion: string
+  fechaActualizacion?: string
+  concentracion?: string | null
+  Nrodefarmacos?: number | null
+  presentacion?: string | null
+  viadeadministracion?: string | null
+  observaciones?: Observacion[]
 }

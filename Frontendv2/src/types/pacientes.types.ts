@@ -150,6 +150,11 @@ export interface HistorialTratamiento {
   estado: string
   fechaCreacion: string
   fechaActualizacion: string
+  frecuenciaCardiaca?: string | null
+  presArterial?: string | null
+  saturacionOxigeno?: string | null
+  temperatura?: string | null
+  tipoDiagnostico?: string | null
   cie10Codigo?: string | null
   procedimientoCodigo?: string | null
   cie10?: {
@@ -163,6 +168,16 @@ export interface HistorialTratamiento {
     descripcion: string
   } | null
   observaciones?: HistorialObservacion[]
+  estudiante?: {
+    id: number
+    nombre: string
+    apellido: string
+  } | null
+  docente?: {
+    id: number
+    nombre: string
+    apellido: string
+  } | null
 }
 
 export interface HistorialPrescripcion {
@@ -174,6 +189,10 @@ export interface HistorialPrescripcion {
   estado: string
   fechaCreacion: string
   fechaActualizacion: string
+  concentracion?: string | null
+  Nrodefarmacos?: number | null
+  presentacion?: string | null
+  viadeadministracion?: string | null
   observaciones?: HistorialObservacion[]
 }
 
