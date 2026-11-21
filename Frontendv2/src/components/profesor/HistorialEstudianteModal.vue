@@ -214,7 +214,9 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{ (e: 'close'): void }>()
 
-const activeCasesCount = computed(() => props.cases.filter((caso) => caso.estado !== 'FINALIZADO' && caso.estado !== 'RECHAZADO').length)
+const activeCasesCount = computed(() => props.cases.filter((caso) =>
+  caso.estado !== 'FINALIZADO' && caso.estado !== 'RECHAZADO' && caso.estado !== 'CANCELADO'
+).length)
 const finalizedCasesCount = computed(() => props.cases.filter((caso) => caso.estado === 'FINALIZADO').length)
 
 const formatDate = (date: string | Date | null | undefined): string => {

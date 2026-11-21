@@ -10,14 +10,26 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { PacientesService } from './pacientes.service';
 import { CreatePacienteDto, UpdatePacienteDto, PacienteResponseDto, PacientesPaginatedResponseDto } from './dto';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { RolesGuard } from '../../guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { RoleEnum } from '../../common/enums/roles.enum';
+
+const ROLES_CONSULTA_PACIENTES = [
+  RoleEnum.ADMIN,
+  RoleEnum.PROFESOR,
+  RoleEnum.ESTUDIANTE,
+];
 
 /**
  * Controlador para manejar operaciones CRUD de pacientes
  */
 @Controller('pacientes')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class PacientesController {
   constructor(private readonly pacientesService: PacientesService) {}
 
@@ -26,6 +38,7 @@ export class PacientesController {
    * POST /pacientes
    */
   @Post()
+  @Roles(...ROLES_CONSULTA_PACIENTES)
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createPacienteDto: CreatePacienteDto): Promise<PacienteResponseDto> {
     return this.pacientesService.create(createPacienteDto);
@@ -48,6 +61,7 @@ export class PacientesController {
    * - orderDirection: string ('asc' | 'desc', default: 'desc')
    */
   @Get()
+  @Roles(...ROLES_CONSULTA_PACIENTES)
   async findAll(@Query() query: any): Promise<PacientesPaginatedResponseDto> {
     const filters = {
       nombre: query.nombre,
@@ -70,6 +84,7 @@ export class PacientesController {
    * GET /pacientes/:id/historial-completo
    */
   @Get(':id/historial-completo')
+  @Roles(...ROLES_CONSULTA_PACIENTES)
   async getHistorialCompleto(@Param('id', ParseIntPipe) id: number) {
     return this.pacientesService.getHistorialCompleto(id);
   }
@@ -79,6 +94,7 @@ export class PacientesController {
    * GET /pacientes/:id
    */
   @Get(':id')
+  @Roles(...ROLES_CONSULTA_PACIENTES)
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<PacienteResponseDto> {
     return this.pacientesService.findOne(id);
   }
@@ -88,6 +104,7 @@ export class PacientesController {
    * PATCH /pacientes/:id
    */
   @Patch(':id')
+  @Roles(RoleEnum.ADMIN)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePacienteDto: UpdatePacienteDto,
@@ -100,6 +117,7 @@ export class PacientesController {
    * DELETE /pacientes/:id
    */
   @Delete(':id')
+  @Roles(RoleEnum.ADMIN)
   @HttpCode(HttpStatus.OK)
   async remove(@Param('id', ParseIntPipe) id: number): Promise<{ message: string }> {
     return this.pacientesService.remove(id);
@@ -110,6 +128,7 @@ export class PacientesController {
    * PATCH /pacientes/:id/activate
    */
   @Patch(':id/activate')
+  @Roles(RoleEnum.ADMIN)
   @HttpCode(HttpStatus.OK)
   async activate(@Param('id', ParseIntPipe) id: number): Promise<PacienteResponseDto> {
     return this.pacientesService.activate(id);

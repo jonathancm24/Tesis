@@ -72,6 +72,8 @@ const getEstadoLabel = (estado: EstadoCasoClinico): string => {
     'EN_TRATAMIENTO': '🔧 Tratamiento',
     'FINALIZADO': '✅ Finalizado',
     'APROBADO': '✔️ Aprobado',
+    'PENDIENTE_ESTUDIOS': '📋 Pendiente de estudios',
+    'CANCELADO': '⏹️ Cancelado',
     'RECHAZADO': '❌ Rechazado'
   }
   return labels[estado] || estado
@@ -192,6 +194,16 @@ const selectCaso = (caso: CasoClinicoListItem) => {
 .estado-aprobado {
   background-color: color-mix(in srgb, var(--color-success) 15%, transparent);
   color: var(--color-success);
+}
+
+.estado-pendiente_estudios {
+  background-color: color-mix(in srgb, #f59e0b 15%, transparent);
+  color: #b45309;
+}
+
+.estado-cancelado {
+  background-color: color-mix(in srgb, var(--color-text-secondary) 15%, transparent);
+  color: var(--color-text-secondary);
 }
 
 .estado-rechazado {

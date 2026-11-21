@@ -1,0 +1,1 @@
+ALTER TYPE "EstadoCasoClinico" ADD VALUE 'RECHAZADO';

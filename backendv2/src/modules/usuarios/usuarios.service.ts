@@ -4,6 +4,7 @@ import {
   ConflictException,
   BadRequestException,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import {
@@ -18,6 +19,7 @@ import * as bcrypt from 'bcrypt';
 import ExcelJS from 'exceljs';
 import { Prisma, TipoDocumento } from '@prisma/client';
 import { readFirstWorksheetRows } from '../../common/utils/excel';
+import { RoleEnum } from '../../common/enums/roles.enum';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tipos internos para el procesamiento del Excel
@@ -107,14 +109,19 @@ export class UsuariosService {
   /**
    * Crear un nuevo usuario en el sistema.
    */
-  async create(createUsuarioDto: CreateUsuarioDto): Promise<UsuarioResponseDto> {
+  async create(
+    createUsuarioDto: CreateUsuarioDto,
+    requesterRole: string,
+  ): Promise<UsuarioResponseDto> {
+    this.assertManagementRole(requesterRole);
+    const role = await this.validateRoleExists(createUsuarioDto.roleId);
+    this.assertCanCreateRole(requesterRole, role.nombre);
+
     await this.validateUniqueEmail(createUsuarioDto.email);
     await this.validateUniqueDocument(
       createUsuarioDto.tipoDocumento,
       createUsuarioDto.numeroDocumento,
     );
-    const role = await this.validateRoleExists(createUsuarioDto.roleId);
-
     this.validateEspecialidadesRequirement(role.nombre, createUsuarioDto.especialidadIds);
 
     if (createUsuarioDto.parroquiaId) {
@@ -141,7 +148,10 @@ export class UsuariosService {
             NotasAdicionales: createUsuarioDto.NotasAdicionales,
             parroquiaId: createUsuarioDto.parroquiaId,
             roleId: createUsuarioDto.roleId,
-            activo: createUsuarioDto.activo ?? true,
+            activo:
+              this.normalizeRoleName(requesterRole) === 'PROFESOR'
+                ? true
+                : createUsuarioDto.activo ?? true,
             tipoDocumento: createUsuarioDto.tipoDocumento,
             numeroDocumento: createUsuarioDto.numeroDocumento,
           },
@@ -171,10 +181,18 @@ export class UsuariosService {
   /**
    * Obtener todos los usuarios con filtros y paginación.
    */
-  async findAll(filters: UsuarioFiltersDto): Promise<UsuariosPaginatedResponseDto> {
+  async findAll(
+    filters: UsuarioFiltersDto,
+    requesterRole: string,
+  ): Promise<UsuariosPaginatedResponseDto> {
+    this.assertManagementRole(requesterRole);
     const { page = 1, limit = 10, orderBy = 'fechaRegistro', orderDirection = 'desc' } = filters;
 
-    const where = this.buildWhereConditions(filters);
+    const roleLimitedFilters =
+      this.normalizeRoleName(requesterRole) === 'PROFESOR'
+        ? { ...filters, roleId: await this.getStudentRoleId() }
+        : filters;
+    const where = this.buildWhereConditions(roleLimitedFilters);
 
     const include = {
       role: { select: { id: true, nombre: true, description: true } },
@@ -216,14 +234,51 @@ export class UsuariosService {
   /**
    * Obtener un usuario por ID.
    */
-  async findOne(id: number): Promise<UsuarioResponseDto> {
-    return this.findOneWithRelations(id);
+  async findOne(
+    id: number,
+    requesterRole: string,
+    requesterId: number,
+  ): Promise<UsuarioResponseDto> {
+    this.assertManagementRole(requesterRole);
+    const usuario = await this.findOneWithRelations(id);
+    const role = this.normalizeRoleName(requesterRole);
+    const targetRole = this.normalizeRoleName(usuario.role.nombre);
+
+    if (
+      role !== 'ADMINISTRADOR' &&
+      !(requesterId === id) &&
+      !(role === 'PROFESOR' && targetRole === 'ESTUDIANTE')
+    ) {
+      throw new ForbiddenException('No tiene permisos para consultar este usuario');
+    }
+
+    return usuario;
   }
 
   /**
    * Actualizar un usuario existente.
    */
-  async update(id: number, updateUsuarioDto: UpdateUsuarioDto): Promise<UsuarioResponseDto> {
+  async update(
+    id: number,
+    updateUsuarioDto: UpdateUsuarioDto,
+    requesterRole: string,
+    requesterId: number,
+  ): Promise<UsuarioResponseDto> {
+    this.assertManagementRole(requesterRole);
+    const normalizedRole = this.normalizeRoleName(requesterRole);
+    if (normalizedRole !== 'ADMINISTRADOR') {
+      if (requesterId !== id) {
+        throw new ForbiddenException('Solo puede actualizar su propio perfil');
+      }
+      if (
+        updateUsuarioDto.roleId !== undefined ||
+        updateUsuarioDto.activo !== undefined ||
+        updateUsuarioDto.especialidadIds !== undefined
+      ) {
+        throw new ForbiddenException('No puede modificar roles, estado o especialidades');
+      }
+    }
+
     const usuarioActual = await this.findOneWithRelations(id);
 
     if (updateUsuarioDto.email) {
@@ -313,7 +368,14 @@ export class UsuariosService {
   async changePassword(
     id: number,
     changePasswordDto: ChangePasswordDto,
+    requesterRole: string,
+    requesterId: number,
   ): Promise<{ message: string }> {
+    this.assertManagementRole(requesterRole);
+    if (this.normalizeRoleName(requesterRole) !== 'ADMINISTRADOR' && requesterId !== id) {
+      throw new ForbiddenException('Solo puede cambiar su propia contraseña');
+    }
+
     if (changePasswordDto.newPassword !== changePasswordDto.confirmPassword) {
       throw new BadRequestException('Las contraseñas no coinciden');
     }
@@ -400,7 +462,14 @@ export class UsuariosService {
    * @param fileBuffer Buffer del archivo Excel recibido (Multer / Fastify).
    * @returns Resumen del procesamiento con el detalle fila por fila.
    */
-  async importFromExcel(fileBuffer: Buffer): Promise<ImportExcelResult> {
+  async importFromExcel(
+    fileBuffer: Buffer,
+    requesterRole: string,
+  ): Promise<ImportExcelResult> {
+    this.assertManagementRole(requesterRole);
+    if (!['ADMINISTRADOR', 'PROFESOR'].includes(this.normalizeRoleName(requesterRole))) {
+      throw new ForbiddenException('No tiene permisos para importar usuarios');
+    }
     // 1. Parsear el archivo
     const rows = await this.parseExcelBuffer(fileBuffer);
 
@@ -413,6 +482,10 @@ export class UsuariosService {
     // 2. Pre-cargar el catálogo de especialidades para resolver nombres → IDs
     //    en una sola consulta (evita N+1 queries)
     const catalogoEspecialidades = await this.buildEspecialidadesCatalog();
+    const roles = await this.prisma.role.findMany({
+      select: { id: true, nombre: true },
+    });
+    const rolesPorId = new Map(roles.map((role) => [role.id, role.nombre]));
 
     // 3. Procesar cada fila de forma independiente (errores no detienen el proceso)
     const detalles: ImportRowResult[] = [];
@@ -428,6 +501,8 @@ export class UsuariosService {
         row,
         numeroFila,
         catalogoEspecialidades,
+        requesterRole,
+        rolesPorId,
       );
 
       detalles.push(resultado);
@@ -455,7 +530,11 @@ export class UsuariosService {
    *  - Una hoja "Instrucciones" con la descripción de cada columna
    *    y la lista actualizada de especialidades disponibles en la BD.
    */
-  async generateImportTemplate(): Promise<Buffer> {
+  async generateImportTemplate(requesterRole: string): Promise<Buffer> {
+    this.assertManagementRole(requesterRole);
+    if (!['ADMINISTRADOR', 'PROFESOR'].includes(this.normalizeRoleName(requesterRole))) {
+      throw new ForbiddenException('No tiene permisos para obtener esta plantilla');
+    }
     // Obtener catálogos actualizados de la BD
     const [especialidades, roles] = await Promise.all([
       this.prisma.especialidad.findMany({
@@ -467,6 +546,10 @@ export class UsuariosService {
         orderBy: { nombre: 'asc' },
       }),
     ]);
+    const rolesDisponibles =
+      this.normalizeRoleName(requesterRole) === 'PROFESOR'
+        ? roles.filter((role) => this.normalizeRoleName(role.nombre) === 'ESTUDIANTE')
+        : roles;
 
     const wb = new ExcelJS.Workbook();
 
@@ -496,7 +579,7 @@ export class UsuariosService {
       'Contraseña123',
       'CEDULA',
       '1712345678',
-      roles[0]?.id ?? 1,
+      rolesDisponibles[0]?.id ?? 1,
       '0999999999',
       'Av. Principal 123',
       '',
@@ -545,12 +628,18 @@ export class UsuariosService {
       [''],
       ['ROLES DISPONIBLES'],
       ['ID', 'Nombre'],
-      ...roles.map((r) => [r.id, r.nombre]),
+      ...rolesDisponibles.map((r) => [r.id, r.nombre]),
       [''],
       ['ESPECIALIDADES DISPONIBLES'],
       ['Nombre (escribir exactamente como aparece aquí)'],
       ...especialidades.map((e) => [e.nombre]),
     ];
+
+    if (this.normalizeRoleName(requesterRole) === 'PROFESOR') {
+      instruccionesData.splice(2, 2, [
+        'Profesor: registre únicamente estudiantes nuevos; las filas de usuarios existentes se rechazan.',
+      ]);
+    }
 
     const wsInstrucciones = wb.addWorksheet('Instrucciones');
     wsInstrucciones.addRows(instruccionesData);
@@ -607,6 +696,8 @@ export class UsuariosService {
     row: ExcelRow,
     numeroFila: number,
     catalogoEspecialidades: Map<string, number>,
+    requesterRole: string,
+    rolesPorId: Map<number, string>,
   ): Promise<ImportRowResult> {
     try {
       // ── 1. Normalizar y limpiar los datos de la fila ──────────────────────
@@ -620,6 +711,26 @@ export class UsuariosService {
           estado: 'error',
           email: datos.email,
           mensaje: errorValidacion,
+        };
+      }
+
+      const targetRole = rolesPorId.get(Number(datos.roleId));
+      if (!targetRole) {
+        return {
+          fila: numeroFila,
+          estado: 'error',
+          email: datos.email,
+          mensaje: `No existe el rol con ID ${datos.roleId}`,
+        };
+      }
+
+      const isProfessor = this.normalizeRoleName(requesterRole) === 'PROFESOR';
+      if (isProfessor && this.normalizeRoleName(targetRole) !== 'ESTUDIANTE') {
+        return {
+          fila: numeroFila,
+          estado: 'error',
+          email: datos.email,
+          mensaje: 'Los profesores solo pueden registrar usuarios con rol Estudiante',
         };
       }
 
@@ -644,6 +755,15 @@ export class UsuariosService {
         datos.numeroDocumento!,
       );
 
+      if (isProfessor && usuarioExistente) {
+        return {
+          fila: numeroFila,
+          estado: 'error',
+          email: datos.email,
+          mensaje: 'Los profesores solo pueden registrar estudiantes nuevos',
+        };
+      }
+
       // ── 5. Crear o actualizar ─────────────────────────────────────────────
       if (usuarioExistente) {
         await this.updateUserFromExcel(usuarioExistente.id, datos, especialidadIds.ids!);
@@ -666,7 +786,7 @@ export class UsuariosService {
         }
 
         const nuevoUsuario = await this.createUserFromExcel(
-          datos,
+          isProfessor ? { ...datos, activo: true } : datos,
           especialidadIds.ids!,
         );
         return {
@@ -1072,6 +1192,44 @@ export class UsuariosService {
       .replace(/\p{Diacritic}/gu, '')
       .toUpperCase()
       .trim();
+  }
+
+  private assertManagementRole(roleName: string): void {
+    const normalizedRole = this.normalizeRoleName(roleName);
+    const allowedRoles = [RoleEnum.ADMIN, RoleEnum.PROFESOR, RoleEnum.ESTUDIANTE]
+      .map((role) => this.normalizeRoleName(role));
+
+    if (!allowedRoles.includes(normalizedRole)) {
+      throw new ForbiddenException('No tiene permisos para gestionar usuarios');
+    }
+  }
+
+  private assertCanCreateRole(requesterRole: string, targetRole: string): void {
+    const requester = this.normalizeRoleName(requesterRole);
+    const target = this.normalizeRoleName(targetRole);
+
+    if (requester === this.normalizeRoleName(RoleEnum.ADMIN)) return;
+    if (
+      requester === this.normalizeRoleName(RoleEnum.PROFESOR) &&
+      target === this.normalizeRoleName(RoleEnum.ESTUDIANTE)
+    ) {
+      return;
+    }
+
+    throw new ForbiddenException('Los profesores solo pueden registrar estudiantes');
+  }
+
+  private async getStudentRoleId(): Promise<number> {
+    const role = await this.prisma.role.findUnique({
+      where: { nombre: RoleEnum.ESTUDIANTE },
+      select: { id: true },
+    });
+
+    if (!role) {
+      throw new NotFoundException('No está configurado el rol Estudiante');
+    }
+
+    return role.id;
   }
 
   private async validateParroquiaExists(parroquiaId: number): Promise<void> {

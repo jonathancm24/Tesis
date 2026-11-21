@@ -79,7 +79,7 @@ export class PrescripcionesService {
 
     if (rejectIfRejected && caso.estado === 'CANCELADO') {
       throw new BadRequestException(
-        'No puedes registrar prescripciones en un caso clínico rechazado',
+        'No puedes registrar prescripciones en un caso clínico cancelado',
       );
     }
 

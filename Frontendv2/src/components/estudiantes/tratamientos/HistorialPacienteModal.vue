@@ -289,7 +289,7 @@ const formatPersona = (persona?: { nombre: string; apellido: string } | null): s
 
 const getEstadoBadge = (estado: string) => {
   if (estado === 'FINALIZADO' || estado === 'APROBADO' || estado === 'COMPLETADA') return 'tratamientos-modal-badge--success'
-  if (estado === 'RECHAZADO') return 'tratamientos-modal-badge--danger'
+  if (estado === 'RECHAZADO' || estado === 'CANCELADO') return 'tratamientos-modal-badge--danger'
   if (estado === 'EN_TRATAMIENTO' || estado === 'EN_PROCESO') return 'tratamientos-modal-badge--info'
   return 'tratamientos-modal-badge--warning'
 }
