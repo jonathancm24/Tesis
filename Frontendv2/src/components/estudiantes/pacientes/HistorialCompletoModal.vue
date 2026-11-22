@@ -106,17 +106,7 @@
                     <div><span class="historial-label">Talla</span><p>{{ caso.talla }}</p></div>
                   </div>
 
-                  <details class="historial-detail-block">
-                    <summary>Odontograma ({{ caso.odontograma.length }} registros)</summary>
-                    <div v-if="caso.odontograma.length === 0" class="historial-sub-empty">Sin odontograma registrado.</div>
-                    <div v-else class="historial-odontograma-box">
-                      <OdontogramaEditor
-                        :model-value="toOdontogramaModel(caso.odontograma)"
-                        :general-observacion="getOdontogramaObservacionGeneral(caso.observaciones)"
-                        :disabled="true"
-                      />
-                    </div>
-                  </details>
+                  <OdontogramaHistorial class="historial-detail-block" :registros="caso.odontograma" :observaciones="caso.observaciones" />
 
                   <details class="historial-detail-block">
                     <summary>Observaciones ({{ caso.observaciones.length }})</summary>
@@ -195,13 +185,12 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import OdontogramaEditor from '@/components/estudiantes/Odontograma/OdontogramaEditor.vue'
+import OdontogramaHistorial from '@/components/estudiantes/Odontograma/OdontogramaHistorial.vue'
 import { pacientesService } from '@/services/estudiantes/Pacientes/pacientes.service'
 import { archivosService } from '@/services/common/archivos.service'
 import { useToast } from '@/composables/useToast'
 import { getErrorMessage } from '@/utils/errorHandler'
 import type { HistorialCompletoPaciente } from '@/types/pacientes.types'
-import type { DienteOdontogramaInput } from '@/types/odontograma.types'
 import type { ArchivoItem } from '@/types/archivos.types'
 import '@/assets/styles/Estudiantes/components/HistorialCompletoModal.css'
 
@@ -238,31 +227,6 @@ const formatDate = (date: string | Date | null | undefined): string => {
 const formatPersona = (persona?: { nombre: string; apellido: string } | null): string => {
   if (!persona) return 'No asignado'
   return `${persona.nombre} ${persona.apellido}`
-}
-
-const toOdontogramaModel = (
-  registros: Array<{
-    diente: string
-    condicion: {
-      caras: Array<{ cara: string; observacion?: string | null; condicion?: string | null }>
-    }
-  }>
-): DienteOdontogramaInput[] => {
-  return registros.map((registro) => ({
-    diente: registro.diente,
-    caras: (registro.condicion?.caras || []).map((cara) => ({
-      cara: cara.cara,
-      observacion: cara.observacion || undefined,
-      condicion: cara.condicion || undefined
-    }))
-  }))
-}
-
-const getOdontogramaObservacionGeneral = (
-  observaciones: Array<{ titulo: string; descripcion: string }>
-): string => {
-  const observacion = observaciones.find((item) => item.titulo === 'Observación general odontograma')
-  return observacion?.descripcion || ''
 }
 
 const getArchivosCaso = (casoId: number): ArchivoItem[] => {

@@ -1,4 +1,5 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
 import { PrismaService } from '@/../prisma/prisma.service'
 import { SaveOdontogramaDto } from './dto'
 
@@ -7,7 +8,6 @@ export class OdontogramaService {
   constructor(private readonly prisma: PrismaService) {}
 
   async save(dto: SaveOdontogramaDto) {
-    await this.ensureCaso(dto.casoClinicoId)
     await this.ensureUsuario(dto.estudianteId, 'Estudiante')
 
     if (dto.docenteId) {
@@ -31,65 +31,90 @@ export class OdontogramaService {
       throw new BadRequestException('Debe enviar al menos una cara dental u observación general')
     }
 
-    await this.prisma.$transaction(async (tx) => {
-      await tx.odontograma.deleteMany({
-        where: {
-          casoClinicoId: dto.casoClinicoId,
-          estudianteId: dto.estudianteId
-        }
-      })
+    const dientesRecibidos = new Set(dientesNormalizados.map(({ diente }) => diente))
+    if (dientesRecibidos.size !== dientesNormalizados.length ||
+        dientesNormalizados.some(({ caras }) => new Set(caras.map(({ cara }) => cara)).size !== caras.length)) {
+      throw new BadRequestException('El odontograma contiene piezas o caras repetidas')
+    }
 
-      for (const item of dientesNormalizados) {
-        await tx.odontograma.create({
-          data: {
-            casoClinicoId: dto.casoClinicoId,
-            estudianteId: dto.estudianteId,
-            docenteId: dto.docenteId ?? null,
-            diente: item.diente,
-            conclusion: dto.conclusion?.trim() || null,
-            condicion: {
-              caras: item.caras
-            }
-          }
-        })
+    return this.prisma.$transaction(async (tx) => {
+      // Serializa los guardados del caso aunque las filas dentales aún no existan.
+      const casos = await tx.$queryRaw<Array<{ id: number }>>`
+        SELECT id FROM "CasosClinicos" WHERE id = ${dto.casoClinicoId} FOR UPDATE
+      `
+      if (!casos.length) {
+        throw new NotFoundException(`Caso clínico con ID ${dto.casoClinicoId} no encontrado`)
+      }
+
+      const alcance = { casoClinicoId: dto.casoClinicoId, estudianteId: dto.estudianteId }
+      const registros = await tx.odontograma.findMany({
+        where: alcance,
+        select: { id: true, diente: true },
+      })
+      const idsPorDiente = new Map(registros.map(({ id, diente }) => [diente.trim(), id]))
+      if (idsPorDiente.size !== registros.length) {
+        throw new ConflictException('El odontograma contiene piezas duplicadas en el historial')
+      }
+      if (registros.some(({ diente }) => !dientesRecibidos.has(diente.trim()))) {
+        throw new ConflictException('El guardado no puede omitir piezas previamente registradas')
+      }
+
+      const conclusion = dto.conclusion?.trim() || null
+      for (const { diente, caras } of dientesNormalizados) {
+        const id = idsPorDiente.get(diente)
+        const condicion = { caras }
+        if (id !== undefined) {
+          await tx.odontograma.update({
+            where: { id },
+            data: {
+              condicion,
+              ...(dto.conclusion !== undefined && { conclusion }),
+              ...(dto.docenteId !== undefined && { docenteId: dto.docenteId }),
+            },
+          })
+        } else {
+          await tx.odontograma.create({
+            data: { ...alcance, diente, condicion, conclusion, docenteId: dto.docenteId ?? null },
+          })
+        }
       }
 
       const observacionGeneral = dto.observacionGeneral?.trim()
-      await tx.observacion.deleteMany({
-        where: {
-          casoClinicoId: dto.casoClinicoId,
-          estudianteId: dto.estudianteId,
-          titulo: 'Observación general odontograma'
-        }
-      })
-
       if (observacionGeneral) {
-        await tx.observacion.create({
-          data: {
-            titulo: 'Observación general odontograma',
-            descripcion: observacionGeneral,
-            contenidoEstudiante: observacionGeneral,
-            estudianteId: dto.estudianteId,
-            docenteId: dto.docenteId ?? null,
-            casoClinicoId: dto.casoClinicoId,
-            estado: 'PENDIENTE'
-          }
+        const titulo = 'Observación general odontograma'
+        const notas = await tx.observacion.findMany({
+          where: { ...alcance, titulo },
+          select: { id: true },
         })
+        if (notas.length > 1) {
+          throw new ConflictException('El odontograma contiene observaciones generales duplicadas en el historial')
+        }
+        const nota = { descripcion: observacionGeneral, contenidoEstudiante: observacionGeneral }
+        if (notas[0]) {
+          await tx.observacion.update({ where: { id: notas[0].id }, data: nota })
+        } else {
+          await tx.observacion.create({
+            data: { ...alcance, ...nota, titulo, docenteId: dto.docenteId ?? null, estado: 'PENDIENTE' },
+          })
+        }
       }
-    })
 
-    return this.findByCaso(dto.casoClinicoId)
+      return this.leerPorCaso(tx, dto.casoClinicoId)
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted })
   }
 
   async findByCaso(casoClinicoId: number) {
     await this.ensureCaso(casoClinicoId)
+    return this.leerPorCaso(this.prisma, casoClinicoId)
+  }
 
-    const registros = await this.prisma.odontograma.findMany({
+  private async leerPorCaso(prisma: Prisma.TransactionClient, casoClinicoId: number) {
+    const registros = await prisma.odontograma.findMany({
       where: { casoClinicoId },
       orderBy: [{ diente: 'asc' }, { id: 'asc' }]
     })
 
-    const observacionGeneral = await this.prisma.observacion.findFirst({
+    const observacionGeneral = await prisma.observacion.findFirst({
       where: {
         casoClinicoId,
         titulo: 'Observación general odontograma'

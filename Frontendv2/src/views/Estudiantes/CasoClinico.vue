@@ -167,21 +167,7 @@
 				/>
 
 				<h3 class="form-section-title">Odontograma</h3>
-				<OdontogramaEditor
-					v-model="odontogramaDientes"
-					v-model:general-observacion="odontogramaGeneral"
-					:disabled="isSaving"
-				/>
-
-				<div class="form-field odontograma-conclusion">
-					<label for="odontogramaConclusion">Conclusión del odontograma (opcional)</label>
-					<textarea
-						id="odontogramaConclusion"
-						v-model.trim="odontogramaConclusion"
-						rows="2"
-						placeholder="Resumen general de hallazgos odontológicos"
-					></textarea>
-				</div>
+				<OdontogramaSincronizado :estado="estadoOdontograma" :disabled="isSaving" />
 
 				<h3 class="form-section-title">Adjuntos del caso</h3>
 				<div class="adjuntos-box">
@@ -240,13 +226,13 @@ import { casosClinicosService } from '@/services/estudiantes/CasosClinicos/casos
 import { odontogramaService } from '@/services/estudiantes/Odontograma/odontograma.service'
 import { preguntasClinicasService } from '@/services/Profesores/preguntas-clinicas.service'
 import { archivosService } from '@/services/common/archivos.service'
-import OdontogramaEditor from '@/components/estudiantes/Odontograma/OdontogramaEditor.vue'
+import OdontogramaSincronizado from '@/components/estudiantes/Odontograma/OdontogramaSincronizado.vue'
 import PreguntasDinamicas from '@/components/estudiantes/PreguntasDinamicas.vue'
 import type { Paciente } from '@/types/pacientes.types'
 import type { Especialidad } from '@/types/especialidades.types'
 import type { Usuario } from '@/types/usuarios.types'
 import type { CrearCasoClinicoDto } from '@/types/casosClinicos.types'
-import type { DienteOdontogramaInput } from '@/types/odontograma.types'
+import { useOdontograma } from '@/composables/useOdontograma'
 import type { PreguntaClinica, RespuestaClinicaInput } from '@/types/preguntasClinicas.types'
 import '@/assets/styles/Estudiantes/Casoclinico.css'
 
@@ -265,9 +251,9 @@ const searchTerm = ref('')
 const searchResults = ref<Paciente[]>([])
 const isSearching = ref(false)
 const searchError = ref<string | null>(null)
-const odontogramaDientes = ref<DienteOdontogramaInput[]>([])
-const odontogramaGeneral = ref('')
-const odontogramaConclusion = ref('')
+const estadoOdontograma = useOdontograma()
+const { dientes: odontogramaDientes, observacionGeneral: odontogramaGeneral,
+	conclusion: odontogramaConclusion } = estadoOdontograma
 const isSavingOdontograma = ref(false)
 const preguntasDinamicas = ref<PreguntaClinica[]>([])
 const respuestasDinamicas = ref<RespuestaClinicaInput[]>([])

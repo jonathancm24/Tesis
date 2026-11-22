@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-100 text-slate-800 antialiased;
+}
+
+.tooth-label {
+  @apply rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-clinical-800 shadow-panel;
+  pointer-events: none;
+  border: 1px solid rgba(2, 132, 199, 0.25);
+}
+
+.tooth-label--active {
+  @apply bg-clinical-600 text-white;
+}
