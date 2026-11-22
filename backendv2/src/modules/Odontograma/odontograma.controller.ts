@@ -8,12 +8,16 @@ import {
   ParseIntPipe,
   Post,
   Req,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard'
 import { SaveOdontogramaDto } from './dto'
 import { OdontogramaService } from './odontograma.service'
 import type { OdontogramaActor } from './odontograma.service'
+
+interface AuthenticatedRequest {
+  user: OdontogramaActor
+}
 
 @Controller('odontograma')
 @UseGuards(JwtAuthGuard)
@@ -22,14 +26,17 @@ export class OdontogramaController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  async save(@Body() dto: SaveOdontogramaDto, @Req() request: { user: OdontogramaActor }) {
+  async save(
+    @Body() dto: SaveOdontogramaDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
     return this.service.save(dto, request.user)
   }
 
   @Get('caso/:casoClinicoId')
   async findByCaso(
     @Param('casoClinicoId', ParseIntPipe) casoClinicoId: number,
-    @Req() request: { user: OdontogramaActor },
+    @Req() request: AuthenticatedRequest,
   ) {
     return this.service.findByCaso(casoClinicoId, request.user)
   }
