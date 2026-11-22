@@ -7,11 +7,22 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Req,
   UseGuards
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard'
+import { RoleEnum } from '../../common/enums/roles.enum'
 import { SaveOdontogramaDto } from './dto'
 import { OdontogramaService } from './odontograma.service'
+
+interface AuthenticatedRequest {
+  user: {
+    id: number
+    role: {
+      nombre: RoleEnum
+    }
+  }
+}
 
 @Controller('odontograma')
 @UseGuards(JwtAuthGuard)
@@ -20,12 +31,15 @@ export class OdontogramaController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  async save(@Body() dto: SaveOdontogramaDto) {
-    return this.service.save(dto)
+  async save(@Body() dto: SaveOdontogramaDto, @Req() request: AuthenticatedRequest) {
+    return this.service.save(dto, request.user)
   }
 
   @Get('caso/:casoClinicoId')
-  async findByCaso(@Param('casoClinicoId', ParseIntPipe) casoClinicoId: number) {
-    return this.service.findByCaso(casoClinicoId)
+  async findByCaso(
+    @Param('casoClinicoId', ParseIntPipe) casoClinicoId: number,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.service.findByCaso(casoClinicoId, request.user)
   }
 }
