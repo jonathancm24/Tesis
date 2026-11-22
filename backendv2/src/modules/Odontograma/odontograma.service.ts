@@ -1,17 +1,38 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { Prisma } from '@prisma/client'
-import { PrismaService } from '@/../prisma/prisma.service'
+import { PrismaService } from '../../../prisma/prisma.service'
+import { RoleEnum } from '../../common/enums/roles.enum'
 import { SaveOdontogramaDto } from './dto'
+
+interface AuthenticatedUser {
+  id: number
+  role: {
+    nombre: RoleEnum
+  }
+}
 
 @Injectable()
 export class OdontogramaService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async save(dto: SaveOdontogramaDto) {
-    await this.ensureUsuario(dto.estudianteId, 'Estudiante')
+  async save(dto: SaveOdontogramaDto, requester: AuthenticatedUser) {
+    const caso = await this.getCasoOrFail(dto.casoClinicoId)
+    this.assertCanAccess(caso, requester)
 
-    if (dto.docenteId) {
-      await this.ensureUsuario(dto.docenteId, 'Docente')
+    const estudianteId = caso.estudianteId
+    const docenteId = caso.profesorId
+
+    if (
+      requester.role.nombre === RoleEnum.ESTUDIANTE &&
+      dto.estudianteId !== requester.id
+    ) {
+      throw new ForbiddenException('El estudiante autenticado no coincide con el caso clínico')
     }
 
     const dientesNormalizados = (dto.dientes || [])
@@ -46,7 +67,7 @@ export class OdontogramaService {
         throw new NotFoundException(`Caso clínico con ID ${dto.casoClinicoId} no encontrado`)
       }
 
-      const alcance = { casoClinicoId: dto.casoClinicoId, estudianteId: dto.estudianteId }
+      const alcance = { casoClinicoId: dto.casoClinicoId, estudianteId }
       const registros = await tx.odontograma.findMany({
         where: alcance,
         select: { id: true, diente: true },
@@ -69,12 +90,12 @@ export class OdontogramaService {
             data: {
               condicion,
               ...(dto.conclusion !== undefined && { conclusion }),
-              ...(dto.docenteId !== undefined && { docenteId: dto.docenteId }),
+              docenteId,
             },
           })
         } else {
           await tx.odontograma.create({
-            data: { ...alcance, diente, condicion, conclusion, docenteId: dto.docenteId ?? null },
+            data: { ...alcance, diente, condicion, conclusion, docenteId },
           })
         }
       }
@@ -94,7 +115,7 @@ export class OdontogramaService {
           await tx.observacion.update({ where: { id: notas[0].id }, data: nota })
         } else {
           await tx.observacion.create({
-            data: { ...alcance, ...nota, titulo, docenteId: dto.docenteId ?? null, estado: 'PENDIENTE' },
+            data: { ...alcance, ...nota, titulo, docenteId, estado: 'PENDIENTE' },
           })
         }
       }
@@ -103,8 +124,9 @@ export class OdontogramaService {
     }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted })
   }
 
-  async findByCaso(casoClinicoId: number) {
-    await this.ensureCaso(casoClinicoId)
+  async findByCaso(casoClinicoId: number, requester: AuthenticatedUser) {
+    const caso = await this.getCasoOrFail(casoClinicoId)
+    this.assertCanAccess(caso, requester)
     return this.leerPorCaso(this.prisma, casoClinicoId)
   }
 
@@ -154,17 +176,34 @@ export class OdontogramaService {
     }
   }
 
-  private async ensureCaso(id: number) {
-    const caso = await this.prisma.casoClinico.findUnique({ where: { id } })
+  private async getCasoOrFail(id: number) {
+    const caso = await this.prisma.casoClinico.findUnique({
+      where: { id },
+      select: { id: true, estudianteId: true, profesorId: true },
+    })
     if (!caso) {
       throw new NotFoundException(`Caso clínico con ID ${id} no encontrado`)
     }
+    return caso
   }
 
-  private async ensureUsuario(id: number, etiqueta: string) {
-    const usuario = await this.prisma.usuario.findUnique({ where: { id } })
-    if (!usuario) {
-      throw new NotFoundException(`${etiqueta} con ID ${id} no encontrado`)
+  private assertCanAccess(
+    caso: { estudianteId: number; profesorId: number },
+    requester: AuthenticatedUser,
+  ) {
+    if (requester.role.nombre === RoleEnum.ADMIN) return
+    if (
+      requester.role.nombre === RoleEnum.PROFESOR &&
+      caso.profesorId === requester.id
+    ) {
+      return
     }
+    if (
+      requester.role.nombre === RoleEnum.ESTUDIANTE &&
+      caso.estudianteId === requester.id
+    ) {
+      return
+    }
+    throw new ForbiddenException('No tiene acceso al odontograma de este caso clínico')
   }
 }
