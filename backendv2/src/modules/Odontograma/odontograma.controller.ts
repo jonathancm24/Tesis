@@ -8,20 +8,15 @@ import {
   ParseIntPipe,
   Post,
   Req,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard'
-import { RoleEnum } from '../../common/enums/roles.enum'
 import { SaveOdontogramaDto } from './dto'
 import { OdontogramaService } from './odontograma.service'
+import type { OdontogramaActor } from './odontograma.service'
 
 interface AuthenticatedRequest {
-  user: {
-    id: number
-    role: {
-      nombre: RoleEnum
-    }
-  }
+  user: OdontogramaActor
 }
 
 @Controller('odontograma')
@@ -31,7 +26,10 @@ export class OdontogramaController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  async save(@Body() dto: SaveOdontogramaDto, @Req() request: AuthenticatedRequest) {
+  async save(
+    @Body() dto: SaveOdontogramaDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
     return this.service.save(dto, request.user)
   }
 

@@ -11,8 +11,9 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  Req,
 } from '@nestjs/common';
-import { PacientesService } from './pacientes.service';
+import { PacientesService, type HistorialActor } from './pacientes.service';
 import { CreatePacienteDto, UpdatePacienteDto, PacienteResponseDto, PacientesPaginatedResponseDto } from './dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { RolesGuard } from '../../guards/roles.guard';
@@ -85,8 +86,11 @@ export class PacientesController {
    */
   @Get(':id/historial-completo')
   @Roles(...ROLES_CONSULTA_PACIENTES)
-  async getHistorialCompleto(@Param('id', ParseIntPipe) id: number) {
-    return this.pacientesService.getHistorialCompleto(id);
+  async getHistorialCompleto(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: { user: HistorialActor },
+  ) {
+    return this.pacientesService.getHistorialCompleto(id, request.user);
   }
 
   /**
