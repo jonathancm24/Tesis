@@ -74,15 +74,7 @@
                     <div class="tratamientos-modal-detail-item"><span>Talla</span><p>{{ caso.talla }}</p></div>
                   </div>
 
-                  <details class="tratamientos-modal-subsection">
-                    <summary>Odontograma ({{ caso.odontograma.length }})</summary>
-                    <div v-if="caso.odontograma.length === 0" class="tratamientos-modal-state" style="margin-top: 0.75rem;">Sin odontograma registrado.</div>
-                    <div v-else class="tratamientos-modal-list" style="margin-top: 0.75rem;">
-                      <div class="tratamientos-modal-list-card">
-                        <OdontogramaEditor :model-value="toOdontogramaModel(caso.odontograma)" :general-observacion="getOdontogramaObservacionGeneral(caso.observaciones)" :disabled="true" />
-                      </div>
-                    </div>
-                  </details>
+                  <OdontogramaHistorial class="tratamientos-modal-subsection" :registros="caso.odontograma" :observaciones="caso.observaciones" />
 
                   <details class="tratamientos-modal-subsection">
                     <summary>Observaciones ({{ caso.observaciones.length }})</summary>
@@ -242,13 +234,12 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import OdontogramaEditor from '@/components/estudiantes/Odontograma/OdontogramaEditor.vue'
+import OdontogramaHistorial from '@/components/estudiantes/Odontograma/OdontogramaHistorial.vue'
 import { pacientesService } from '@/services/estudiantes/Pacientes/pacientes.service'
 import { archivosService } from '@/services/common/archivos.service'
 import { useToast } from '@/composables/useToast'
 import { getErrorMessage } from '@/utils/errorHandler'
-import type { HistorialCompletoPaciente, HistorialObservacion } from '@/types/pacientes.types'
-import type { DienteOdontogramaInput } from '@/types/odontograma.types'
+import type { HistorialCompletoPaciente } from '@/types/pacientes.types'
 import type { ArchivoItem } from '@/types/archivos.types'
 import '@/assets/styles/Estudiantes/components/TratamientosModals.css'
 
@@ -299,29 +290,6 @@ const getObservacionBadge = (estado: string) => {
   if (estado === 'RECHAZADO') return 'tratamientos-modal-badge--danger'
   if (estado === 'PENDIENTE') return 'tratamientos-modal-badge--warning'
   return 'tratamientos-modal-badge--neutral'
-}
-
-const toOdontogramaModel = (
-  registros: Array<{
-    diente: string
-    condicion: {
-      caras: Array<{ cara: string; observacion?: string | null; condicion?: string | null }>
-    }
-  }>
-): DienteOdontogramaInput[] => {
-  return registros.map((registro) => ({
-    diente: registro.diente,
-    caras: (registro.condicion?.caras || []).map((cara) => ({
-      cara: cara.cara,
-      observacion: cara.observacion || undefined,
-      condicion: cara.condicion || undefined
-    }))
-  }))
-}
-
-const getOdontogramaObservacionGeneral = (observaciones: HistorialObservacion[]): string => {
-  const observacion = observaciones.find((item) => item.titulo === 'Observación general odontograma')
-  return observacion?.descripcion || ''
 }
 
 const getArchivosCaso = (casoId: number): ArchivoItem[] => {
