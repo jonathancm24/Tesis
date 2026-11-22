@@ -4,7 +4,14 @@
 
 import type { RespuestaClinicaInput } from './preguntasClinicas.types'
 
-export type EstadoCasoClinico = 'EN_REVISION' | 'EN_TRATAMIENTO' | 'FINALIZADO' | 'APROBADO' | 'RECHAZADO'
+export type EstadoCasoClinico =
+  | 'EN_REVISION'
+  | 'APROBADO'
+  | 'PENDIENTE_ESTUDIOS'
+  | 'EN_TRATAMIENTO'
+  | 'FINALIZADO'
+  | 'CANCELADO'
+  | 'RECHAZADO'
 
 export interface CasoClinico {
   id: number

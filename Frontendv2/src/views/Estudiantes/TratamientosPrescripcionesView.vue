@@ -28,8 +28,10 @@
             <option value="all">Todos</option>
             <option value="EN_REVISION">En revisión</option>
             <option value="APROBADO">Aprobado</option>
+            <option value="PENDIENTE_ESTUDIOS">Pendiente de estudios</option>
             <option value="EN_TRATAMIENTO">En tratamiento</option>
             <option value="FINALIZADO">Finalizado</option>
+            <option value="CANCELADO">Cancelado</option>
             <option value="RECHAZADO">Rechazado</option>
           </select>
         </div>
@@ -191,7 +193,8 @@ const cargarCasos = async () => {
   }
 }
 
-const esCasoBloqueado = (estado: EstadoCasoClinico) => estado === 'RECHAZADO' || estado === 'FINALIZADO'
+const esCasoBloqueado = (estado: EstadoCasoClinico) =>
+  estado === 'RECHAZADO' || estado === 'CANCELADO' || estado === 'FINALIZADO'
 
 const abrirTratamientoModal = (caso: CasoClinicoListItem) => {
   if (esCasoBloqueado(caso.estado)) {
@@ -229,6 +232,8 @@ const getEstadoLabel = (estado: EstadoCasoClinico) => {
     EN_TRATAMIENTO: 'En tratamiento',
     FINALIZADO: 'Finalizado',
     APROBADO: 'Aprobado',
+    PENDIENTE_ESTUDIOS: 'Pendiente de estudios',
+    CANCELADO: 'Cancelado',
     RECHAZADO: 'Rechazado'
   }
   return labels[estado] || estado
@@ -240,6 +245,8 @@ const getEstadoBadge = (estado: EstadoCasoClinico) => {
     EN_TRATAMIENTO: 'badge-info',
     FINALIZADO: 'badge-success',
     APROBADO: 'badge-success',
+    PENDIENTE_ESTUDIOS: 'badge-warning',
+    CANCELADO: 'badge-muted',
     RECHAZADO: 'badge-danger'
   }
   return badge[estado] || 'badge-muted'

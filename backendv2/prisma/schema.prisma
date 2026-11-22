@@ -543,6 +543,7 @@ enum EstadoCasoClinico {
   EN_TRATAMIENTO
   FINALIZADO
   CANCELADO
+  RECHAZADO
 }
 
 enum EstadoTratamiento {

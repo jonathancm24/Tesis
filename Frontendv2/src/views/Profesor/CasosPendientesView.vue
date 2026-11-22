@@ -34,6 +34,10 @@
               <option value="EN_REVISION">En Revisión</option>
               <option value="all">Todos los estados</option>
               <option value="APROBADO">Aprobados</option>
+              <option value="PENDIENTE_ESTUDIOS">Pendiente de estudios</option>
+              <option value="EN_TRATAMIENTO">En tratamiento</option>
+              <option value="FINALIZADO">Finalizados</option>
+              <option value="CANCELADO">Cancelados</option>
               <option value="RECHAZADO">Rechazados</option>
             </select>
           </div>
@@ -493,6 +497,8 @@ const getEstadoLabel = (estado: EstadoCasoClinico): string => {
     'EN_TRATAMIENTO': 'En Tratamiento',
     'FINALIZADO': 'Finalizado',
     'APROBADO': 'Aprobado',
+    'PENDIENTE_ESTUDIOS': 'Pendiente de estudios',
+    'CANCELADO': 'Cancelado',
     'RECHAZADO': 'Rechazado'
   }
   return labels[estado] || estado
@@ -504,6 +510,8 @@ const getEstadoBadge = (estado: EstadoCasoClinico): string => {
     'EN_TRATAMIENTO': 'info',
     'FINALIZADO': 'success',
     'APROBADO': 'success',
+    'PENDIENTE_ESTUDIOS': 'warning',
+    'CANCELADO': 'muted',
     'RECHAZADO': 'danger'
   }
   return badges[estado] || 'muted'
