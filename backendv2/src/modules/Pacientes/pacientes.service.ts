@@ -1,11 +1,13 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '@/../prisma/prisma.service';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { RoleEnum } from '../../common/enums/roles.enum';
 import {
   CreatePacienteDto,
   UpdatePacienteDto,
@@ -24,6 +26,11 @@ interface PacienteFiltersDto {
   limit?: number;
   orderBy?: string;
   orderDirection?: 'asc' | 'desc';
+}
+
+export interface HistorialActor {
+  id: number;
+  role: { nombre: string };
 }
 
 /**
@@ -141,9 +148,16 @@ export class PacientesService {
   }
 
   /**
-   * Obtener historial completo del paciente con todos sus registros clínicos
+   * Obtener el historial clínico visible para el actor autenticado.
    */
-  async getHistorialCompleto(id: number) {
+  async getHistorialCompleto(id: number, actor: HistorialActor) {
+    const rol = actor.role.nombre;
+    const esAdministrador = rol === RoleEnum.ADMIN;
+    let alcanceCasos: Prisma.CasoClinicoWhereInput | undefined;
+    if (rol === RoleEnum.PROFESOR) alcanceCasos = { profesorId: actor.id };
+    else if (rol === RoleEnum.ESTUDIANTE) alcanceCasos = { estudianteId: actor.id };
+    else if (!esAdministrador) throw new ForbiddenException('No tiene acceso al historial clínico');
+
     const paciente = await this.prisma.paciente.findUnique({
       where: { id },
       include: {
@@ -161,6 +175,7 @@ export class PacientesService {
           },
         },
         casosClinicos: {
+          where: alcanceCasos,
           orderBy: { fechaCreacion: 'desc' },
           include: {
             especialidad: { select: { id: true, nombre: true } },
@@ -214,21 +229,61 @@ export class PacientesService {
             },
           },
         },
-        EncuestaTamizaje: {
+        EncuestaTamizaje: esAdministrador ? {
           orderBy: { fecha: 'desc' },
-        },
+        } : false,
       },
     });
 
     if (!paciente) {
       throw new NotFoundException(`Paciente con ID ${id} no encontrado`);
     }
+    const { casosClinicos, EncuestaTamizaje: versiones, ...datosPaciente } = paciente;
+    if (!esAdministrador && casosClinicos.length === 0) {
+      throw new ForbiddenException('No tiene casos asignados en el historial de este paciente');
+    }
 
+    const encuestas = esAdministrador && versiones?.length
+      ? await this.leerTamizajeHistorial(id, datosPaciente.genero, versiones)
+      : [];
+
+    return {
+      paciente: this.transformToResponseDto(datosPaciente),
+      resumen: {
+        totalCasosClinicos: casosClinicos.length,
+        totalEncuestas: encuestas.length,
+        totalObservaciones: casosClinicos.reduce(
+          (acc, caso) => acc + caso.observaciones.length,
+          0,
+        ),
+        totalTratamientos: casosClinicos.reduce(
+          (acc, caso) => acc + caso.tratamientos.length,
+          0,
+        ),
+        totalPrescripciones: casosClinicos.reduce(
+          (acc, caso) => acc + caso.prescripciones.length,
+          0,
+        ),
+      },
+      encuestas,
+      casosClinicos,
+      ...(esAdministrador && {
+        notaVersionado:
+          'El esquema actual almacena respuestas de tamizaje por paciente. Las versiones de encuesta comparten el mismo conjunto de respuestas.',
+      }),
+    };
+  }
+
+  private async leerTamizajeHistorial(
+    id: number,
+    genero: string | null,
+    versiones: { id: number; pacienteId: number; fecha: Date }[],
+  ) {
     const todasLasPreguntas = await this.prisma.preguntaTamizaje.findMany({
       select: { id: true, soloMujer: true },
     });
 
-    const generoPaciente = paciente.genero?.toLowerCase();
+    const generoPaciente = genero?.toLowerCase();
     const esMujer =
       generoPaciente === 'femenino' || generoPaciente === 'f' || generoPaciente === 'mujer';
 
@@ -253,7 +308,7 @@ export class PacientesService {
 
     const totalPreguntas = preguntasAplicables.length;
 
-    const encuestas = paciente.EncuestaTamizaje.map((encuesta, index) => {
+    return versiones.map((encuesta, index) => {
       const porcentaje =
         totalPreguntas > 0 ? Math.round((respuestasCompletadas / totalPreguntas) * 100) : 0;
 
@@ -276,30 +331,6 @@ export class PacientesService {
         respuestas: respuestasTamizaje,
       };
     });
-
-    return {
-      paciente: this.transformToResponseDto(paciente),
-      resumen: {
-        totalCasosClinicos: paciente.casosClinicos.length,
-        totalEncuestas: encuestas.length,
-        totalObservaciones: paciente.casosClinicos.reduce(
-          (acc, caso) => acc + caso.observaciones.length,
-          0,
-        ),
-        totalTratamientos: paciente.casosClinicos.reduce(
-          (acc, caso) => acc + caso.tratamientos.length,
-          0,
-        ),
-        totalPrescripciones: paciente.casosClinicos.reduce(
-          (acc, caso) => acc + caso.prescripciones.length,
-          0,
-        ),
-      },
-      encuestas,
-      casosClinicos: paciente.casosClinicos,
-      notaVersionado:
-        'El esquema actual almacena respuestas de tamizaje por paciente. Las versiones de encuesta comparten el mismo conjunto de respuestas.',
-    };
   }
 
   /**
