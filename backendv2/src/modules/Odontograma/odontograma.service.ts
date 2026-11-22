@@ -1,19 +1,24 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
-import { PrismaService } from '@/../prisma/prisma.service'
+import { PrismaService } from '../../../prisma/prisma.service'
 import { SaveOdontogramaDto } from './dto'
+import { RoleEnum } from '../../common/enums/roles.enum'
+
+export interface OdontogramaActor {
+  id: number
+  role: { nombre: string }
+}
+
+interface ParticipantesCaso {
+  estudianteId: number
+  profesorId: number
+}
 
 @Injectable()
 export class OdontogramaService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async save(dto: SaveOdontogramaDto) {
-    await this.ensureUsuario(dto.estudianteId, 'Estudiante')
-
-    if (dto.docenteId) {
-      await this.ensureUsuario(dto.docenteId, 'Docente')
-    }
-
+  async save(dto: SaveOdontogramaDto, actor: OdontogramaActor) {
     const dientesNormalizados = (dto.dientes || [])
       .map((item) => ({
         diente: String(item.diente || '').trim(),
@@ -39,14 +44,20 @@ export class OdontogramaService {
 
     return this.prisma.$transaction(async (tx) => {
       // Serializa los guardados del caso aunque las filas dentales aún no existan.
-      const casos = await tx.$queryRaw<Array<{ id: number }>>`
-        SELECT id FROM "CasosClinicos" WHERE id = ${dto.casoClinicoId} FOR UPDATE
+      const [caso] = await tx.$queryRaw<ParticipantesCaso[]>`
+        SELECT estudiante_id AS "estudianteId", profesor_id AS "profesorId"
+        FROM "CasosClinicos" WHERE id = ${dto.casoClinicoId} FOR UPDATE
       `
-      if (!casos.length) {
+      if (!caso) {
         throw new NotFoundException(`Caso clínico con ID ${dto.casoClinicoId} no encontrado`)
       }
+      this.autorizarCaso(caso, actor, true)
+      if (dto.estudianteId !== caso.estudianteId ||
+          (dto.docenteId != null && dto.docenteId !== caso.profesorId)) {
+        throw new BadRequestException('Los participantes del odontograma deben coincidir con los del caso')
+      }
 
-      const alcance = { casoClinicoId: dto.casoClinicoId, estudianteId: dto.estudianteId }
+      const alcance = { casoClinicoId: dto.casoClinicoId, estudianteId: caso.estudianteId }
       const registros = await tx.odontograma.findMany({
         where: alcance,
         select: { id: true, diente: true },
@@ -103,8 +114,15 @@ export class OdontogramaService {
     }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted })
   }
 
-  async findByCaso(casoClinicoId: number) {
-    await this.ensureCaso(casoClinicoId)
+  async findByCaso(casoClinicoId: number, actor: OdontogramaActor) {
+    const caso = await this.prisma.casoClinico.findUnique({
+      where: { id: casoClinicoId },
+      select: { estudianteId: true, profesorId: true },
+    })
+    if (!caso) {
+      throw new NotFoundException(`Caso clínico con ID ${casoClinicoId} no encontrado`)
+    }
+    this.autorizarCaso(caso, actor, false)
     return this.leerPorCaso(this.prisma, casoClinicoId)
   }
 
@@ -154,17 +172,11 @@ export class OdontogramaService {
     }
   }
 
-  private async ensureCaso(id: number) {
-    const caso = await this.prisma.casoClinico.findUnique({ where: { id } })
-    if (!caso) {
-      throw new NotFoundException(`Caso clínico con ID ${id} no encontrado`)
-    }
-  }
-
-  private async ensureUsuario(id: number, etiqueta: string) {
-    const usuario = await this.prisma.usuario.findUnique({ where: { id } })
-    if (!usuario) {
-      throw new NotFoundException(`${etiqueta} con ID ${id} no encontrado`)
-    }
+  private autorizarCaso(caso: ParticipantesCaso, actor: OdontogramaActor, escritura: boolean) {
+    const rol = actor.role.nombre
+    if (rol === RoleEnum.ADMIN ||
+        (rol === RoleEnum.ESTUDIANTE && actor.id === caso.estudianteId) ||
+        (!escritura && rol === RoleEnum.PROFESOR && actor.id === caso.profesorId)) return
+    throw new ForbiddenException('No tiene permiso para operar sobre el odontograma de este caso')
   }
 }
