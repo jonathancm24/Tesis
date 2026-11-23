@@ -233,7 +233,12 @@ export class CasosClinicosService {
 
   async createObservacion(dto: CreateObservacionDto, requester: AuthenticatedUser) {
     const caso = await this.getCasoOrFail(dto.casoClinicoId);
-    this.assertCanReview(caso, requester);
+    if (requester.role.nombre !== RoleEnum.PROFESOR) {
+      throw new ForbiddenException('Solo un profesor puede registrar observaciones');
+    }
+    if (caso.profesorId !== requester.id) {
+      throw new ForbiddenException('Solo el profesor asignado puede registrar observaciones');
+    }
 
     return this.prisma.observacion.create({
       data: {
@@ -271,16 +276,21 @@ export class CasosClinicosService {
   }
 
   private async ensurePaciente(id: number) {
-    const paciente = await this.prisma.paciente.findUnique({ where: { id }, select: { id: true } });
+    const paciente = await this.prisma.paciente.findUnique({
+      where: { id },
+      select: { id: true, activo: true },
+    });
     if (!paciente) throw new NotFoundException(`Paciente con ID ${id} no encontrado`);
+    if (paciente.activo === false) throw new ForbiddenException('El paciente seleccionado está inactivo');
   }
 
   private async ensureUsuarioConRol(id: number, rol: RoleEnum, etiqueta: string) {
     const usuario = await this.prisma.usuario.findUnique({
       where: { id },
-      select: { id: true, role: { select: { nombre: true } } },
+      select: { id: true, activo: true, role: { select: { nombre: true } } },
     });
     if (!usuario) throw new NotFoundException(`${etiqueta} con ID ${id} no encontrado`);
+    if (usuario.activo === false) throw new ForbiddenException(`${etiqueta} inactivo no puede asignarse al caso`);
     if (usuario.role.nombre !== rol) {
       throw new ForbiddenException(`El usuario indicado no tiene rol de ${etiqueta}`);
     }

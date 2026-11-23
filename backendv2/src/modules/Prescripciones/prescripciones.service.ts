@@ -1,13 +1,19 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreatePrescripcionDto } from './dto';
+import { RoleEnum } from '../../common/enums/roles.enum';
+
+interface AuthenticatedUser {
+  id: number;
+  role: { nombre: RoleEnum };
+}
 
 @Injectable()
 export class PrescripcionesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listByCaso(casoClinicoId: number, actorId: number) {
-    await this.ensureCasoDisponibleParaEstudiante(casoClinicoId, actorId, false);
+  async listByCaso(casoClinicoId: number, actor: AuthenticatedUser) {
+    await this.ensureCasoDisponible(casoClinicoId, actor, false);
 
     return this.prisma.prescripcion.findMany({
       where: { casoClinicoId },
@@ -27,8 +33,12 @@ export class PrescripcionesService {
     });
   }
 
-  async createForCaso(casoClinicoId: number, actorId: number, dto: CreatePrescripcionDto) {
-    const caso = await this.ensureCasoDisponibleParaEstudiante(casoClinicoId, actorId, true);
+  async createForCaso(
+    casoClinicoId: number,
+    actor: AuthenticatedUser,
+    dto: CreatePrescripcionDto,
+  ) {
+    const caso = await this.ensureCasoDisponible(casoClinicoId, actor, true);
 
     const prescripcion = await this.prisma.prescripcion.create({
       data: {
@@ -55,9 +65,9 @@ export class PrescripcionesService {
     return prescripcion;
   }
 
-  private async ensureCasoDisponibleParaEstudiante(
+  private async ensureCasoDisponible(
     casoClinicoId: number,
-    actorId: number,
+    actor: AuthenticatedUser,
     rejectIfRejected: boolean,
   ) {
     const caso = await this.prisma.casoClinico.findUnique({
@@ -65,6 +75,7 @@ export class PrescripcionesService {
       select: {
         id: true,
         estudianteId: true,
+        profesorId: true,
         estado: true,
       },
     });
@@ -73,13 +84,28 @@ export class PrescripcionesService {
       throw new NotFoundException(`Caso clínico con ID ${casoClinicoId} no encontrado`);
     }
 
-    if (caso.estudianteId !== actorId) {
+    if (actor.role.nombre === RoleEnum.ADMIN) {
+      // El administrador conserva acceso administrativo.
+    } else if (
+      actor.role.nombre === RoleEnum.PROFESOR &&
+      caso.profesorId === actor.id
+    ) {
+      // Profesor asignado.
+    } else if (
+      actor.role.nombre === RoleEnum.ESTUDIANTE &&
+      caso.estudianteId === actor.id
+    ) {
+      // Estudiante propietario.
+    } else {
       throw new ForbiddenException('No tienes permisos para operar sobre este caso clínico');
     }
 
-    if (rejectIfRejected && caso.estado === 'CANCELADO') {
+    if (
+      rejectIfRejected &&
+      (caso.estado === 'CANCELADO' || caso.estado === 'RECHAZADO')
+    ) {
       throw new BadRequestException(
-        'No puedes registrar prescripciones en un caso clínico cancelado',
+        'No puedes registrar prescripciones en un caso clínico cancelado o rechazado',
       );
     }
 

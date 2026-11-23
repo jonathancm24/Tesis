@@ -1,4 +1,5 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateRolDto } from './dto/create-rol.dto';
 import { AsignarPermisosDto } from './dto/asignar-permisos.dto';
@@ -44,7 +45,7 @@ export class RolesService {
         });
       }
 
-      return this.obtenerRolPorId(nuevoRol.id);
+      return this.consultarRolPorId(tx, nuevoRol.id);
     });
   }
 
@@ -81,7 +82,7 @@ export class RolesService {
         });
       }
 
-      return this.obtenerRolPorId(rolId);
+      return this.consultarRolPorId(tx, rolId);
     });
   }
 
@@ -102,7 +103,11 @@ export class RolesService {
   }
 
   async obtenerRolPorId(id: number) {
-    return this.prisma.role.findUnique({
+    return this.consultarRolPorId(this.prisma, id);
+  }
+
+  private consultarRolPorId(cliente: Pick<Prisma.TransactionClient, 'role'>, id: number) {
+    return cliente.role.findUnique({
       where: { id },
       include: {
         permisos: {
