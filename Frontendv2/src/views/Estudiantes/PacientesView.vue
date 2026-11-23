@@ -221,7 +221,8 @@
       v-if="selectedPaciente"
       :is-open="isHistorialModalOpen"
       :paciente-id="selectedPaciente.id"
-      @close="isHistorialModalOpen = false"
+      :caso-id="selectedCasoId"
+      @close="isHistorialModalOpen = false; selectedCasoId = null"
     />
   </section>
 </template>
@@ -257,6 +258,7 @@ const isModalOpen = ref(false)
 const editingPaciente = ref<Paciente | null>(null)
 const isCitaModalOpen = ref(false)
 const isHistorialModalOpen = ref(false)
+const selectedCasoId = ref<number | null>(null)
 const casosDelPaciente = ref<CasoClinicoListItem[]>([])
 const loadingCasos = ref(false)
 
@@ -422,9 +424,8 @@ const handleEncuestaSaved = async () => {
 
 // Seleccionar un caso clínico
 const handleSelectCaso = (casoId: number) => {
-  console.log('Seleccionar caso:', casoId)
-  toast.info('Abrir página de caso clínico (Por implementar)')
-  // TODO: Navegar a página de detalle del caso clínico
+  selectedCasoId.value = casoId
+  isHistorialModalOpen.value = true
 }
 
 // Abrir historial completo
@@ -434,6 +435,7 @@ const handleOpenHistorialCompleto = () => {
     return
   }
 
+  selectedCasoId.value = null
   isHistorialModalOpen.value = true
 }
 

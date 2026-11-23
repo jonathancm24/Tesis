@@ -427,7 +427,7 @@ const handleAgregarObservacion = async () => {
 
     toast.success('Observación agregada correctamente')
     nuevaObservacion.value = ''
-    
+
     // Recargar el detalle del caso
     await cargarDetalleCaso(casoSeleccionado.value.id)
   } catch (error) {
@@ -471,10 +471,10 @@ const handleRechazar = async () => {
 
   try {
     isSaving.value = true
-    
+
     // Primero agregar la observación
     await handleAgregarObservacion()
-    
+
     // Luego rechazar el caso
     await casosClinicosService.updateEstado(casoSeleccionado.value.id, {
       estado: 'RECHAZADO',
@@ -533,11 +533,11 @@ const calcularEdad = (fechaNacimiento: Date | string | undefined): number => {
   const birthDate = new Date(fechaNacimiento)
   let age = today.getFullYear() - birthDate.getFullYear()
   const monthDiff = today.getMonth() - birthDate.getMonth()
-  
+
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
     age--
   }
-  
+
   return age
 }
 

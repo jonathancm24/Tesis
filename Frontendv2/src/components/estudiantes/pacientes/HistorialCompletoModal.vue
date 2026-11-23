@@ -79,9 +79,17 @@
 
             <section class="historial-section-card">
               <h3>Casos clínicos y evolución</h3>
-              <div v-if="historial.casosClinicos.length === 0" class="historial-sub-empty">No hay casos clínicos creados.</div>
+              <div v-if="casosVisibles.length === 0" class="historial-sub-empty">
+                {{ props.casoId ? 'No se encontró el caso clínico seleccionado.' : 'No hay casos clínicos creados.' }}
+              </div>
               <div v-else class="historial-stack">
-                <article v-for="caso in historial.casosClinicos" :key="caso.id" class="historial-sub-card">
+                <article
+                  v-for="caso in casosVisibles"
+                  :id="`caso-clinico-${caso.id}`"
+                  :key="caso.id"
+                  class="historial-sub-card"
+                  :class="{ 'historial-sub-card--destacado': props.casoId === caso.id }"
+                >
                   <div class="historial-sub-header">
                     <strong>Caso #{{ caso.id }} - {{ caso.especialidad?.nombre || 'Sin especialidad' }}</strong>
                     <span class="historial-badge">{{ caso.estado }}</span>
@@ -184,7 +192,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import OdontogramaHistorial from '@/components/estudiantes/Odontograma/OdontogramaHistorial.vue'
 import { pacientesService } from '@/services/estudiantes/Pacientes/pacientes.service'
 import { archivosService } from '@/services/common/archivos.service'
@@ -197,10 +205,12 @@ import '@/assets/styles/Estudiantes/components/HistorialCompletoModal.css'
 interface Props {
   isOpen: boolean
   pacienteId?: number
+  casoId?: number | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  pacienteId: 0
+  pacienteId: 0,
+  casoId: null
 })
 
 const emit = defineEmits<{
@@ -212,6 +222,12 @@ const archivosPorCaso = ref<Record<number, ArchivoItem[]>>({})
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const toast = useToast()
+
+const casosVisibles = computed(() => {
+  if (!historial.value) return []
+  if (!props.casoId) return historial.value.casosClinicos
+  return historial.value.casosClinicos.filter((caso) => caso.id === props.casoId)
+})
 
 const formatDate = (date: string | Date | null | undefined): string => {
   if (!date) return '—'
@@ -287,14 +303,21 @@ const cargarHistorial = async () => {
 }
 
 watch(
-  () => [props.isOpen, props.pacienteId],
+  () => [props.isOpen, props.pacienteId, props.casoId],
   async ([isOpen, pacienteId], previousValue) => {
-    const [prevOpen, prevPacienteId] = previousValue ?? [false, 0]
+    const [prevOpen, prevPacienteId, prevCasoId] = previousValue ?? [false, 0, null]
 
     if (!isOpen) return
     if (!pacienteId) return
-    if (isOpen !== prevOpen || pacienteId !== prevPacienteId) {
+    if (isOpen !== prevOpen || pacienteId !== prevPacienteId || props.casoId !== prevCasoId) {
       await cargarHistorial()
+      if (props.casoId) {
+        await nextTick()
+        document.getElementById(`caso-clinico-${props.casoId}`)?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        })
+      }
     }
   },
   { immediate: true }
