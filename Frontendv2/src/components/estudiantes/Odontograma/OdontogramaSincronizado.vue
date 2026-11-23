@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, h, useId } from 'vue'
+import { computed, defineAsyncComponent, h, ref, useId, watch } from 'vue'
 import type { useOdontograma } from '@/composables/useOdontograma'
 import OdontogramaEditor from './OdontogramaEditor.vue'
 import { caras, condiciones } from './catalogoOdontograma'
@@ -24,6 +24,21 @@ const condicionesPorCara = computed(() => new Map(
 ))
 const colores = new Map(condiciones.map(({ value, color }) => [value, color]))
 const camposId = useId()
+type TipoDenticionLocal = 'PERMANENTE' | 'TEMPORAL' | 'MIXTA'
+const tipoDenticion = ref<TipoDenticionLocal>('PERMANENTE')
+
+const esPiezaTemporal = (diente: string) => /^([5-8][1-5])$/.test(diente)
+
+watch(
+  () => dientes.value.map((diente) => diente.diente),
+  (piezas) => {
+    const tieneTemporal = piezas.some(esPiezaTemporal)
+    const tienePermanente = piezas.some((diente) => /^([1-4][1-8])$/.test(diente))
+    if (tieneTemporal && tienePermanente) tipoDenticion.value = 'MIXTA'
+    else if (tieneTemporal) tipoDenticion.value = 'TEMPORAL'
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -33,13 +48,16 @@ const camposId = useId()
         v-model="dientes"
         v-model:general-observacion="observacionGeneral"
         :seleccion="seleccion"
+        :tipo-denticion="tipoDenticion"
         :disabled="disabled"
         sincronizado
         @seleccionar="seleccionar($event.diente, $event.cara)"
+        @update:tipo-denticion="tipoDenticion = $event"
       />
 
       <aside class="panel-3d" aria-label="Controles del odontograma 3D">
         <Odontograma3DViewer
+          v-if="tipoDenticion !== 'TEMPORAL'"
           :seleccion="seleccion?.diente ?? null"
           :dientes="dientes"
           integrado

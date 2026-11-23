@@ -78,6 +78,14 @@
 	color: var(--color-primary);
 }
 
+.case-progress__pending {
+	margin: 0.45rem 0 0;
+	color: var(--color-text-secondary);
+	font-size: 0.68rem;
+	line-height: 1.35;
+	overflow-wrap: anywhere;
+}
+
 .case-progress__track {
 	height: 7px;
 	overflow: hidden;

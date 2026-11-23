@@ -5,7 +5,17 @@
         <h3>Odontograma detallado</h3>
         <p>Selecciona las caras por diente y registra observaciones específicas.</p>
       </div>
-      <span class="odontograma-count">{{ filasSeleccionadas.length }} registros</span>
+      <div class="odontograma-header-actions">
+        <label class="denticion-selector">
+          <span>Tipo de dentición</span>
+          <select :value="tipoDenticion" :disabled="disabled" @change="emit('update:tipoDenticion', ($event.target as HTMLSelectElement).value as TipoDenticion)">
+            <option value="PERMANENTE">Permanente (32 piezas)</option>
+            <option value="TEMPORAL">Temporal (20 piezas)</option>
+            <option value="MIXTA">Mixta</option>
+          </select>
+        </label>
+        <span class="odontograma-count">{{ filasSeleccionadas.length }} registros</span>
+      </div>
     </div>
 
     <div class="legend">
@@ -28,7 +38,7 @@
 
     <div class="odontograma-grid">
       <article v-for="diente in dientesFDI" :key="diente" class="diente-card"
-        :class="{ 'pieza-activa': seleccion?.diente === diente }">
+        :class="{ 'pieza-activa': seleccion?.diente === diente, 'diente-temporal': /^([5-8][1-5])$/.test(diente) }">
         <header>
           <button v-if="sincronizado" type="button" class="pieza-btn"
             :aria-label="`Seleccionar pieza ${diente}`"
@@ -138,12 +148,15 @@ import type { SeleccionDental } from '@/composables/useOdontograma'
 import { caras, condiciones } from './catalogoOdontograma'
 import { ALL_TEETH } from './modelo3d/fdi'
 
+export type TipoDenticion = 'PERMANENTE' | 'TEMPORAL' | 'MIXTA'
+
 interface Props {
   modelValue: DienteOdontogramaInput[]
   generalObservacion: string
   disabled?: boolean
   sincronizado?: boolean
   seleccion?: SeleccionDental | null
+  tipoDenticion?: TipoDenticion
 }
 
 interface FilaSeleccionada {
@@ -156,16 +169,27 @@ interface FilaSeleccionada {
 const props = withDefaults(defineProps<Props>(), {
   modelValue: () => [],
   generalObservacion: '',
-  disabled: false
+  disabled: false,
+  tipoDenticion: 'PERMANENTE'
 })
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: DienteOdontogramaInput[]): void
   (e: 'update:generalObservacion', value: string): void
   (e: 'seleccionar', value: SeleccionDental): void
+  (e: 'update:tipoDenticion', value: TipoDenticion): void
 }>()
 
-const dientesFDI = ALL_TEETH.map(({ fdi }) => fdi)
+const DIENTES_TEMPORALES_SUPERIOR = ['55', '54', '53', '52', '51', '61', '62', '63', '64', '65']
+const DIENTES_TEMPORALES_INFERIOR = ['85', '84', '83', '82', '81', '71', '72', '73', '74', '75']
+const DIENTES_TEMPORALES = [...DIENTES_TEMPORALES_SUPERIOR, ...DIENTES_TEMPORALES_INFERIOR]
+const DIENTES_PERMANENTES = ALL_TEETH.map(({ fdi }) => fdi)
+
+const dientesFDI = computed(() => {
+  if (props.tipoDenticion === 'TEMPORAL') return DIENTES_TEMPORALES
+  if (props.tipoDenticion === 'MIXTA') return [...DIENTES_PERMANENTES, ...DIENTES_TEMPORALES]
+  return DIENTES_PERMANENTES
+})
 const observacionId = useId()
 
 const cloneModelValue = (): DienteOdontogramaInput[] => {

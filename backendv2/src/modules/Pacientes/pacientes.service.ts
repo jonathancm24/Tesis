@@ -110,25 +110,8 @@ export class PacientesService {
     } = filters;
 
     const where = this.buildWhereConditions(filters) as any;
-    if (actor && actor.role.nombre !== RoleEnum.ADMIN) {
-      const whereCasos =
-        actor.role.nombre === RoleEnum.PROFESOR
-          ? { profesorId: actor.id }
-          : actor.role.nombre === RoleEnum.ESTUDIANTE
-            ? { estudianteId: actor.id }
-            : null;
-
-      if (!whereCasos) {
-        throw new ForbiddenException('No tiene acceso a la lista de pacientes');
-      }
-
-      const casos = await this.prisma.casoClinico.findMany({
-        where: whereCasos,
-        select: { pacienteId: true },
-      });
-      const pacienteIds = [...new Set(casos.map((caso) => caso.pacienteId))];
-      where.id = { in: pacienteIds };
-    }
+    // Los pacientes son compartidos por el equipo clínico: estudiantes,
+    // profesores y administradores pueden buscarlos y crear casos.
 
     const [pacientes, total] = await Promise.all([
       this.prisma.paciente.findMany({
@@ -168,22 +151,8 @@ export class PacientesService {
     if (!paciente) {
       throw new NotFoundException(`Paciente con ID ${id} no encontrado`);
     }
-    if (actor && actor.role.nombre !== RoleEnum.ADMIN) {
-      const casoAsociado = await this.prisma.casoClinico.findFirst({
-        where: {
-          pacienteId: id,
-          ...(actor.role.nombre === RoleEnum.PROFESOR
-            ? { profesorId: actor.id }
-            : actor.role.nombre === RoleEnum.ESTUDIANTE
-              ? { estudianteId: actor.id }
-              : {}),
-        },
-        select: { id: true },
-      });
-      if (!casoAsociado) {
-        throw new ForbiddenException('No tiene acceso a este paciente');
-      }
-    }
+    // La consulta individual permite iniciar nuevos casos sin requerir
+    // que el paciente ya tenga un caso asociado.
 
     return this.transformToResponseDto(paciente);
   }

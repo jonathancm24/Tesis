@@ -38,8 +38,36 @@
 
 .layout {
   display: grid;
-  grid-template-columns: 1fr 300px;
+  grid-template-columns: 1fr;
   gap: 1.25rem;
+}
+
+.usuarios-layout .card {
+  min-width: 0;
+}
+
+.user-editor-modal {
+  max-width: 760px;
+  width: min(92vw, 760px);
+  max-height: min(88vh, 760px);
+}
+
+.user-editor-modal .modal-body {
+  overflow-y: auto;
+}
+
+.user-editor-modal .form-grid {
+  align-items: start;
+}
+
+.user-editor-modal .form-actions {
+  position: sticky;
+  bottom: -1.25rem;
+  margin: 1.25rem -1.25rem -1.25rem;
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  z-index: 2;
 }
 
 .card {
@@ -257,11 +285,6 @@
 
 /* ========== RESPONSIVE - DESKTOP PEQUENO ========== */
 @media (max-width: 1200px) {
-  .layout {
-    grid-template-columns: 1fr 280px;
-    gap: 1rem;
-  }
-
   .card {
     padding: 1.25rem;
   }

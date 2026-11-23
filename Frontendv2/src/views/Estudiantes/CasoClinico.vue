@@ -13,6 +13,9 @@
 				<div class="case-progress__track" aria-hidden="true">
 					<div class="case-progress__bar" :style="{ width: `${completionPercentage}%` }"></div>
 				</div>
+				<p v-if="!isFormValid" class="case-progress__pending">
+					Falta: {{ pendingFieldsPreview }}
+				</p>
 			</div>
 			<div class="header-actions">
 				<button class="btn btn-secondary" type="button" @click="goBack">Volver</button>
@@ -459,6 +462,39 @@ const completionPercentage = computed(() => {
   return total > 0 ? Math.round((completed / total) * 100) : 0
 })
 
+const pendingFieldsPreview = computed(() => {
+  const pending: string[] = []
+
+  if (!pacienteSeleccionadoId.value) pending.push('seleccionar paciente')
+  if (form.profesorId <= 0) pending.push('profesor asignado')
+  if (form.especialidadId <= 0) pending.push('especialidad')
+  if (!isValidCombination.value) pending.push('profesor/especialidad compatible')
+  if (!form.motivoConsulta.trim()) pending.push('motivo de consulta')
+  if (!form.enfermedadActual.trim()) pending.push('enfermedad actual')
+  if (form.peso <= 0) pending.push('peso')
+  if (form.talla <= 0) pending.push('talla')
+  if (!form.facies.trim()) pending.push('facies')
+  if (!form.marcha.trim()) pending.push('marcha')
+  if (!form.craneo.trim()) pending.push('cráneo')
+  if (!form.CarayCuello.trim()) pending.push('cara y cuello')
+  if (!form.ATM.trim()) pending.push('ATM')
+  if (!form.PielyMucosa.trim()) pending.push('piel y mucosa')
+
+  preguntasDinamicas.value
+    .filter((pregunta) => pregunta.obligatoria)
+    .forEach((pregunta) => {
+      const answered = respuestasDinamicas.value.some(
+        (respuesta) =>
+          respuesta.preguntaId === pregunta.id &&
+          respuesta.respuesta.trim().length > 0
+      )
+      if (!answered) pending.push(pregunta.texto)
+    })
+
+  if (pending.length === 0) return 'ningún campo'
+  return pending.slice(0, 3).join(' · ') + (pending.length > 3 ? ` · +${pending.length - 3} más` : '')
+})
+
 const loadData = async () => {
   try {
     const [especialidadesResponse, usuariosResponse] = await Promise.all([
@@ -518,10 +554,34 @@ const handleSearch = async () => {
 	try {
 		isSearching.value = true
 		searchError.value = null
-		const response = await pacientesService.getAll(filters)
-		searchResults.value = response.data
-		if (response.data.length === 0) {
-			searchError.value = 'No se encontraron pacientes con ese criterio.'
+		const exactResponse = await pacientesService.getAll(filters)
+		let encontrados = exactResponse.data
+
+		if (encontrados.length === 0 && parts.length > 1) {
+			const nombreResponse = await pacientesService.getAll({
+				nombre: parts[0],
+				limit: 15,
+			})
+			encontrados = nombreResponse.data
+		}
+
+		if (encontrados.length === 0 && parts.length > 1) {
+			const apellidoResponse = await pacientesService.getAll({
+				apellido: parts.slice(1).join(' '),
+				limit: 15,
+			})
+			encontrados = apellidoResponse.data
+		}
+
+		const idsUnicos = new Set<number>()
+		searchResults.value = encontrados.filter((paciente) => {
+			if (idsUnicos.has(paciente.id)) return false
+			idsUnicos.add(paciente.id)
+			return true
+		})
+
+		if (searchResults.value.length === 0) {
+			searchError.value = 'No se encontraron pacientes con ese nombre o apellido.'
 		}
 	} catch (error) {
 		console.error('Error buscando pacientes:', error)

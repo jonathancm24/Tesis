@@ -18,14 +18,7 @@
       </div>
     </header>
 
-    <!-- Banner de error (mantiene la tabla visible) -->
-    <div v-if="usuariosStore.error && !usuariosStore.isLoading" class="error-banner">
-      <span class="error-icon">⚠</span>
-      <span class="error-message">{{ usuariosStore.error }}</span>
-      <button class="btn-close-error" @click="usuariosStore.error = null" aria-label="Cerrar">×</button>
-    </div>
-
-    <div class="layout">
+    <div class="layout usuarios-layout">
       <div class="card">
         <div class="card-header">
           <div class="search-bar">
@@ -45,6 +38,88 @@
             <span>Mostrando {{ filteredUsers.length }} usuarios</span>
           </div>
         </div>
+
+        <Teleport to="body">
+          <Transition name="modal">
+            <div v-if="isUserModalOpen" class="modal-overlay" @click.self="closeUserModal">
+              <section class="modal-container user-editor-modal" role="dialog" aria-modal="true" :aria-labelledby="'usuario-modal-title'">
+                <header class="modal-header">
+                  <div>
+                    <p class="eyebrow">{{ isEditing ? 'Edición' : 'Registro' }}</p>
+                    <h2 id="usuario-modal-title">{{ isEditing ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
+                  </div>
+                  <button class="btn-close" type="button" @click="closeUserModal" aria-label="Cerrar">×</button>
+                </header>
+
+                <form class="modal-body user-form" @submit.prevent="handleSubmit">
+                  <div v-if="usuariosStore.error" class="error-banner">
+                    <span class="error-icon">⚠</span>
+                    <span class="error-message">{{ usuariosStore.error }}</span>
+                  </div>
+
+                  <div class="form-grid">
+                    <label>Nombre<input v-model="form.nombre" type="text" required /></label>
+                    <label>Apellido<input v-model="form.apellido" type="text" required /></label>
+                    <label>Email<input v-model="form.email" type="email" required /></label>
+                    <label>Fecha de nacimiento<input v-model="form.fechaNacimiento" type="date" required /></label>
+                    <label v-if="!isEditing">Contraseña<input v-model="form.password" type="password" :required="!isEditing" placeholder="Mínimo 8 caracteres" /></label>
+                    <label>
+                      Rol
+                      <select v-model="form.role" required>
+                        <option disabled value="">Selecciona un rol</option>
+                        <option value="Administrador">Administrador</option>
+                        <option value="Docente">Docente</option>
+                        <option value="Estudiante">Estudiante</option>
+                        <option value="Secretario">Secretario</option>
+                      </select>
+                    </label>
+
+                    <div class="full-width" v-if="requiereEspecialidades(form.role)">
+                      <label class="label-title">Especialidades *</label>
+                      <div class="especialidades-grid">
+                        <div v-for="especialidad in especialidades" :key="especialidad.id" class="checkbox-item">
+                          <input
+                            :id="`esp-modal-${especialidad.id}`"
+                            type="checkbox"
+                            :value="especialidad.id"
+                            :checked="form.especialidadIds.includes(especialidad.id)"
+                            @change="toggleEspecialidad(especialidad.id)"
+                          />
+                          <label :for="`esp-modal-${especialidad.id}`" class="checkbox-label">{{ especialidad.nombre }}</label>
+                        </div>
+                      </div>
+                      <p v-if="form.especialidadIds.length === 0" class="hint-text error">
+                        Debes seleccionar al menos una especialidad
+                      </p>
+                    </div>
+
+                    <label>
+                      Tipo documento
+                      <select v-model="form.tipoDocumento" required>
+                        <option :value="TipoDocumento.CEDULA">Cédula</option>
+                        <option :value="TipoDocumento.PASAPORTE">Pasaporte</option>
+                        <option :value="TipoDocumento.RUC">RUC</option>
+                        <option :value="TipoDocumento.OTRO">Otro</option>
+                      </select>
+                    </label>
+                    <label>Número documento<input v-model="form.numeroDocumento" type="text" required /></label>
+                    <label>Teléfono (opcional)<input v-model="form.telefono" type="tel" /></label>
+                    <label class="full-width">Dirección (opcional)<input v-model="form.direccion" type="text" /></label>
+                  </div>
+
+                  <footer class="form-actions">
+                    <button class="btn btn-secondary" type="button" @click="closeUserModal" :disabled="usuariosStore.isLoading">
+                      Cancelar
+                    </button>
+                    <button class="btn btn-primary" type="submit" :disabled="usuariosStore.isLoading">
+                      {{ usuariosStore.isLoading ? 'Guardando...' : (isEditing ? 'Actualizar usuario' : 'Crear usuario') }}
+                    </button>
+                  </footer>
+                </form>
+              </section>
+            </div>
+          </Transition>
+        </Teleport>
 
         <div class="table-wrapper">
           <table class="usuarios-table">
@@ -106,114 +181,6 @@
         </div>
       </div>
 
-      <aside class="card form-card">
-        <div class="card-header">
-          <div>
-            <h2>{{ isEditing ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
-            <p class="subtitle">Completa los campos básicos para crear o actualizar.</p>
-          </div>
-          <span class="badge" :class="isEditing ? 'badge-info' : 'badge-primary'">
-            {{ isEditing ? 'Edición' : 'Registro' }}
-          </span>
-        </div>
-
-        <form class="user-form" @submit.prevent="handleSubmit">
-          <div class="form-grid">
-            <label>
-              Nombre
-              <input v-model="form.nombre" type="text" required />
-            </label>
-            <label>
-              Apellido
-              <input v-model="form.apellido" type="text" required />
-            </label>
-            <label>
-              Email
-              <input v-model="form.email" type="email" required />
-            </label>
-            <label>
-              Fecha de Nacimiento
-              <input v-model="form.fechaNacimiento" type="date" required />
-            </label>
-            <label v-if="!isEditing">
-              Contraseña
-              <input v-model="form.password" type="password" :required="!isEditing" placeholder="Mínimo 8 caracteres" />
-            </label>
-            <label>
-              Rol
-              <select v-model="form.role" required>
-                <option disabled value="">Selecciona un rol</option>
-                <option value="Administrador">Administrador</option>
-                <option value="Docente">Docente</option>
-                <option value="Estudiante">Estudiante</option>
-                <option value="Secretario">Secretario</option>
-              </select>
-            </label>
-
-            <div class="full-width" v-if="requiereEspecialidades(form.role)">
-              <label class="label-title">
-                Especialidades * 
-                <span class="label-hint">(selecciona al menos una)</span>
-              </label>
-              <div class="especialidades-grid">
-                <div
-                  v-for="especialidad in especialidades"
-                  :key="especialidad.id"
-                  class="checkbox-item"
-                >
-                  <input
-                    :id="`esp-create-${especialidad.id}`"
-                    type="checkbox"
-                    :value="especialidad.id"
-                    :checked="form.especialidadIds.includes(especialidad.id)"
-                    @change="toggleEspecialidad(especialidad.id)"
-                  />
-                  <label :for="`esp-create-${especialidad.id}`" class="checkbox-label">
-                    {{ especialidad.nombre }}
-                  </label>
-                </div>
-              </div>
-              <p v-if="form.especialidadIds.length === 0 && requiereEspecialidades(form.role)" class="hint-text error">
-                Debes seleccionar al menos una especialidad
-              </p>
-              <p v-else-if="form.especialidadIds.length > 0" class="hint-text success">
-                {{ form.especialidadIds.length }} especialidad(es) seleccionada(s)
-              </p>
-            </div>
-
-            <label>
-              Tipo documento
-              <select v-model="form.tipoDocumento" required>
-                <option :value="TipoDocumento.CEDULA">Cédula</option>
-                <option :value="TipoDocumento.PASAPORTE">Pasaporte</option>
-                <option :value="TipoDocumento.RUC">RUC</option>
-                <option :value="TipoDocumento.OTRO">Otro</option>
-              </select>
-            </label>
-            <label>
-              Número documento
-              <input v-model="form.numeroDocumento" type="text" required />
-            </label>
-            <label>
-              Teléfono (opcional)
-              <input v-model="form.telefono" type="tel" />
-            </label>
-            <label class="full-width">
-              Dirección (opcional)
-              <input v-model="form.direccion" type="text" />
-            </label>
-          </div>
-
-          <div class="form-actions">
-            <button class="btn btn-secondary" type="button" @click="handleReset" :disabled="usuariosStore.isLoading">
-              Limpiar
-            </button>
-            <button class="btn btn-primary" type="submit" :disabled="usuariosStore.isLoading">
-              {{ usuariosStore.isLoading ? 'Guardando...' : (isEditing ? 'Actualizar' : 'Guardar') }}
-            </button>
-          </div>
-        </form>
-      </aside>
     </div>
 
     <!-- Modal de importación -->
@@ -320,10 +287,12 @@ const filteredUsers = computed(() => {
 })
 
 const isEditing = computed(() => selectedUserId.value !== null)
+const isUserModalOpen = ref(false)
 
 const handleCreateNew = () => {
   selectedUserId.value = null
   handleReset()
+  isUserModalOpen.value = true
 }
 
 const handleEdit = (user: Usuario) => {
@@ -339,6 +308,7 @@ const handleEdit = (user: Usuario) => {
   form.telefono = user.telefono || ''
   form.direccion = user.direccion || ''
   form.password = '' // No mostrar contraseña actual
+  isUserModalOpen.value = true
 }
 
 const toggleEspecialidad = (especialidadId: number) => {
@@ -362,6 +332,13 @@ const handleReset = () => {
   form.numeroDocumento = ''
   form.telefono = ''
   form.direccion = ''
+}
+
+const closeUserModal = () => {
+  if (usuariosStore.isLoading) return
+  isUserModalOpen.value = false
+  selectedUserId.value = null
+  handleReset()
 }
 
 const handleSubmit = async () => {
@@ -445,7 +422,7 @@ const handleSubmit = async () => {
       success('Usuario creado exitosamente')
     }
 
-    handleCreateNew()
+    closeUserModal()
   } catch (err) {
     showError(getErrorMessage(err))
   }
