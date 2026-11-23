@@ -19,7 +19,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "script:seed1": "ts-node scripts/seed.ts",
-    "bootstrap:admin": "ts-node scripts/bootstrap-admin.ts"
+    "bootstrap:admin": "ts-node scripts/bootstrap-admin.ts",
+    "demo:data": "ts-node scripts/demo-data.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.27",
