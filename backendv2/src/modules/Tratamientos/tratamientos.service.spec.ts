@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { TratamientosService } from './tratamientos.service';
 import { RoleEnum } from '../../common/enums/roles.enum';
 
@@ -54,4 +54,31 @@ describe('TratamientosService access control', () => {
 
     await expect(service.listByCaso(7, otherStudent)).rejects.toBeInstanceOf(ForbiddenException);
   });
+
+  it.each(['CANCELADO', 'RECHAZADO'])(
+    'blocks creating treatments in a %s case',
+    async (estado) => {
+      const prisma = {
+        casoClinico: {
+          findUnique: jest.fn().mockResolvedValue({
+            id: 7,
+            estudianteId: student.id,
+            profesorId: 21,
+            estado,
+          }),
+        },
+      };
+      const service = new TratamientosService(prisma as any);
+
+      await expect(
+        service.createForCaso(7, student, {
+          descripcion: 'Tratamiento',
+          frecuenciaCardiaca: '70',
+          presArterial: '120/80',
+          saturacionOxigeno: '98',
+          temperatura: '36',
+        } as any),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    },
+  );
 });

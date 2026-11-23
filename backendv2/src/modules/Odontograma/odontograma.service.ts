@@ -97,6 +97,15 @@ export class OdontogramaService {
           )
         }
 
+        if (
+          dto.docenteId !== undefined &&
+          dto.docenteId !== caso.profesorId
+        ) {
+          throw new BadRequestException(
+            'El profesor del odontograma debe coincidir con el asignado al caso',
+          )
+        }
+
         // Los participantes proceden del caso bloqueado, nunca de
         // valores de identidad proporcionados por el cliente.
         const alcance = {

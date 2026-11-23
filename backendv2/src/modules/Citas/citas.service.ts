@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateCitaDto } from './dto/create-cita.dto';
@@ -27,9 +28,13 @@ export class CitasService {
     // Validar paciente
     const paciente = await this.prisma.paciente.findUnique({
       where: { id: createCitaDto.pacienteId },
+      select: { id: true, activo: true },
     });
     if (!paciente) {
       throw new NotFoundException(`Paciente con ID ${createCitaDto.pacienteId} no encontrado`);
+    }
+    if (!paciente.activo) {
+      throw new BadRequestException('El paciente seleccionado está inactivo');
     }
 
     // Validar especialidad
@@ -51,6 +56,9 @@ export class CitasService {
     if (estudiante.role.nombre !== RoleEnum.ESTUDIANTE) {
       throw new BadRequestException('La persona asignada no tiene rol de estudiante');
     }
+    if (!estudiante.activo) {
+      throw new BadRequestException('El estudiante seleccionado está inactivo');
+    }
 
     if (requester.role.nombre === RoleEnum.ESTUDIANTE) {
       if (createCitaDto.estudianteId !== requester.id) {
@@ -64,12 +72,19 @@ export class CitasService {
         : createCitaDto.docenteId;
 
     // Validar docente si se proporciona y el actor no sustituye automáticamente su asignación
-    if (createCitaDto.docenteId && requester.role.nombre !== RoleEnum.PROFESOR) {
+    if (effectiveDocenteId) {
       const docente = await this.prisma.usuario.findUnique({
-        where: { id: createCitaDto.docenteId },
+        where: { id: effectiveDocenteId },
+        include: { role: true },
       });
       if (!docente) {
-        throw new NotFoundException(`Docente con ID ${createCitaDto.docenteId} no encontrado`);
+        throw new NotFoundException(`Docente con ID ${effectiveDocenteId} no encontrado`);
+      }
+      if (!docente.activo) {
+        throw new BadRequestException('El docente seleccionado está inactivo');
+      }
+      if (docente.role.nombre !== RoleEnum.PROFESOR) {
+        throw new BadRequestException('La persona asignada no tiene rol de profesor');
       }
     }
 
@@ -80,6 +95,12 @@ export class CitasService {
 
     const horaInicio = this.combinarFechaYHora(createCitaDto.fecha, createCitaDto.horainicio);
     const horaFin = this.combinarFechaYHora(createCitaDto.fecha, createCitaDto.horafin);
+    await this.ensureSinChoque({
+      estudianteId: createCitaDto.estudianteId,
+      docenteId: effectiveDocenteId,
+      horaInicio,
+      horaFin,
+    });
 
     // Crear la cita
     const cita = await this.prisma.cita.create({
@@ -245,26 +266,39 @@ export class CitasService {
     // Verificar que existe
     const citaExistente = await this.findOne(id, requester);
 
-    // Validar horarios si se actualizan
-    if (updateCitaDto.horainicio && updateCitaDto.horafin) {
-      if (updateCitaDto.horainicio >= updateCitaDto.horafin) {
-        throw new BadRequestException('La hora de fin debe ser posterior a la hora de inicio');
-      }
-    }
-
     const fechaBase = updateCitaDto.fecha
       ? updateCitaDto.fecha
       : citaExistente.fecha.toISOString().split('T')[0];
+    const horaInicio = updateCitaDto.horainicio
+      ? this.combinarFechaYHora(fechaBase, updateCitaDto.horainicio)
+      : citaExistente.horainicio;
+    const horaFin = updateCitaDto.horafin
+      ? this.combinarFechaYHora(fechaBase, updateCitaDto.horafin)
+      : citaExistente.horafin;
+
+    if (horaInicio >= horaFin) {
+      throw new BadRequestException('La hora de fin debe ser posterior a la hora de inicio');
+    }
+
+    if (updateCitaDto.fecha || updateCitaDto.horainicio || updateCitaDto.horafin) {
+      await this.ensureSinChoque({
+        estudianteId: citaExistente.estudianteId,
+        docenteId: citaExistente.docenteId,
+        horaInicio,
+        horaFin,
+        excludeId: id,
+      });
+    }
 
     const citaActualizada = await this.prisma.cita.update({
       where: { id },
       data: {
         ...(updateCitaDto.fecha && { fecha: new Date(updateCitaDto.fecha) }),
         ...(updateCitaDto.horainicio && {
-          horainicio: this.combinarFechaYHora(fechaBase, updateCitaDto.horainicio),
+          horainicio: horaInicio,
         }),
         ...(updateCitaDto.horafin && {
-          horafin: this.combinarFechaYHora(fechaBase, updateCitaDto.horafin),
+          horafin: horaFin,
         }),
         ...(updateCitaDto.estado && { estado: updateCitaDto.estado }),
         ...(updateCitaDto.observaciones !== undefined && { observaciones: updateCitaDto.observaciones }),
@@ -306,6 +340,44 @@ export class CitasService {
 
   async cancelar(id: number, requester?: AuthenticatedUser) {
     return this.update(id, { estado: EstadoCita.CANCELADA }, requester);
+  }
+
+  private async ensureSinChoque({
+    estudianteId,
+    docenteId,
+    horaInicio,
+    horaFin,
+    excludeId,
+  }: {
+    estudianteId: number;
+    docenteId: number | null | undefined;
+    horaInicio: Date;
+    horaFin: Date;
+    excludeId?: number;
+  }) {
+    const condiciones = [
+      { estudianteId },
+      ...(docenteId ? [{ docenteId }] : []),
+    ];
+
+    const choque = await this.prisma.cita.findFirst({
+      where: {
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+        estado: { not: EstadoCita.CANCELADA },
+        OR: condiciones,
+        AND: [
+          { horainicio: { lt: horaFin } },
+          { horafin: { gt: horaInicio } },
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (choque) {
+      throw new ConflictException(
+        'Ya existe una cita que se solapa con el horario seleccionado',
+      );
+    }
   }
 
   private assertCanAccess(

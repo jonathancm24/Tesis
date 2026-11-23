@@ -21,12 +21,37 @@ import { ArchivosModule } from './modules/Archivos/archivos.module';
 import { Cie10Module } from './modules/CIE10/cie10.module';
 import { TratamientosModule } from './modules/Tratamientos/tratamientos.module';
 import { PrescripcionesModule } from './modules/Prescripciones/prescripciones.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+
+function validateEnv(config: Record<string, unknown>) {
+  const databaseUrl = String(config.DATABASE_URL || '').trim();
+  const jwtSecret = String(config.JWT_SECRET || '').trim();
+
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL es obligatoria');
+  }
+
+  if (jwtSecret.length < 32) {
+    throw new Error('JWT_SECRET debe tener al menos 32 caracteres');
+  }
+
+  return config;
+}
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      validate: validateEnv,
+      cache: true,
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60_000,
+        limit: 100,
+      },
+    ]),
     PrismaModule,
     AuthModule,
     RolesModule,
@@ -48,6 +73,12 @@ import { PrescripcionesModule } from './modules/Prescripciones/prescripciones.mo
     TratamientosModule,
     PrescripcionesModule,
   ],
-  providers: [PermisosInicializadorService],
+  providers: [
+    PermisosInicializadorService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

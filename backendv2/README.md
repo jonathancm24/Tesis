@@ -113,10 +113,16 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 Este proyecto evita el uso de `npm audit fix --force` salvo revisión técnica explícita.
 
 Estado actual del backend:
-- El árbol de producción se mantiene libre de vulnerabilidades conocidas con `npm audit --omit=dev`.
+- `npm audit --omit=dev` reportó 6 vulnerabilidades en noviembre de 2026.
+- Solo las dependencias compatibles se corrigieron sin `npm audit fix --force`.
+- Quedan 2 alertas altas y 4 moderadas relacionadas principalmente con `qs` y `brace-expansion`.
+- No se considera al backend listo para datos clínicos reales hasta completar las dependencias incompatibles pendientes.
 - `bcrypt` se usa para proteger contraseñas; no debe reemplazarse por texto plano.
-- Las cargas de archivos usan `multer` con límites de tamaño y validación de tipo.
+- Las cargas usan `multer` 2.5.0 con límites de tamaño y validación de tipo.
 - La importación y exportación de Excel se hace con `exceljs`.
+- CORS se configura con `CORS_ORIGINS`.
+- Helmet y rate limiting están habilitados.
+- El inicio valida `DATABASE_URL` y una longitud mínima de `JWT_SECRET`.
 
 Qué sigue requiriendo atención:
 - Las alertas que aparezcan solo en dependencias de desarrollo no bloquean el despliegue.
@@ -124,6 +130,21 @@ Qué sigue requiriendo atención:
 - Si cambias librerías de autenticación, Excel o subida de archivos, vuelve a ejecutar `npm audit --omit=dev` y las pruebas.
 
 Este enfoque está alineado con prácticas reales de ingeniería de software y estándares académicos.
+
+## Validación realizada
+
+```sh
+npm run build
+npm test -- --runInBand
+npm run test:e2e -- --runInBand
+npm audit --omit=dev
+```
+
+Resultados registrados:
+- Backend compilado correctamente.
+- 75 pruebas unitarias aprobadas.
+- 54 pruebas E2E aprobadas con conexión PostgreSQL.
+- El frontend compila con `npm run build`.
 
 ## Autor del Proyecto
 
