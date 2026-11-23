@@ -165,9 +165,12 @@ export class TratamientosService {
       throw new ForbiddenException('No tienes permisos para operar sobre este caso clínico');
     }
 
-    if (rejectIfRejected && caso.estado === 'CANCELADO') {
+    if (
+      rejectIfRejected &&
+      (caso.estado === 'CANCELADO' || caso.estado === 'RECHAZADO')
+    ) {
       throw new BadRequestException(
-        'No puedes registrar tratamientos en un caso clínico cancelado',
+        'No puedes registrar tratamientos en un caso clínico cancelado o rechazado',
       );
     }
 
