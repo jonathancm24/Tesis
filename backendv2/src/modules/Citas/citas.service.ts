@@ -1,8 +1,19 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '@/../prisma/prisma.service';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateCitaDto } from './dto/create-cita.dto';
 import { UpdateCitaDto } from './dto/update-cita.dto';
 import { EstadoCita } from '@prisma/client';
+import { RoleEnum } from '../../common/enums/roles.enum';
+
+interface AuthenticatedUser {
+  id: number;
+  role: { nombre: RoleEnum };
+}
 
 @Injectable()
 export class CitasService {
@@ -12,7 +23,7 @@ export class CitasService {
     return new Date(`${fecha}T${hora}:00`);
   }
 
-  async create(createCitaDto: CreateCitaDto) {
+  async create(createCitaDto: CreateCitaDto, requester: AuthenticatedUser) {
     // Validar paciente
     const paciente = await this.prisma.paciente.findUnique({
       where: { id: createCitaDto.pacienteId },
@@ -32,13 +43,28 @@ export class CitasService {
     // Validar estudiante
     const estudiante = await this.prisma.usuario.findUnique({
       where: { id: createCitaDto.estudianteId },
+      include: { role: true },
     });
     if (!estudiante) {
       throw new NotFoundException(`Estudiante con ID ${createCitaDto.estudianteId} no encontrado`);
     }
+    if (estudiante.role.nombre !== RoleEnum.ESTUDIANTE) {
+      throw new BadRequestException('La persona asignada no tiene rol de estudiante');
+    }
 
-    // Validar docente si se proporciona
-    if (createCitaDto.docenteId) {
+    if (requester.role.nombre === RoleEnum.ESTUDIANTE) {
+      if (createCitaDto.estudianteId !== requester.id) {
+        throw new ForbiddenException('No puede crear citas para otro estudiante');
+      }
+    }
+
+    const effectiveDocenteId =
+      requester.role.nombre === RoleEnum.PROFESOR
+        ? requester.id
+        : createCitaDto.docenteId;
+
+    // Validar docente si se proporciona y el actor no sustituye automáticamente su asignación
+    if (createCitaDto.docenteId && requester.role.nombre !== RoleEnum.PROFESOR) {
       const docente = await this.prisma.usuario.findUnique({
         where: { id: createCitaDto.docenteId },
       });
@@ -66,7 +92,7 @@ export class CitasService {
         pacienteId: createCitaDto.pacienteId,
         especialidadId: createCitaDto.especialidadId,
         estudianteId: createCitaDto.estudianteId,
-        docenteId: createCitaDto.docenteId,
+        docenteId: effectiveDocenteId,
       },
       include: {
         paciente: {
@@ -103,15 +129,24 @@ export class CitasService {
     return cita;
   }
 
-  async findAll(pacienteId?: number, estudianteId?: number) {
+  async findAll(
+    pacienteId?: number,
+    estudianteId?: number,
+    requester?: AuthenticatedUser,
+  ) {
     const where: any = {};
     
     if (pacienteId) {
       where.pacienteId = pacienteId;
     }
     
-    if (estudianteId) {
+    if (requester?.role.nombre === RoleEnum.ESTUDIANTE) {
+      where.estudianteId = requester.id;
+    } else if (estudianteId) {
       where.estudianteId = estudianteId;
+    }
+    if (requester?.role.nombre === RoleEnum.PROFESOR) {
+      where.docenteId = requester.id;
     }
 
     const citas = await this.prisma.cita.findMany({
@@ -155,7 +190,7 @@ export class CitasService {
     return citas;
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, requester?: AuthenticatedUser) {
     const cita = await this.prisma.cita.findUnique({
       where: { id },
       include: {
@@ -197,13 +232,18 @@ export class CitasService {
     if (!cita) {
       throw new NotFoundException(`Cita con ID ${id} no encontrada`);
     }
+    this.assertCanAccess(cita, requester);
 
     return cita;
   }
 
-  async update(id: number, updateCitaDto: UpdateCitaDto) {
+  async update(
+    id: number,
+    updateCitaDto: UpdateCitaDto,
+    requester?: AuthenticatedUser,
+  ) {
     // Verificar que existe
-    const citaExistente = await this.findOne(id);
+    const citaExistente = await this.findOne(id, requester);
 
     // Validar horarios si se actualizan
     if (updateCitaDto.horainicio && updateCitaDto.horafin) {
@@ -264,7 +304,24 @@ export class CitasService {
     return citaActualizada;
   }
 
-  async cancelar(id: number) {
-    return this.update(id, { estado: EstadoCita.CANCELADA });
+  async cancelar(id: number, requester?: AuthenticatedUser) {
+    return this.update(id, { estado: EstadoCita.CANCELADA }, requester);
+  }
+
+  private assertCanAccess(
+    cita: { estudianteId: number; docenteId: number | null },
+    requester?: AuthenticatedUser,
+  ) {
+    if (!requester) return;
+    if (requester.role.nombre === RoleEnum.ADMIN) return;
+    if (
+      requester.role.nombre === RoleEnum.PROFESOR &&
+      cita.docenteId === requester.id
+    ) return;
+    if (
+      requester.role.nombre === RoleEnum.ESTUDIANTE &&
+      cita.estudianteId === requester.id
+    ) return;
+    throw new ForbiddenException('No tiene acceso a esta cita');
   }
 }

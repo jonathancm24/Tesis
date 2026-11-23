@@ -63,7 +63,10 @@ export class PacientesController {
    */
   @Get()
   @Roles(...ROLES_CONSULTA_PACIENTES)
-  async findAll(@Query() query: any): Promise<PacientesPaginatedResponseDto> {
+  async findAll(
+    @Query() query: any,
+    @Req() request: { user: { id: number; role: { nombre: RoleEnum } } },
+  ): Promise<PacientesPaginatedResponseDto> {
     const filters = {
       nombre: query.nombre,
       apellido: query.apellido,
@@ -77,7 +80,7 @@ export class PacientesController {
       orderDirection: query.orderDirection || 'desc',
     };
 
-    return this.pacientesService.findAll(filters);
+    return this.pacientesService.findAll(filters, request.user);
   }
 
   /**
@@ -99,8 +102,11 @@ export class PacientesController {
    */
   @Get(':id')
   @Roles(...ROLES_CONSULTA_PACIENTES)
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<PacienteResponseDto> {
-    return this.pacientesService.findOne(id);
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: { user: { id: number; role: { nombre: RoleEnum } } },
+  ): Promise<PacienteResponseDto> {
+    return this.pacientesService.findOne(id, request.user);
   }
 
   /**

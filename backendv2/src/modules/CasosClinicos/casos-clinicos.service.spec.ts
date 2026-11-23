@@ -311,4 +311,59 @@ describe('CasosClinicosService access and workflow', () => {
       expect.objectContaining({ where: { profesorId: professor.id } }),
     );
   });
+
+  it('blocks assigning an inactive patient or user to a case', async () => {
+    const prismaPacienteInactivo = {
+      paciente: { findUnique: jest.fn().mockResolvedValue({ id: 8, activo: false }) },
+    };
+    const servicePaciente = new CasosClinicosService(prismaPacienteInactivo as any);
+
+    await expect(
+      servicePaciente.create(
+        { pacienteId: 8, profesorId: professor.id, estudianteId: student.id, especialidadId: 5 } as any,
+        student,
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+
+    const prismaUsuarioInactivo = {
+      paciente: { findUnique: jest.fn().mockResolvedValue({ id: 8, activo: true }) },
+      usuario: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: professor.id,
+          activo: false,
+          role: { nombre: RoleEnum.PROFESOR },
+        }),
+      },
+    };
+    const serviceUsuario = new CasosClinicosService(prismaUsuarioInactivo as any);
+
+    await expect(
+      serviceUsuario.create(
+        { pacienteId: 8, profesorId: professor.id, estudianteId: student.id, especialidadId: 5 } as any,
+        student,
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('blocks observations by an unassigned professor', async () => {
+    const prisma = {
+      casoClinico: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 7,
+          estudianteId: student.id,
+          profesorId: professor.id,
+        }),
+      },
+      observacion: { create: jest.fn() },
+    };
+    const service = new CasosClinicosService(prisma as any);
+
+    await expect(
+      service.createObservacion(
+        { casoClinicoId: 7, contenido: 'Sin acceso' } as any,
+        { ...professor, id: 22 },
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    expect(prisma.observacion.create).not.toHaveBeenCalled();
+  });
 });

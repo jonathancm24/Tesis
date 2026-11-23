@@ -98,7 +98,10 @@ export class PacientesService {
   /**
    * Obtener todos los pacientes con filtros y paginación
    */
-  async findAll(filters: PacienteFiltersDto = {}): Promise<PacientesPaginatedResponseDto> {
+  async findAll(
+    filters: PacienteFiltersDto = {},
+    actor?: { id: number; role: { nombre: RoleEnum } },
+  ): Promise<PacientesPaginatedResponseDto> {
     const {
       page = 1,
       limit = 10,
@@ -106,7 +109,26 @@ export class PacientesService {
       orderDirection = 'desc',
     } = filters;
 
-    const where = this.buildWhereConditions(filters);
+    const where = this.buildWhereConditions(filters) as any;
+    if (actor && actor.role.nombre !== RoleEnum.ADMIN) {
+      const whereCasos =
+        actor.role.nombre === RoleEnum.PROFESOR
+          ? { profesorId: actor.id }
+          : actor.role.nombre === RoleEnum.ESTUDIANTE
+            ? { estudianteId: actor.id }
+            : null;
+
+      if (!whereCasos) {
+        throw new ForbiddenException('No tiene acceso a la lista de pacientes');
+      }
+
+      const casos = await this.prisma.casoClinico.findMany({
+        where: whereCasos,
+        select: { pacienteId: true },
+      });
+      const pacienteIds = [...new Set(casos.map((caso) => caso.pacienteId))];
+      where.id = { in: pacienteIds };
+    }
 
     const [pacientes, total] = await Promise.all([
       this.prisma.paciente.findMany({
@@ -130,7 +152,10 @@ export class PacientesService {
   /**
    * Obtener un paciente por ID
    */
-  async findOne(id: number): Promise<PacienteResponseDto> {
+  async findOne(
+    id: number,
+    actor?: { id: number; role: { nombre: RoleEnum } },
+  ): Promise<PacienteResponseDto> {
     const paciente = await this.prisma.paciente.findUnique({
       where: { id },
       include: {
@@ -142,6 +167,22 @@ export class PacientesService {
 
     if (!paciente) {
       throw new NotFoundException(`Paciente con ID ${id} no encontrado`);
+    }
+    if (actor && actor.role.nombre !== RoleEnum.ADMIN) {
+      const casoAsociado = await this.prisma.casoClinico.findFirst({
+        where: {
+          pacienteId: id,
+          ...(actor.role.nombre === RoleEnum.PROFESOR
+            ? { profesorId: actor.id }
+            : actor.role.nombre === RoleEnum.ESTUDIANTE
+              ? { estudianteId: actor.id }
+              : {}),
+        },
+        select: { id: true },
+      });
+      if (!casoAsociado) {
+        throw new ForbiddenException('No tiene acceso a este paciente');
+      }
     }
 
     return this.transformToResponseDto(paciente);
