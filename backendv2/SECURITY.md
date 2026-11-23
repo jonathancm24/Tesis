@@ -10,9 +10,12 @@ La regla principal es separar dos cosas:
 
 ## Estado actual
 
-En la versión actual del proyecto, `npm audit --omit=dev` no reporta vulnerabilidades de producción conocidas.
+En noviembre de 2026, `npm audit --omit=dev` reporta 6 vulnerabilidades de producción:
+- 2 altas.
+- 4 moderadas.
 
-Eso significa que el backend puede desplegarse hoy con una base razonable de seguridad, siempre que se sigan los pasos de instalación y compilación definidos en el README.
+Las vulnerabilidades compatibles se actualizaron sin cambios principales automáticos.
+No se considera el backend listo para datos clínicos reales hasta resolver las vulnerabilidades que requieren actualizar versiones mayores.
 
 ## Superficies de riesgo reales
 
