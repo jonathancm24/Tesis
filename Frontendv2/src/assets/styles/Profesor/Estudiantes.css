@@ -158,6 +158,20 @@
 	color: var(--color-text-muted);
 }
 
+.table-action {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.35rem;
+	min-height: 38px;
+	padding: 0.45rem 0.65rem;
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius);
+	background: var(--color-surface);
+	color: var(--color-primary);
+	font-size: 0.82rem;
+}
+
 .empty-state {
 	text-align: center;
 	color: var(--color-text-muted);
@@ -528,5 +542,69 @@
 
 	.search-bar {
 		flex-direction: column;
+	}
+
+	.table-wrapper {
+		overflow: visible;
+	}
+
+	.estudiantes-table,
+	.estudiantes-table tbody,
+	.estudiantes-table tr,
+	.estudiantes-table td,
+	.pacientes-table,
+	.pacientes-table tbody,
+	.pacientes-table tr,
+	.pacientes-table td {
+		display: block;
+		width: 100%;
+	}
+
+	.estudiantes-table thead,
+	.pacientes-table thead {
+		display: none;
+	}
+
+	.estudiantes-table tbody,
+	.pacientes-table tbody {
+		display: grid;
+		gap: 0.75rem;
+	}
+
+	.estudiantes-table tr,
+	.pacientes-table tr {
+		padding: 0.75rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--border-radius);
+		background: var(--color-surface);
+	}
+
+	.estudiantes-table td,
+	.pacientes-table td {
+		display: grid;
+		grid-template-columns: 92px minmax(0, 1fr);
+		align-items: center;
+		padding: 0.45rem 0;
+		border: 0;
+		text-align: left;
+	}
+
+	.estudiantes-table td::before,
+	.pacientes-table td::before {
+		content: attr(data-label);
+		font-size: 0.72rem;
+		font-weight: 700;
+		color: var(--color-text-secondary);
+		text-transform: uppercase;
+	}
+
+	.estudiantes-table .actions-col,
+	.pacientes-table .actions-col {
+		grid-template-columns: 92px 1fr;
+		white-space: normal;
+	}
+
+	.table-action {
+		width: 100%;
 	}
 }

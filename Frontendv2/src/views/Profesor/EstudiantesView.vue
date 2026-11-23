@@ -62,22 +62,23 @@
 					</thead>
 					<tbody>
 						<tr v-for="student in estudiantes" :key="student.id">
-							<td>
+							<td data-label="Estudiante">
 								<div class="student-info">
 									<span class="student-name">{{ student.nombre }} {{ student.apellido }}</span>
 									<span class="student-doc">{{ student.tipoDocumento }} · {{ student.numeroDocumento }}</span>
 								</div>
 							</td>
-							<td>{{ student.email }}</td>
-							<td>{{ student.telefono || 'No registrado' }}</td>
-							<td>
+							<td data-label="Email">{{ student.email }}</td>
+							<td data-label="Teléfono">{{ student.telefono || 'No registrado' }}</td>
+							<td data-label="Estado">
 								<span :class="['badge', student.activo ? 'badge-success' : 'badge-muted']">
 									{{ student.activo ? 'Activo' : 'Inactivo' }}
 								</span>
 							</td>
-							<td class="actions-col">
-								<button class="btn btn-link" type="button" @click="handleExplore(student)">
-									Ver historial
+							<td class="actions-col" data-label="Acciones">
+								<button class="btn btn-link table-action" type="button" @click="handleExplore(student)">
+									<span aria-hidden="true">📋</span>
+									<span>Ver historial</span>
 								</button>
 							</td>
 						</tr>

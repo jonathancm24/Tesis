@@ -67,30 +67,31 @@
               </tr>
               <!-- Data rows -->
               <tr v-for="user in filteredUsers" :key="user.id">
-                <td>
+                <td data-label="Nombre">
                   <div class="user-info">
                     <span class="user-name">{{ user.nombre }} {{ user.apellido }}</span>
                     <span class="user-doc">{{ user.tipoDocumento }} · {{ user.numeroDocumento }}</span>
                   </div>
                 </td>
-                <td>{{ user.email }}</td>
-                <td>{{ user.role?.nombre || 'Sin rol' }}</td>
-                <td>
+                <td data-label="Email">{{ user.email }}</td>
+                <td data-label="Rol">{{ user.role?.nombre || 'Sin rol' }}</td>
+                <td data-label="Estado">
                   <span :class="['badge', user.activo ? 'badge-success' : 'badge-muted']">
                     {{ user.activo ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
-                <td class="actions-col">
-                  <button class="btn btn-link" type="button" @click="handleEdit(user)" :disabled="usuariosStore.isLoading">
-                    Editar
+                <td class="actions-col" data-label="Acciones">
+                  <button class="btn btn-link table-action" type="button" @click="handleEdit(user)" :disabled="usuariosStore.isLoading">
+                    <span aria-hidden="true">✏️</span><span>Editar</span>
                   </button>
                   <button
-                    class="btn btn-link"
+                    class="btn btn-link table-action"
                     type="button"
                     @click="toggleActive(user)"
                     :disabled="usuariosStore.isLoading"
                   >
-                    {{ user.activo ? 'Desactivar' : 'Activar' }}
+                    <span aria-hidden="true">{{ user.activo ? '🗑️' : '✅' }}</span>
+                    <span>{{ user.activo ? 'Desactivar' : 'Activar' }}</span>
                   </button>
                 </td>
               </tr>

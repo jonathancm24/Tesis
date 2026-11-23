@@ -367,6 +367,53 @@
     font-size: 0.6875rem;
     padding: 0.15rem 0.4rem;
   }
+
+  .table-wrapper {
+    overflow: visible;
+  }
+
+  .usuarios-table,
+  .usuarios-table tbody,
+  .usuarios-table tr,
+  .usuarios-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .usuarios-table thead {
+    display: none;
+  }
+
+  .usuarios-table tbody {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .usuarios-table tr {
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+  }
+
+  .usuarios-table td {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    align-items: center;
+    padding: 0.45rem 0;
+    border: 0;
+  }
+
+  .usuarios-table td::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+  }
+
+  .usuarios-table .actions-col {
+    grid-template-columns: 82px 1fr;
+  }
 }
 
 /* ========== RESPONSIVE - MOVILES PEQUENOS ========== */

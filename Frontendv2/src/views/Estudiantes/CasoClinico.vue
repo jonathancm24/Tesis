@@ -80,7 +80,24 @@
 				</ul>
 			</div>
 
-			<form class="case-form" @submit.prevent="handleSubmit">
+			<form
+				class="case-form"
+				:class="{ 'is-saving': isSaving }"
+				:aria-busy="isSaving"
+				@submit.prevent="handleSubmit"
+			>
+				<div v-if="isSaving" class="saving-overlay" role="status" aria-live="polite">
+					<div class="saving-card">
+						<img src="@/assets/images/LOGO-ULEAM.png" alt="Logo ULEAM" class="saving-logo" />
+						<div class="saving-copy">
+							<strong>Guardando caso clínico…</strong>
+							<span>Espere mientras se registra la información.</span>
+						</div>
+						<div class="saving-bar" aria-hidden="true">
+							<span></span>
+						</div>
+					</div>
+				</div>
 				<h3 class="form-section-title"><span class="form-section-number">01</span>Datos administrativos</h3>
 				<div class="form-grid">
 					<div class="form-field" :class="{ 'is-invalid': touched.profesorId && form.profesorId === 0, 'is-valid': touched.profesorId && form.profesorId > 0 }">
@@ -259,7 +276,8 @@
 				<div class="form-actions">
 					<button class="btn btn-secondary" type="button" @click="goBack">Cancelar</button>
 					<button class="btn btn-primary save-case-button" type="submit" :disabled="isSaving || !isFormValid" :aria-busy="isSaving">
-						{{ isSaving ? 'Guardando...' : 'Guardar caso clinico' }}
+						<span v-if="isSaving" class="save-spinner" aria-hidden="true"></span>
+						{{ isSaving ? 'Guardando caso…' : 'Guardar caso clínico' }}
 					</button>
 				</div>
 			</form>

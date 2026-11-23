@@ -71,50 +71,53 @@
                 style="cursor: pointer;"
                 :class="{ 'active-row': selectedPaciente?.id === paciente.id }"
               >
-                <td>
+                <td data-label="Paciente">
                   <div class="patient-info">
                     <span class="patient-name">{{ paciente.nombre }} {{ paciente.apellido }}</span>
                     <span class="patient-meta">{{ paciente.parroquia?.nombre || 'Sin parroquia' }}</span>
                   </div>
                 </td>
-                <td>{{ paciente.email || 'No registrado' }}</td>
-                <td>{{ paciente.telefono || 'No registrado' }}</td>
-                <td>
+                <td data-label="Email">{{ paciente.email || 'No registrado' }}</td>
+                <td data-label="Teléfono">{{ paciente.telefono || 'No registrado' }}</td>
+                <td data-label="Documento">
                   <span class="badge badge-secondary">
                     {{ paciente.tipoDocumento }} · {{ paciente.numeroDocumento }}
                   </span>
                 </td>
-                <td>
+                <td data-label="Estado">
                   <span :class="['badge', paciente.activo ? 'badge-success' : 'badge-muted']">
                     {{ paciente.activo ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
-                <td class="actions-col">
+                <td class="actions-col" data-label="Acciones">
                   <button
-                    class="btn btn-link"
+                    class="btn btn-link table-action"
                     type="button"
                     @click="handleEditPaciente(paciente)"
-                    title="Editar"
+                    aria-label="Editar paciente"
                   >
-                    ✏️
+                    <span aria-hidden="true">✏️</span>
+                    <span>Editar</span>
                   </button>
                   <button
                     v-if="paciente.activo"
-                    class="btn btn-link danger"
+                    class="btn btn-link danger table-action"
                     type="button"
                     @click="handleDeletePaciente(paciente.id)"
-                    title="Desactivar"
+                    aria-label="Desactivar paciente"
                   >
-                    🗑️
+                    <span aria-hidden="true">🗑️</span>
+                    <span>Desactivar</span>
                   </button>
                   <button
                     v-else
-                    class="btn btn-link success"
+                    class="btn btn-link success table-action"
                     type="button"
                     @click="handleActivatePaciente(paciente.id)"
-                    title="Activar"
+                    aria-label="Activar paciente"
                   >
-                    ✅
+                    <span aria-hidden="true">✅</span>
+                    <span>Activar</span>
                   </button>
                 </td>
               </tr>

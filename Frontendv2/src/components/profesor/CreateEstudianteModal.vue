@@ -126,12 +126,21 @@
                 <div class="form-row">
                   <div class="form-group full-width">
                     <label for="especialidades">Especialidades del estudiante *</label>
-                    <select id="especialidades" v-model="formData.especialidadIds" multiple required>
-                      <option v-for="especialidad in especialidades" :key="especialidad.id" :value="especialidad.id">
-                        {{ especialidad.nombre }}
-                      </option>
-                    </select>
-                    <small class="hint-text">Mantén presionado Ctrl para seleccionar varias</small>
+                    <div class="especialidades-grid-modal">
+                      <label
+                        v-for="especialidad in especialidades"
+                        :key="especialidad.id"
+                        class="especialidad-option"
+                        :class="{ selected: formData.especialidadIds.includes(especialidad.id) }"
+                      >
+                        <input
+                          type="checkbox"
+                          :value="especialidad.id"
+                          v-model="formData.especialidadIds"
+                        />
+                        <span>{{ especialidad.nombre }}</span>
+                      </label>
+                    </div>
                     <small v-if="errors.especialidadIds" class="error-text">{{ errors.especialidadIds }}</small>
                   </div>
                 </div>
