@@ -179,21 +179,37 @@ onBeforeUnmount(() => dispose?.())
 
 <template>
   <section class="dental-viewer" :class="{ 'dental-viewer--integrado': integrado }" :aria-labelledby="tituloId">
-    <header>
-      <component :is="integrado ? 'h4' : 'h1'" :id="tituloId">Odontograma 3D</component>
-      <p>Arrastra para girar, usa la rueda para acercar o alejar y pulsa una pieza para identificarla.</p>
+    <header class="dental-viewer__header">
+      <div class="dental-viewer__title">
+        <span class="dental-viewer__icon" aria-hidden="true">3D</span>
+        <div>
+          <component :is="integrado ? 'h4' : 'h1'" :id="tituloId">Odontograma 3D</component>
+          <p>Explora visualmente las arcadas dentales.</p>
+        </div>
+      </div>
+      <div class="dental-viewer__tips" aria-label="Controles del visor">
+        <span>Girar</span>
+        <span>Zoom</span>
+        <span>Seleccionar</span>
+      </div>
     </header>
     <div v-if="unavailable" class="dental-viewer__error" role="status">
       El visor necesita un navegador con WebGL 2 disponible.
     </div>
     <div v-else ref="viewport" class="dental-viewer__viewport">
       <canvas ref="canvas" aria-label="Modelo interactivo de las arcadas dentales" />
+      <span class="dental-viewer__viewport-label">Vista interactiva</span>
     </div>
     <p class="dental-viewer__selection" aria-live="polite">
       <template v-if="selectedTooth">
-        <strong>FDI {{ selectedTooth.fdi }}</strong> · {{ selectedTooth.name }}
+        <span class="dental-viewer__selection-label">Pieza seleccionada</span>
+        <strong>FDI {{ selectedTooth.fdi }}</strong>
+        <span>{{ selectedTooth.name }}</span>
       </template>
-      <template v-else>Selecciona una pieza para ver su código FDI.</template>
+      <template v-else>
+        <span class="dental-viewer__selection-dot" aria-hidden="true"></span>
+        Selecciona una pieza para ver su código FDI.
+      </template>
     </p>
   </section>
 </template>
@@ -208,24 +224,87 @@ onBeforeUnmount(() => dispose?.())
 }
 .dental-viewer h1,
 .dental-viewer h4 {
-  margin: 0 0 0.4rem;
+  margin: 0 0 0.15rem;
 }
 .dental-viewer p {
-  margin: 0 0 1rem;
+  margin: 0;
+}
+.dental-viewer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.dental-viewer__title {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+.dental-viewer__title p {
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+}
+.dental-viewer__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 0.75rem;
+  background: var(--gradient-primary);
+  color: var(--btn-primary-text);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  box-shadow: 0 8px 18px rgba(45, 90, 61, 0.22);
+}
+.dental-viewer__tips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+.dental-viewer__tips span {
+  padding: 0.28rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+  font-size: 0.68rem;
+  font-weight: 700;
 }
 .dental-viewer__viewport,
 .dental-viewer__error {
   position: relative;
   height: clamp(18rem, 64vh, 39rem);
   overflow: hidden;
-  border: 1px solid #9aaeba;
-  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.95), transparent 38%),
+    linear-gradient(145deg, #edf4f7, #dce8ee);
+  box-shadow: inset 0 0 30px rgba(74, 124, 90, 0.08), 0 12px 28px rgba(35, 55, 43, 0.10);
 }
 .dental-viewer__viewport canvas {
   display: block;
   width: 100%;
   height: 100%;
   touch-action: none;
+}
+.dental-viewer__viewport-label {
+  position: absolute;
+  top: 0.65rem;
+  left: 0.65rem;
+  padding: 0.28rem 0.55rem;
+  border: 1px solid rgba(74, 124, 90, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--color-primary);
+  font-size: 0.68rem;
+  font-weight: 800;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
 }
 .dental-viewer__error {
   display: grid;
@@ -234,7 +313,38 @@ onBeforeUnmount(() => dispose?.())
   text-align: center;
 }
 .dental-viewer .dental-viewer__selection {
-  margin: 0.8rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 42px;
+  margin: 0.75rem 0 0;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+}
+.dental-viewer__selection strong {
+  color: var(--color-primary);
+}
+.dental-viewer__selection-label {
+  padding: 0.22rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+  color: var(--color-primary);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.dental-viewer__selection-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 12%, transparent);
 }
 .dental-viewer--integrado {
   padding: 0;
@@ -245,6 +355,12 @@ onBeforeUnmount(() => dispose?.())
   height: clamp(29rem, 67svh, 46rem);
 }
 @media (max-width: 768px) {
+  .dental-viewer__header {
+    align-items: flex-start;
+  }
+  .dental-viewer__tips {
+    display: none;
+  }
   .dental-viewer--integrado .dental-viewer__viewport,
   .dental-viewer--integrado .dental-viewer__error {
     height: clamp(20rem, 61svh, 34rem);

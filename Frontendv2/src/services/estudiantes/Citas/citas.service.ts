@@ -67,7 +67,7 @@ class CitasService {
   }
 
   async obtenerCitas(pacienteId?: number, estudianteId?: number): Promise<Cita[]> {
-    const params: any = {};
+    const params: { pacienteId?: number; estudianteId?: number } = {};
     if (pacienteId) params.pacienteId = pacienteId;
     if (estudianteId) params.estudianteId = estudianteId;
 

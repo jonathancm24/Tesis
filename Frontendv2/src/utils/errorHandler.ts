@@ -2,8 +2,6 @@
  * Utilidad para formatear y manejar errores de la API
  */
 
-import type { AxiosError } from 'axios'
-
 export interface ApiErrorResponse {
   message: string | string[]
   error?: string
@@ -13,12 +11,22 @@ export interface ApiErrorResponse {
 /**
  * Extrae un mensaje de error legible desde una respuesta de error de Axios
  */
-export function getErrorMessage(error: any): string {
+type ErrorLike = {
+  response?: { data?: ApiErrorResponse; status?: number }
+  request?: unknown
+  message?: string
+}
+
+const asErrorLike = (error: unknown): ErrorLike =>
+  typeof error === 'object' && error !== null ? error as ErrorLike : {}
+
+export function getErrorMessage(error: unknown): string {
   if (!error) return 'Error desconocido'
+  const errorLike = asErrorLike(error)
 
   // Si es un error de Axios
-  if (error.response) {
-    const data = error.response.data as ApiErrorResponse
+  if (errorLike.response) {
+    const data = errorLike.response.data ?? { message: '' }
 
     // Manejo de múltiples mensajes (validación)
     if (Array.isArray(data.message)) {
@@ -31,7 +39,7 @@ export function getErrorMessage(error: any): string {
     }
 
     // Mensaje genérico según código de estado
-    switch (error.response.status) {
+    switch (errorLike.response.status) {
       case 400:
         return 'Datos inválidos. Por favor verifica la información.'
       case 401:
@@ -45,41 +53,42 @@ export function getErrorMessage(error: any): string {
       case 500:
         return 'Error interno del servidor. Intenta más tarde.'
       default:
-        return `Error del servidor (${error.response.status})`
+        return `Error del servidor (${errorLike.response.status})`
     }
   }
 
   // Error de red
-  if (error.request) {
+  if (errorLike.request) {
     return 'No se pudo conectar con el servidor. Verifica tu conexión.'
   }
 
   // Otro tipo de error
-  return error.message || 'Error desconocido'
+  return errorLike.message || 'Error desconocido'
 }
 
 /**
  * Valida si un error es por token expirado
  */
-export function isUnauthorizedError(error: any): boolean {
-  return error?.response?.status === 401
+export function isUnauthorizedError(error: unknown): boolean {
+  return asErrorLike(error).response?.status === 401
 }
 
 /**
  * Valida si un error es por falta de permisos
  */
-export function isForbiddenError(error: any): boolean {
-  return error?.response?.status === 403
+export function isForbiddenError(error: unknown): boolean {
+  return asErrorLike(error).response?.status === 403
 }
 
 /**
  * Extrae errores de validación específicos por campo
  */
-export function getValidationErrors(error: any): Record<string, string[]> {
+export function getValidationErrors(error: unknown): Record<string, string[]> {
   const errors: Record<string, string[]> = {}
+  const errorLike = asErrorLike(error)
 
-  if (error?.response?.data?.message && Array.isArray(error.response.data.message)) {
-    error.response.data.message.forEach((msg: string) => {
+  if (errorLike.response?.data?.message && Array.isArray(errorLike.response.data.message)) {
+    errorLike.response.data.message.forEach((msg: string) => {
       // Intentar extraer el campo del mensaje
       const match = msg.match(/^(\w+)\s/)
       if (match && match[1]) {

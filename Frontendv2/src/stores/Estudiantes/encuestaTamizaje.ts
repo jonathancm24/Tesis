@@ -5,10 +5,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { encuestaTamizajeService } from '@/services/estudiantes/CasosClinicos/encuesta-tamizaje.service'
+import { getErrorMessage } from '@/utils/errorHandler'
 import type {
   PreguntaTamizaje,
   EncuestaProgreso,
-  GuardarRespuestasDto
+  GuardarRespuestasDto,
+  RespuestaTamizaje
 } from '@/types/encuestaTamizaje.types'
 
 export const useEncuestaTamizajeStore = defineStore('encuestaTamizaje', () => {
@@ -39,8 +41,8 @@ export const useEncuestaTamizajeStore = defineStore('encuestaTamizaje', () => {
 
       // Aplanar todas las preguntas
       todasLasPreguntas.value = Object.values(preguntas).flat()
-    } catch (err: any) {
-      error.value = err.message || 'Error al cargar las preguntas'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err)
     } finally {
       isLoading.value = false
     }
@@ -72,7 +74,7 @@ export const useEncuestaTamizajeStore = defineStore('encuestaTamizaje', () => {
 
       // Cargar respuestas existentes
       if (encuesta && encuesta.respuestas) {
-        encuesta.respuestas.forEach((r: any) => {
+        encuesta.respuestas.forEach((r: RespuestaTamizaje) => {
           // Convertir SI/NO a boolean cuando corresponda
           let valor: string | boolean = r.respuesta ?? ''
           if (valor === 'SI') {
@@ -83,8 +85,8 @@ export const useEncuestaTamizajeStore = defineStore('encuestaTamizaje', () => {
           respuestasActuales.value.set(r.preguntaId, valor)
         })
       }
-    } catch (err: any) {
-      error.value = err.message || 'Error al cargar la encuesta'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err)
       encuestaPacienteActual.value = null
       console.error('❌ Error al cargar encuesta:', err)
     } finally {
@@ -110,8 +112,8 @@ export const useEncuestaTamizajeStore = defineStore('encuestaTamizaje', () => {
       } else {
         encuestaPacienteActual.value = null
       }
-    } catch (err: any) {
-      error.value = err.message || 'Error al cargar progreso'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err)
       console.error('❌ Error al cargar progreso:', err)
     } finally {
       isLoading.value = false
@@ -160,8 +162,8 @@ export const useEncuestaTamizajeStore = defineStore('encuestaTamizaje', () => {
       }
 
       return resultado
-    } catch (err: any) {
-      error.value = err.message || 'Error al guardar las respuestas'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err)
       console.error('❌ Error al guardar respuestas:', err)
       throw err
     } finally {
@@ -180,8 +182,8 @@ export const useEncuestaTamizajeStore = defineStore('encuestaTamizaje', () => {
       respuestasActuales.value.clear()
       
       return resultado
-    } catch (err: any) {
-      error.value = err.message || 'Error al crear nueva versión'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err)
       throw err
     } finally {
       isLoading.value = false
@@ -194,8 +196,8 @@ export const useEncuestaTamizajeStore = defineStore('encuestaTamizaje', () => {
     try {
       const historial = await encuestaTamizajeService.obtenerHistorialEncuestas(pacienteId)
       return historial
-    } catch (err: any) {
-      error.value = err.message || 'Error al obtener historial'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err)
       return []
     } finally {
       isLoading.value = false

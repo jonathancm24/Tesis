@@ -191,7 +191,9 @@ function cuspsFor(arch: Arch, position: number, pattern: CuspPattern): CuspSpec[
   return cusps;
 }
 
-function rootsFor(arch: Arch, position: number, _pattern: CuspPattern, md: number, bl: number, _rootLength: number): RootSpec {
+function rootsFor(arch: Arch, position: number, pattern: CuspPattern, md: number, bl: number, rootLength: number): RootSpec {
+  void pattern
+  void rootLength
   const trunk = (fraction: number, branches: RootBranchSpec[]): RootSpec => ({ trunkFraction: fraction, branches });
 
   if (arch === 'upper') {

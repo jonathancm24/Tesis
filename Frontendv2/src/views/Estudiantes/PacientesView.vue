@@ -227,7 +227,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePacientesStore } from '@/stores/Estudiantes/pacientes'
 import { useEncuestaTamizajeStore } from '@/stores/Estudiantes/encuestaTamizaje'
@@ -241,8 +241,7 @@ import HistorialCasosWidget from '@/components/estudiantes/pacientes/HistorialCa
 import HistorialCompletoModal from '@/components/estudiantes/pacientes/HistorialCompletoModal.vue'
 import AccionesRapidasWidget from '@/components/estudiantes/pacientes/AccionesRapidasWidget.vue'
 import CitasModal from '@/components/estudiantes/pacientes/CitasModal.vue'
-import type { Paciente } from '@/types/pacientes.types'
-import type { EncuestaProgreso } from '@/types/encuestaTamizaje.types'
+import type { Paciente, PacienteFilters } from '@/types/pacientes.types'
 import type { CasoClinicoListItem } from '@/types/casosClinicos.types'
 import '@/assets/styles/Profesor/Estudiantes.css'
 
@@ -279,7 +278,7 @@ onMounted(async () => {
 // Manejar búsqueda con filtros
 const handleSearch = async () => {
   try {
-    const filters: any = {}
+    const filters: PacienteFilters = {}
 
     if (searchTerm.value.trim()) {
       const term = searchTerm.value.trim().toLowerCase()
@@ -363,17 +362,6 @@ const handleSelectPaciente = async (paciente: Paciente) => {
   await cargarCasosDelPaciente(paciente.id)
 }
 
-// Formatear fecha
-const formatDate = (date: string | Date | null | undefined): string => {
-  if (!date) return 'N/A'
-  const d = new Date(date)
-  return d.toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
-
 // Calcular edad a partir de fecha de nacimiento
 const calcularEdad = (fechaNacimiento: string | Date | null | undefined): number => {
   if (!fechaNacimiento) return 0
@@ -387,21 +375,6 @@ const calcularEdad = (fechaNacimiento: string | Date | null | undefined): number
   }
   
   return age
-}
-
-// Obtener progreso de encuesta desde el store
-const getEncuestaProgreso = (pacienteId: number): EncuestaProgreso | null => {
-  // Retornar el progreso real del store de encuesta
-  if (encuestaStore.encuestaPacienteActual && 
-      encuestaStore.encuestaPacienteActual.pacienteId === pacienteId) {
-    return {
-      totalPreguntas: encuestaStore.encuestaPacienteActual.totalPreguntas || 0,
-      respuestasCompletadas: encuestaStore.encuestaPacienteActual.respuestasCompletadas || 0,
-      porcentaje: encuestaStore.encuestaPacienteActual.porcentaje || 0,
-      estado: encuestaStore.encuestaPacienteActual.estado || 'PENDIENTE'
-    }
-  }
-  return null
 }
 
 // Cargar casos clínicos del paciente

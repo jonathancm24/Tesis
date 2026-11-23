@@ -379,7 +379,7 @@ const cargarDetalleCaso = async (casoId: number) => {
   try {
     casoSeleccionado.value = await casosClinicosService.getById(casoId)
     calificacion.value = casoSeleccionado.value.calificacion || undefined
-  } catch (error) {
+  } catch {
     toast.error('No se pudo cargar el detalle del caso')
   }
 }

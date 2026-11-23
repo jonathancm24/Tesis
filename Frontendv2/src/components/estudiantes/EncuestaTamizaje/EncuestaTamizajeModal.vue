@@ -449,7 +449,7 @@ const handleGuardar = async () => {
 
   try {
     // Llamar al store para guardar (ya no convertimos, el store lo hace)
-    const resultado = await store.guardarRespuestas(
+    await store.guardarRespuestas(
       props.pacienteId, 
       respuestasActuales.value,
       detallesActuales.value

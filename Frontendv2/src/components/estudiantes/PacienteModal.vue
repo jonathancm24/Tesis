@@ -341,12 +341,14 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { pacientesService } from '@/services/estudiantes/Pacientes/pacientes.service'
 import { useParroquiasSearch } from '@/composables/useParroquiasSearch'
 import { getErrorMessage } from '@/utils/errorHandler'
-import { apiClient } from '@/Config/api'
 import type {
   TipoDocumentoPaciente,
   TipoDocumentoRepresentante,
-  Paciente
+  Paciente,
+  CreatePacienteDto,
+  UpdatePacienteDto
 } from '@/types/pacientes.types'
+import type { ParroquiaSearch } from '@/types/parroquias.types'
 import '@/assets/styles/Profesor/components/PacienteModal.css'
 
 interface Props {
@@ -465,7 +467,7 @@ const loadPacienteData = async () => {
 }
 
 // Envolvente para selectParroquia que actualiza formData
-const handleSelectParroquia = (parroquia: any) => {
+const handleSelectParroquia = (parroquia: ParroquiaSearch) => {
   selectParroquia(parroquia)
   formData.parroquiaId = parroquia.id
 }
@@ -550,9 +552,9 @@ const handleSubmit = async () => {
     } as const
 
     if (isEditing.value && props.paciente) {
-      await pacientesService.update(props.paciente.id, payload as any)
+      await pacientesService.update(props.paciente.id, payload as UpdatePacienteDto)
     } else {
-      await pacientesService.create(payload as any)
+      await pacientesService.create(payload as CreatePacienteDto)
     }
 
     emit('success')

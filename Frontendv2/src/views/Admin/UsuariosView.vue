@@ -290,7 +290,7 @@ const form = reactive({
 // Cargar usuarios al montar el componente
 onMounted(async () => {
   try {
-    const [_, especialidadesData] = await Promise.all([
+    const [, especialidadesData] = await Promise.all([
       usuariosStore.fetchUsuarios(),
       especialidadesService.getAll()
     ])

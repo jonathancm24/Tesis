@@ -145,7 +145,7 @@ const loadData = async () => {
 		])
 		preguntas.value = preguntasData
 		especialidades.value = especialidadesData
-	} catch (error) {
+	} catch {
 		loadError.value = 'Error al cargar los datos'
 		toast.error('No se pudieron cargar las preguntas')
 	} finally {
@@ -181,7 +181,7 @@ const confirmDelete = async (id: number) => {
 		await preguntasClinicasService.delete(id)
 		await loadData()
 		toast.success('Pregunta eliminada correctamente')
-	} catch (error) {
+	} catch {
 		toast.error('No se pudo eliminar la pregunta')
 	}
 }

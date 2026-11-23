@@ -5,6 +5,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { pacientesService } from '@/services/estudiantes/Pacientes/pacientes.service'
+import { getErrorMessage } from '@/utils/errorHandler'
 import type { Paciente, PaginatedPacientes, PacienteFilters } from '@/types/pacientes.types'
 
 export const usePacientesStore = defineStore('pacientes', () => {
@@ -37,8 +38,8 @@ export const usePacientesStore = defineStore('pacientes', () => {
         hasNextPage: response.pagination.hasNextPage,
         hasPrevPage: response.pagination.hasPrevPage
       }
-    } catch (err: any) {
-      error.value = err.message || 'Error al cargar pacientes'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err) || 'Error al cargar pacientes'
       throw err
     } finally {
       isLoading.value = false
@@ -51,8 +52,8 @@ export const usePacientesStore = defineStore('pacientes', () => {
   async function getPaciente(id: number): Promise<Paciente> {
     try {
       return await pacientesService.getById(id)
-    } catch (err: any) {
-      error.value = err.message || 'Error al obtener paciente'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err) || 'Error al obtener paciente'
       throw err
     }
   }

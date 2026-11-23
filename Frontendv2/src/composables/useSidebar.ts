@@ -8,7 +8,7 @@
  * - Métodos para toggle, abrir y cerrar
  */
 
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
 
 // Clave para localStorage

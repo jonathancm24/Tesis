@@ -179,7 +179,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { estudiantesService, ROL_ADMIN_ID } from '@/services/Profesores/estudiantes.service'
+import { estudiantesService } from '@/services/Profesores/estudiantes.service'
 import { getErrorMessage } from '@/utils/errorHandler'
 import '@/assets/styles/admin/usuarios.css'
 import '@/assets/styles/Profesor/components/ImportEstudiantesModal.css'
@@ -193,7 +193,7 @@ interface Emits {
   (e: 'success'): void
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 type Step = 'upload' | 'processing' | 'results'

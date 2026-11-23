@@ -277,7 +277,7 @@ const cargarHistorial = async () => {
     error.value = null
     historial.value = await pacientesService.getHistorialCompleto(props.pacienteId)
     await cargarArchivosPorCaso(historial.value.casosClinicos.map((caso) => caso.id))
-  } catch (err) {
+  } catch {
     historial.value = null
     archivosPorCaso.value = {}
     error.value = 'No se pudo cargar el historial completo del paciente.'

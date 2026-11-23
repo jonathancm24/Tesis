@@ -105,17 +105,30 @@ const camposId = useId()
 .panel-3d {
   min-width: 0;
   padding: clamp(0.75rem, 2vw, 1.25rem);
-  border: 1px solid var(--color-border);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--color-border));
+  border-top: 4px solid var(--color-primary);
   border-radius: 1rem;
-  background: var(--color-surface);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 5%, var(--color-surface)), var(--color-surface));
+  box-shadow: 0 12px 28px rgba(35, 55, 43, 0.08);
 }
 .panel-3d fieldset {
   display: grid;
   gap: 0.5rem;
   min-width: 0;
   margin: 0.75rem 0 0;
+  padding: 0.75rem;
   border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
+  background: var(--color-background-secondary);
+}
+.panel-3d legend {
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--btn-primary-text);
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 .panel-3d select,
 .panel-3d textarea {

@@ -175,7 +175,7 @@ interface Emits {
   (e: 'success'): void
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 type Step = 'upload' | 'processing' | 'results'

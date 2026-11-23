@@ -5,6 +5,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { especialidadesService } from '@/services/Admin/especialidades.service'
+import { getErrorMessage } from '@/utils/errorHandler'
 import type {
   Especialidad,
   CreateEspecialidadDto,
@@ -24,8 +25,8 @@ export const useEspecialidadesStore = defineStore('especialidades', () => {
     error.value = null
     try {
       especialidades.value = await especialidadesService.getAll()
-    } catch (err: any) {
-      error.value = err.message || 'Error al cargar especialidades'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err) || 'Error al cargar especialidades'
       throw err
     } finally {
       isLoading.value = false
@@ -42,8 +43,8 @@ export const useEspecialidadesStore = defineStore('especialidades', () => {
       const nuevaEspecialidad = await especialidadesService.create(data)
       especialidades.value.push(nuevaEspecialidad)
       return nuevaEspecialidad
-    } catch (err: any) {
-      error.value = err.message || 'Error al crear especialidad'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err) || 'Error al crear especialidad'
       throw err
     } finally {
       isLoading.value = false
@@ -63,8 +64,8 @@ export const useEspecialidadesStore = defineStore('especialidades', () => {
         especialidades.value[index] = especialidadActualizada
       }
       return especialidadActualizada
-    } catch (err: any) {
-      error.value = err.message || 'Error al actualizar especialidad'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err) || 'Error al actualizar especialidad'
       throw err
     } finally {
       isLoading.value = false
@@ -80,8 +81,8 @@ export const useEspecialidadesStore = defineStore('especialidades', () => {
     try {
       await especialidadesService.delete(id)
       especialidades.value = especialidades.value.filter((e) => e.id !== id)
-    } catch (err: any) {
-      error.value = err.message || 'Error al eliminar especialidad'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err) || 'Error al eliminar especialidad'
       throw err
     } finally {
       isLoading.value = false
