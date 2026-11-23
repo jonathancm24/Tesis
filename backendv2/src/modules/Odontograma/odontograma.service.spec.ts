@@ -146,15 +146,24 @@ describe('OdontogramaService: acceso por caso', () => {
     expect(tx.odontograma.findMany).not.toHaveBeenCalled()
   })
 
-  it('utiliza el profesor asignado al caso e ignora el docenteId enviado por el cliente', async () => {
+  it('rechaza un docenteId que no coincide con el profesor asignado', async () => {
+    const { servicio, tx } = crearServicio()
+
+    await expect(
+      servicio.save(
+        { ...dto, docenteId: 998, observacionGeneral: 'Sin hallazgos' },
+        estudiante,
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException)
+
+    expect(tx.odontograma.findMany).not.toHaveBeenCalled()
+  })
+
+  it('usa el profesor asignado al caso aunque el cliente omita docenteId', async () => {
     const { servicio, tx } = crearServicio()
 
     await servicio.save(
-      {
-        ...dto,
-        docenteId: 998,
-        observacionGeneral: 'Sin hallazgos',
-      },
+      { ...dto, docenteId: undefined, observacionGeneral: 'Sin hallazgos' },
       estudiante,
     )
 
