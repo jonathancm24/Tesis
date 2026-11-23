@@ -84,31 +84,31 @@
           </thead>
           <tbody>
             <tr v-for="archivo in filteredArchivos" :key="archivo.id">
-              <td>
+              <td data-label="Archivo">
                 <div class="file-main">
                   <span class="file-name">{{ archivo.nombre }}</span>
                   <span class="file-type">{{ archivo.tipo }}</span>
                 </div>
               </td>
-              <td>{{ archivo.descripcion || 'Sin descripción' }}</td>
-              <td>
+              <td data-label="Descripción">{{ archivo.descripcion || 'Sin descripción' }}</td>
+              <td data-label="Subido por">
                 {{ archivo.subidoPor.nombre }} {{ archivo.subidoPor.apellido }}
               </td>
-              <td>{{ formatDate(archivo.fechaSubida) }}</td>
-              <td class="actions-col">
-                <button class="btn btn-link" type="button" @click="handleVisualizar(archivo)">
-                  Visualizar
+              <td data-label="Fecha">{{ formatDate(archivo.fechaSubida) }}</td>
+              <td class="actions-col" data-label="Acciones">
+                <button class="btn btn-link table-action" type="button" @click="handleVisualizar(archivo)">
+                  <span aria-hidden="true">👁️</span><span>Visualizar</span>
                 </button>
-                <button class="btn btn-link" type="button" @click="handleDescargar(archivo)">
-                  Descargar
+                <button class="btn btn-link table-action" type="button" @click="handleDescargar(archivo)">
+                  <span aria-hidden="true">⬇️</span><span>Descargar</span>
                 </button>
                 <button
                   v-if="canDelete(archivo)"
-                  class="btn btn-link danger"
+                  class="btn btn-link danger table-action"
                   type="button"
                   @click="handleDelete(archivo)"
                 >
-                  Eliminar
+                  <span aria-hidden="true">🗑️</span><span>Eliminar</span>
                 </button>
               </td>
             </tr>

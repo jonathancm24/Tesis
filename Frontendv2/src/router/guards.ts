@@ -2,11 +2,19 @@ import type { Router } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { usePermissions } from '@/composables/usePermissions'
 import type { RoleName } from '@/Config/permissions'
+import { AUTH_EXPIRED_EVENT } from '@/Config/api'
 
 /**
  * Configurar guards de autenticacion y permisos
  */
 export const setupRouterGuards = (router: Router) => {
+  window.addEventListener(AUTH_EXPIRED_EVENT, () => {
+    useAuthStore().clearAuth()
+    if (router.currentRoute.value.name !== 'login') {
+      void router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
+    }
+  })
+
   router.beforeEach((to, from, next) => {
     const authStore = useAuthStore()
     const { hasAnyRole } = usePermissions()

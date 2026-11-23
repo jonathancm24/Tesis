@@ -167,6 +167,16 @@ const routes: RouteRecordRaw[] = [
           title: 'Tratamientos y prescripciones',
           roles: ['ESTUDIANTE', 'ADMIN']
         }
+      },
+      {
+        path: 'odontograma-3d',
+        name: 'odontograma-3d',
+        component: () => import('../components/estudiantes/Odontograma/Odontograma3DViewer.vue'),
+        meta: {
+          title: 'Odontograma 3D',
+          requiresAuth: true,
+          roles: ['ESTUDIANTE', 'PROFESOR', 'ADMIN']
+        }
       }
 
       // ========== RUTAS FUTURAS (comentadas) ==========

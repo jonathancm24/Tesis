@@ -34,6 +34,10 @@
               <option value="EN_REVISION">En Revisión</option>
               <option value="all">Todos los estados</option>
               <option value="APROBADO">Aprobados</option>
+              <option value="PENDIENTE_ESTUDIOS">Pendiente de estudios</option>
+              <option value="EN_TRATAMIENTO">En tratamiento</option>
+              <option value="FINALIZADO">Finalizados</option>
+              <option value="CANCELADO">Cancelados</option>
               <option value="RECHAZADO">Rechazados</option>
             </select>
           </div>
@@ -375,7 +379,7 @@ const cargarDetalleCaso = async (casoId: number) => {
   try {
     casoSeleccionado.value = await casosClinicosService.getById(casoId)
     calificacion.value = casoSeleccionado.value.calificacion || undefined
-  } catch (error) {
+  } catch {
     toast.error('No se pudo cargar el detalle del caso')
   }
 }
@@ -423,7 +427,7 @@ const handleAgregarObservacion = async () => {
 
     toast.success('Observación agregada correctamente')
     nuevaObservacion.value = ''
-    
+
     // Recargar el detalle del caso
     await cargarDetalleCaso(casoSeleccionado.value.id)
   } catch (error) {
@@ -467,10 +471,10 @@ const handleRechazar = async () => {
 
   try {
     isSaving.value = true
-    
+
     // Primero agregar la observación
     await handleAgregarObservacion()
-    
+
     // Luego rechazar el caso
     await casosClinicosService.updateEstado(casoSeleccionado.value.id, {
       estado: 'RECHAZADO',
@@ -493,6 +497,8 @@ const getEstadoLabel = (estado: EstadoCasoClinico): string => {
     'EN_TRATAMIENTO': 'En Tratamiento',
     'FINALIZADO': 'Finalizado',
     'APROBADO': 'Aprobado',
+    'PENDIENTE_ESTUDIOS': 'Pendiente de estudios',
+    'CANCELADO': 'Cancelado',
     'RECHAZADO': 'Rechazado'
   }
   return labels[estado] || estado
@@ -504,6 +510,8 @@ const getEstadoBadge = (estado: EstadoCasoClinico): string => {
     'EN_TRATAMIENTO': 'info',
     'FINALIZADO': 'success',
     'APROBADO': 'success',
+    'PENDIENTE_ESTUDIOS': 'warning',
+    'CANCELADO': 'muted',
     'RECHAZADO': 'danger'
   }
   return badges[estado] || 'muted'
@@ -525,11 +533,11 @@ const calcularEdad = (fechaNacimiento: Date | string | undefined): number => {
   const birthDate = new Date(fechaNacimiento)
   let age = today.getFullYear() - birthDate.getFullYear()
   const monthDiff = today.getMonth() - birthDate.getMonth()
-  
+
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
     age--
   }
-  
+
   return age
 }
 

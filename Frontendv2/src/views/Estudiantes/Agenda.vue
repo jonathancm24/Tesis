@@ -153,6 +153,9 @@ import { especialidadesService } from '@/services/Admin/especialidades.service'
 import { usuariosService } from '@/services/Admin/usuarios.service'
 import citasService, { type Cita } from '@/services/estudiantes/Citas/citas.service'
 import type { Paciente } from '@/types/pacientes.types'
+import { getErrorMessage } from '@/utils/errorHandler'
+
+defineOptions({ name: 'AgendaView' })
 import type { Especialidad } from '@/types/especialidades.types'
 import type { Usuario } from '@/types/usuarios.types'
 import '@/assets/styles/Estudiantes/Agenda.css'
@@ -356,7 +359,7 @@ const loadData = async () => {
 		pacientes.value = pacientesResponse.data
 		especialidades.value = especialidadesResponse
 		docentes.value = usuariosResponse.data.filter((user) => user.role?.nombre === 'PROFESOR')
-	} catch (error) {
+	} catch {
 		toast.error('No se pudo cargar la agenda de citas')
 	} finally {
 		isLoading.value = false
@@ -392,8 +395,8 @@ const handleSubmit = async () => {
 
 		await loadData()
 		closeModal()
-	} catch (error: any) {
-		formError.value = error?.response?.data?.message || 'No se pudo guardar la cita.'
+	} catch (error: unknown) {
+		formError.value = getErrorMessage(error)
 		toast.error(formError.value)
 	} finally {
 		isSaving.value = false

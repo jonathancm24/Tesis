@@ -15,16 +15,20 @@ import { AsignarPermisosDto } from './dto/asignar-permisos.dto';
 import { UpdateRolDto } from './dto/update-rol.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../guards/permissions.guard';
+import { RolesGuard } from '../../guards/roles.guard';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { PermisoEnum } from '../../common/enums/permisos.enum';
+import { RoleEnum } from '../../common/enums/roles.enum';
 
 @Controller('roles')
-@UseGuards(/*JwtAuthGuard,*/ PermissionsGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+@Roles(RoleEnum.ADMIN)
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Get('/todos')
-  //@RequirePermissions(PermisoEnum.VER_ROLES)
+  @RequirePermissions(PermisoEnum.VER_ROLES)
   async findAll() {
     return this.rolesService.findAll();
   }

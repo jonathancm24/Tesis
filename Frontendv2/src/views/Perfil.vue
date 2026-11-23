@@ -188,7 +188,10 @@ import { especialidadesService } from '@/services/Admin/especialidades.service'
 import { getErrorMessage } from '@/utils/errorHandler'
 import { TipoDocumento, type UpdateUsuarioDto, type Usuario } from '@/types/usuarios.types'
 import type { Especialidad } from '@/types/especialidades.types'
+import type { ParroquiaSearch } from '@/types/parroquias.types'
 import '@/assets/styles/Perfil.css'
+
+defineOptions({ name: 'PerfilView' })
 
 const toast = useToast()
 const authStore = useAuthStore()
@@ -200,7 +203,6 @@ const {
   handleSearchParroquias,
   selectParroquia,
   loadParroquiaActual,
-  reset: resetParroquiasSearch,
 } = useParroquiasSearch()
 
 const isSavingProfile = ref(false)
@@ -293,7 +295,7 @@ const handleEspecialidadToggle = (especialidadId: number) => {
   }
 }
 
-const handleSelectParroquia = (parroquia: any) => {
+const handleSelectParroquia = (parroquia: ParroquiaSearch) => {
   selectParroquia(parroquia)
   profileForm.value.parroquiaId = parroquia.id
 }

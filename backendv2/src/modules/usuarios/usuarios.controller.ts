@@ -16,6 +16,7 @@ import {
   Res,
   StreamableFile,
   BadRequestException,
+  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
@@ -28,6 +29,19 @@ import {
   UsuariosPaginatedResponseDto,
   UsuarioFiltersDto,
 } from './dto';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { RolesGuard } from '../../guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { RoleEnum } from '../../common/enums/roles.enum';
+
+interface AuthenticatedRequest {
+  user: {
+    id: number;
+    role: { nombre: string };
+  };
+}
+
+const ROLES_CONSULTA_USUARIOS = [RoleEnum.ADMIN, RoleEnum.PROFESOR];
 
 /**
  * Controlador para manejar operaciones CRUD de usuarios
@@ -37,7 +51,7 @@ import {
  * En producción, descomentar los guards correspondientes.
  */
 @Controller('usuarios')
-// @UseGuards(JwtAuthGuard) // Descomenta para proteger todas las rutas con JWT
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
@@ -47,11 +61,13 @@ export class UsuariosController {
    * Requiere permisos: CREAR_USUARIOS
    */
   @Post()
+  @Roles(...ROLES_CONSULTA_USUARIOS)
   @HttpCode(HttpStatus.CREATED)
-  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
-  // @RequirePermissions(Permisos.CREAR_USUARIOS) // Descomenta para requerir permiso específico
-  async create(@Body() createUsuarioDto: CreateUsuarioDto): Promise<UsuarioResponseDto> {
-    return this.usuariosService.create(createUsuarioDto);
+  async create(
+    @Body() createUsuarioDto: CreateUsuarioDto,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<UsuarioResponseDto> {
+    return this.usuariosService.create(createUsuarioDto, request.user.role.nombre);
   }
 
   /**
@@ -77,9 +93,11 @@ export class UsuariosController {
    * - orderDirection: string ('asc' | 'desc', default: 'desc')
    */
   @Get()
-  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
-  // @RequirePermissions(Permisos.VER_USUARIOS) // Descomenta para requerir permiso específico
-  async findAll(@Query() query: any): Promise<UsuariosPaginatedResponseDto> {
+  @Roles(...ROLES_CONSULTA_USUARIOS)
+  async findAll(
+    @Query() query: any,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<UsuariosPaginatedResponseDto> {
     // Construir filtros desde query params
     const filters = new UsuarioFiltersDto({
       nombre: query.nombre,
@@ -99,7 +117,7 @@ export class UsuariosController {
       orderDirection: query.orderDirection || 'desc',
     });
 
-    return this.usuariosService.findAll(filters);
+    return this.usuariosService.findAll(filters, request.user.role.nombre);
   }
 
     /**
@@ -110,12 +128,14 @@ export class UsuariosController {
    * Genera y descarga un archivo Excel de plantilla con instrucciones y ejemplos
    */
   @Get('template')
-  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
-  // @RequirePermissions(Permisos.VER_USUARIOS) // Descomenta para requerir permiso específico
+  @Roles(...ROLES_CONSULTA_USUARIOS)
   async downloadTemplate(
     @Res({ passthrough: true }) res: Response,
+    @Req() request: AuthenticatedRequest,
   ): Promise<StreamableFile> {
-    const buffer = await this.usuariosService.generateImportTemplate();
+    const buffer = await this.usuariosService.generateImportTemplate(
+      request.user.role.nombre,
+    );
 
     // Configurar headers para descarga de archivo
     res.set({
@@ -134,18 +154,21 @@ export class UsuariosController {
    * Acepta un archivo Excel con las columnas especificadas en la documentación del servicio
    */
   @Post('import')
+  @Roles(...ROLES_CONSULTA_USUARIOS)
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('file'))
-  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
-  // @RequirePermissions(Permisos.CREAR_USUARIOS) // Descomenta para requerir permiso específico
   async importFromExcel(
     @UploadedFile() file: Express.Multer.File,
+    @Req() request: AuthenticatedRequest,
   ): Promise<{ imported: number; errors: string[] }> {
     if (!file) {
       throw new BadRequestException('No se ha proporcionado ningún archivo');
     }
 
-    const result = await this.usuariosService.importFromExcel(file.buffer);
+    const result = await this.usuariosService.importFromExcel(
+      file.buffer,
+      request.user.role.nombre,
+    );
     
     // Transformar el resultado al formato esperado por el frontend
     const errors = result.detalles
@@ -166,8 +189,7 @@ export class UsuariosController {
    * Exporta todos los usuarios (con filtros opcionales) a un archivo Excel
    */
   @Get('export')
-  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
-  // @RequirePermissions(Permisos.VER_USUARIOS) // Descomenta para requerir permiso específico
+  @Roles(RoleEnum.ADMIN)
   async exportToExcel(
     @Query() query: any,
     @Res({ passthrough: true }) res: Response,
@@ -209,10 +231,16 @@ export class UsuariosController {
    * Requiere permisos: VER_USUARIOS
    */
   @Get(':id')
-  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
-  // @RequirePermissions(Permisos.VER_USUARIOS) // Descomenta para requerir permiso específico
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<UsuarioResponseDto> {
-    return this.usuariosService.findOne(id);
+  @Roles(RoleEnum.ADMIN, RoleEnum.PROFESOR, RoleEnum.ESTUDIANTE)
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<UsuarioResponseDto> {
+    return this.usuariosService.findOne(
+      id,
+      request.user.role.nombre,
+      request.user.id,
+    );
   }
 
   /**
@@ -221,13 +249,18 @@ export class UsuariosController {
    * Requiere permisos: EDITAR_USUARIOS
    */
   @Patch(':id')
-  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
-  // @RequirePermissions(Permisos.EDITAR_USUARIOS) // Descomenta para requerir permiso específico
+  @Roles(RoleEnum.ADMIN, RoleEnum.PROFESOR, RoleEnum.ESTUDIANTE)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUsuarioDto: UpdateUsuarioDto,
+    @Req() request: AuthenticatedRequest,
   ): Promise<UsuarioResponseDto> {
-    return this.usuariosService.update(id, updateUsuarioDto);
+    return this.usuariosService.update(
+      id,
+      updateUsuarioDto,
+      request.user.role.nombre,
+      request.user.id,
+    );
   }
 
   /**
@@ -236,14 +269,19 @@ export class UsuariosController {
    * Requiere permisos: EDITAR_USUARIOS o ser el propio usuario
    */
   @Patch(':id/change-password')
+  @Roles(RoleEnum.ADMIN, RoleEnum.PROFESOR, RoleEnum.ESTUDIANTE)
   @HttpCode(HttpStatus.OK)
-  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
-  // @RequirePermissions(Permisos.EDITAR_USUARIOS) // Descomenta para requerir permiso específico
   async changePassword(
     @Param('id', ParseIntPipe) id: number,
     @Body() changePasswordDto: ChangePasswordDto,
+    @Req() request: AuthenticatedRequest,
   ): Promise<{ message: string }> {
-    return this.usuariosService.changePassword(id, changePasswordDto);
+    return this.usuariosService.changePassword(
+      id,
+      changePasswordDto,
+      request.user.role.nombre,
+      request.user.id,
+    );
   }
 
   /**
@@ -252,9 +290,8 @@ export class UsuariosController {
    * Requiere permisos: EDITAR_USUARIOS
    */
   @Patch(':id/activate')
+  @Roles(RoleEnum.ADMIN)
   @HttpCode(HttpStatus.OK)
-  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
-  // @RequirePermissions(Permisos.EDITAR_USUARIOS) // Descomenta para requerir permiso específico
   async activate(@Param('id', ParseIntPipe) id: number): Promise<UsuarioResponseDto> {
     return this.usuariosService.toggleActive(id, true);
   }
@@ -265,9 +302,8 @@ export class UsuariosController {
    * Requiere permisos: EDITAR_USUARIOS
    */
   @Patch(':id/deactivate')
+  @Roles(RoleEnum.ADMIN)
   @HttpCode(HttpStatus.OK)
-  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
-  // @RequirePermissions(Permisos.EDITAR_USUARIOS) // Descomenta para requerir permiso específico
   async deactivate(@Param('id', ParseIntPipe) id: number): Promise<UsuarioResponseDto> {
     return this.usuariosService.toggleActive(id, false);
   }
@@ -278,9 +314,8 @@ export class UsuariosController {
    * Requiere permisos: ELIMINAR_USUARIOS
    */
   @Delete(':id')
+  @Roles(RoleEnum.ADMIN)
   @HttpCode(HttpStatus.OK)
-  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
-  // @RequirePermissions(Permisos.ELIMINAR_USUARIOS) // Descomenta para requerir permiso específico
   async remove(@Param('id', ParseIntPipe) id: number): Promise<{ message: string }> {
     return this.usuariosService.remove(id);
   }
@@ -291,8 +326,7 @@ export class UsuariosController {
    * Requiere permisos: VER_USUARIOS
    */
   @Get('stats/overview')
-  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
-  // @RequirePermissions(Permisos.VER_USUARIOS) // Descomenta para requerir permiso específico
+  @Roles(RoleEnum.ADMIN)
   async getStats() {
     // Esta funcionalidad se puede implementar posteriormente
     return {
@@ -314,11 +348,11 @@ export class UsuariosController {
    * Busca en nombre, apellido y email
    */
   @Get('search/:searchTerm')
-  // @UseGuards(PermissionsGuard) // Descomenta para verificar permisos
-  // @RequirePermissions(Permisos.VER_USUARIOS) // Descomenta para requerir permiso específico
+  @Roles(...ROLES_CONSULTA_USUARIOS)
   async search(
     @Param('searchTerm') searchTerm: string,
     @Query() query: any,
+    @Req() request: AuthenticatedRequest,
   ): Promise<UsuariosPaginatedResponseDto> {
     const filters = new UsuarioFiltersDto({
       // Buscar en múltiples campos (esto se puede mejorar con búsqueda full-text)
@@ -327,7 +361,7 @@ export class UsuariosController {
       limit: query.limit ? parseInt(query.limit) : 10,
     });
 
-    return this.usuariosService.findAll(filters);
+    return this.usuariosService.findAll(filters, request.user.role.nombre);
   }
 
 

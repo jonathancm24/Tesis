@@ -29,16 +29,13 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const initializeAuth = () => {
     const savedToken = localStorage.getItem('auth-token')
-    const savedUser = localStorage.getItem('user-data')
+    const savedUser = authService.getCurrentUser()
 
-    if (savedToken && savedUser) {
-      try {
-        token.value = savedToken
-        user.value = JSON.parse(savedUser)
-      } catch (error) {
-        console.error('Error al recuperar datos de autenticación:', error)
-        clearAuth()
-      }
+    if (savedToken && savedUser && authService.isAuthenticated()) {
+      token.value = savedToken
+      user.value = savedUser
+    } else if (savedToken || savedUser) {
+      clearAuth()
     }
   }
 
@@ -49,8 +46,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     token.value = null
     error.value = null
-    localStorage.removeItem('auth-token')
-    localStorage.removeItem('user-data')
+    authService.clearAuthData()
   }
 
   /**

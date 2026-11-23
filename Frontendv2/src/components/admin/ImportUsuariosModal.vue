@@ -163,6 +163,7 @@
 import { ref, computed } from 'vue'
 import { usuariosService } from '@/services/Admin/usuarios.service'
 import { getErrorMessage } from '@/utils/errorHandler'
+import { useToast } from '@/composables/useToast'
 import '@/assets/styles/admin/usuarios.css'
 import '@/assets/styles/admin/components/ImportUsuariosModal.css'
 
@@ -175,8 +176,9 @@ interface Emits {
   (e: 'success'): void
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const emit = defineEmits<Emits>()
+const toast = useToast()
 
 type Step = 'upload' | 'processing' | 'results'
 
@@ -244,7 +246,7 @@ const handleDrop = (event: DragEvent) => {
     if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
       selectedFile.value = file
     } else {
-      alert('Por favor selecciona un archivo Excel válido (.xlsx o .xls)')
+      toast.warning('Por favor selecciona un archivo Excel válido (.xlsx o .xls)')
     }
   }
 }
@@ -283,7 +285,7 @@ const downloadTemplate = async () => {
     }, 100)
   } catch (error) {
     console.error('Error al descargar plantilla:', error)
-    alert(getErrorMessage(error))
+    toast.error(getErrorMessage(error))
   } finally {
     isLoading.value = false
   }

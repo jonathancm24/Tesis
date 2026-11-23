@@ -9,6 +9,9 @@
         </p>
       </div>
       <div class="header-actions">
+        <button class="btn btn-secondary" type="button" @click="handleRefreshPacientes" :disabled="store.isLoading">
+          Actualizar
+        </button>
         <button class="btn btn-primary" type="button" @click="handleNewPaciente">
           <span class="icon">➕</span>
           Nuevo paciente
@@ -71,50 +74,53 @@
                 style="cursor: pointer;"
                 :class="{ 'active-row': selectedPaciente?.id === paciente.id }"
               >
-                <td>
+                <td data-label="Paciente">
                   <div class="patient-info">
                     <span class="patient-name">{{ paciente.nombre }} {{ paciente.apellido }}</span>
                     <span class="patient-meta">{{ paciente.parroquia?.nombre || 'Sin parroquia' }}</span>
                   </div>
                 </td>
-                <td>{{ paciente.email || 'No registrado' }}</td>
-                <td>{{ paciente.telefono || 'No registrado' }}</td>
-                <td>
+                <td data-label="Email">{{ paciente.email || 'No registrado' }}</td>
+                <td data-label="Teléfono">{{ paciente.telefono || 'No registrado' }}</td>
+                <td data-label="Documento">
                   <span class="badge badge-secondary">
                     {{ paciente.tipoDocumento }} · {{ paciente.numeroDocumento }}
                   </span>
                 </td>
-                <td>
+                <td data-label="Estado">
                   <span :class="['badge', paciente.activo ? 'badge-success' : 'badge-muted']">
                     {{ paciente.activo ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
-                <td class="actions-col">
+                <td class="actions-col" data-label="Acciones">
                   <button
-                    class="btn btn-link"
+                    class="btn btn-link table-action"
                     type="button"
-                    @click="handleEditPaciente(paciente)"
-                    title="Editar"
+                    @click.stop="handleEditPaciente(paciente)"
+                    aria-label="Editar paciente"
                   >
-                    ✏️
+                    <span aria-hidden="true">✏️</span>
+                    <span>Editar</span>
                   </button>
                   <button
                     v-if="paciente.activo"
-                    class="btn btn-link danger"
+                    class="btn btn-link danger table-action"
                     type="button"
-                    @click="handleDeletePaciente(paciente.id)"
-                    title="Desactivar"
+                    @click.stop="handleDeletePaciente(paciente.id)"
+                    aria-label="Desactivar paciente"
                   >
-                    🗑️
+                    <span aria-hidden="true">🗑️</span>
+                    <span>Desactivar</span>
                   </button>
                   <button
                     v-else
-                    class="btn btn-link success"
+                    class="btn btn-link success table-action"
                     type="button"
-                    @click="handleActivatePaciente(paciente.id)"
-                    title="Activar"
+                    @click.stop="handleActivatePaciente(paciente.id)"
+                    aria-label="Activar paciente"
                   >
-                    ✅
+                    <span aria-hidden="true">✅</span>
+                    <span>Activar</span>
                   </button>
                 </td>
               </tr>
@@ -123,81 +129,6 @@
         </div>
       </div>
 
-      <aside class="summary-sidebar">
-        <!-- Estado: Sin paciente seleccionado -->
-        <div v-if="!selectedPaciente" class="card empty-state-card">
-          <div class="empty-icon">👤</div>
-          <p>Selecciona un paciente para ver detalles y gestionar su información</p>
-        </div>
-
-        <!-- Estado: Paciente seleccionado -->
-        <template v-else>
-          <!-- Card: Información del Paciente -->
-          <div class="card info-card">
-            <div class="paciente-header">
-              <div class="paciente-info-main">
-                <h2>{{ selectedPaciente.nombre }} {{ selectedPaciente.apellido }}</h2>
-                <p class="email">{{ selectedPaciente.email || 'Sin email' }}</p>
-              </div>
-            </div>
-
-            <div class="info-grid">
-              <div class="info-item">
-                <span class="label">Documento</span>
-                <span class="value">{{ selectedPaciente.tipoDocumento }} · {{ selectedPaciente.numeroDocumento }}</span>
-              </div>
-              <div class="info-item">
-                <span class="label">Teléfono</span>
-                <span class="value">{{ selectedPaciente.telefono || '—' }}</span>
-              </div>
-              <div class="info-item">
-                <span class="label">Edad</span>
-                <span class="value">{{ calcularEdad(selectedPaciente.fechaNacimiento) }} años</span>
-              </div>
-              <div class="info-item">
-                <span class="label">Género</span>
-                <span class="value">{{ selectedPaciente.genero || '—' }}</span>
-              </div>
-              <div class="info-item">
-                <span class="label">Ocupación</span>
-                <span class="value">{{ selectedPaciente.ocupacion || '—' }}</span>
-              </div>
-              <div class="info-item">
-                <span class="label">Estado Civil</span>
-                <span class="value">{{ selectedPaciente.estadoCivil || '—' }}</span>
-              </div>
-            </div>
-
-            <div v-if="selectedPaciente.representante" class="representante-section">
-              <h4>Representante</h4>
-              <p><strong>{{ selectedPaciente.representante }}</strong> ({{ selectedPaciente.relacionRep }})</p>
-              <p class="phone">{{ selectedPaciente.telefonoRep || '—' }}</p>
-            </div>
-          </div>
-
-          <!-- Card: Antecedentes Médicos Widget -->
-          <AntecedentesMedicosWidget
-            :paciente-id="selectedPaciente.id"
-            :genero="selectedPaciente.genero"
-            @encuesta-saved="handleEncuestaSaved"
-          />
-
-          <!-- Card: Historial de Casos Widget -->
-          <HistorialCasosWidget
-            :paciente-id="selectedPaciente.id"
-            :casos="getCasosDelPaciente(selectedPaciente.id)"
-            @select-caso="handleSelectCaso"
-            @open-historial-completo="handleOpenHistorialCompleto"
-          />
-
-          <!-- Card: Acciones Rápidas Widget -->
-          <AccionesRapidasWidget
-            :paciente-id="selectedPaciente.id"
-            :puede-crear-caso="true"
-            @accion="handleAccionRapida"
-          />
-        </template>
-      </aside>
     </div>
 
     <!-- Modal para crear/editar paciente -->
@@ -221,13 +152,59 @@
       v-if="selectedPaciente"
       :is-open="isHistorialModalOpen"
       :paciente-id="selectedPaciente.id"
-      @close="isHistorialModalOpen = false"
+      :caso-id="selectedCasoId"
+      @close="isHistorialModalOpen = false; selectedCasoId = null"
     />
+
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="isDetailModalOpen && selectedPaciente" class="modal-overlay" @click.self="closeDetailModal">
+          <section class="modal-container paciente-detail-modal" role="dialog" aria-modal="true" aria-labelledby="paciente-detail-title">
+            <header class="modal-header">
+              <div>
+                <p class="eyebrow">Paciente seleccionado</p>
+                <h2 id="paciente-detail-title">{{ selectedPaciente.nombre }} {{ selectedPaciente.apellido }}</h2>
+                <p class="subtitle">{{ selectedPaciente.email || 'Sin email registrado' }}</p>
+              </div>
+              <button class="btn-close" type="button" @click="closeDetailModal" aria-label="Cerrar detalles">×</button>
+            </header>
+
+            <div class="modal-body paciente-detail-body">
+              <div class="paciente-detail-grid">
+                <div class="info-item"><span class="label">Documento</span><span class="value">{{ selectedPaciente.tipoDocumento }} · {{ selectedPaciente.numeroDocumento }}</span></div>
+                <div class="info-item"><span class="label">Teléfono</span><span class="value">{{ selectedPaciente.telefono || '—' }}</span></div>
+                <div class="info-item"><span class="label">Edad</span><span class="value">{{ calcularEdad(selectedPaciente.fechaNacimiento) }} años</span></div>
+                <div class="info-item"><span class="label">Género</span><span class="value">{{ selectedPaciente.genero || '—' }}</span></div>
+              </div>
+
+              <AntecedentesMedicosWidget
+                :paciente-id="selectedPaciente.id"
+                :genero="selectedPaciente.genero"
+                @encuesta-saved="handleEncuestaSaved"
+              />
+
+              <HistorialCasosWidget
+                :paciente-id="selectedPaciente.id"
+                :casos="getCasosDelPaciente(selectedPaciente.id)"
+                @select-caso="handleSelectCaso"
+                @open-historial-completo="handleOpenHistorialCompleto"
+              />
+
+              <AccionesRapidasWidget
+                :paciente-id="selectedPaciente.id"
+                :puede-crear-caso="true"
+                @accion="handleAccionRapida"
+              />
+            </div>
+          </section>
+        </div>
+      </Transition>
+    </Teleport>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePacientesStore } from '@/stores/Estudiantes/pacientes'
 import { useEncuestaTamizajeStore } from '@/stores/Estudiantes/encuestaTamizaje'
@@ -241,8 +218,7 @@ import HistorialCasosWidget from '@/components/estudiantes/pacientes/HistorialCa
 import HistorialCompletoModal from '@/components/estudiantes/pacientes/HistorialCompletoModal.vue'
 import AccionesRapidasWidget from '@/components/estudiantes/pacientes/AccionesRapidasWidget.vue'
 import CitasModal from '@/components/estudiantes/pacientes/CitasModal.vue'
-import type { Paciente } from '@/types/pacientes.types'
-import type { EncuestaProgreso } from '@/types/encuestaTamizaje.types'
+import type { Paciente, PacienteFilters } from '@/types/pacientes.types'
 import type { CasoClinicoListItem } from '@/types/casosClinicos.types'
 import '@/assets/styles/Profesor/Estudiantes.css'
 
@@ -258,6 +234,8 @@ const isModalOpen = ref(false)
 const editingPaciente = ref<Paciente | null>(null)
 const isCitaModalOpen = ref(false)
 const isHistorialModalOpen = ref(false)
+const isDetailModalOpen = ref(false)
+const selectedCasoId = ref<number | null>(null)
 const casosDelPaciente = ref<CasoClinicoListItem[]>([])
 const loadingCasos = ref(false)
 
@@ -266,7 +244,7 @@ const pacientes = computed(() => store.pacientes)
 // Cargar pacientes al montar
 onMounted(async () => {
   try {
-    await store.fetchPacientes()
+    await store.fetchPacientes({ limit: 500, activo: true })
     // Cargar todas las preguntas de la encuesta
     if (encuestaStore.todasLasPreguntas.length === 0) {
       await encuestaStore.cargarTodasLasPreguntas()
@@ -279,11 +257,14 @@ onMounted(async () => {
 // Manejar búsqueda con filtros
 const handleSearch = async () => {
   try {
-    const filters: any = {}
+    const filters: PacienteFilters = { limit: 500 }
 
     if (searchTerm.value.trim()) {
-      const term = searchTerm.value.trim().toLowerCase()
-      filters.nombre = term
+      const terms = searchTerm.value.trim().split(/\s+/).filter(Boolean)
+      filters.nombre = terms[0]?.toLowerCase()
+      if (terms.length > 1) {
+        filters.apellido = terms.slice(1).join(' ').toLowerCase()
+      }
     }
 
     if (statusFilter.value === 'active') {
@@ -302,6 +283,17 @@ const handleSearch = async () => {
 const handleNewPaciente = () => {
   editingPaciente.value = null
   isModalOpen.value = true
+}
+
+const handleRefreshPacientes = async () => {
+  searchTerm.value = ''
+  statusFilter.value = 'all'
+  try {
+    await store.fetchPacientes({ limit: 500, activo: true })
+    toast.success('Lista de pacientes actualizada')
+  } catch (error) {
+    toast.error(getErrorMessage(error))
+  }
 }
 
 // Editar paciente
@@ -344,13 +336,17 @@ const handleActivatePaciente = async (id: number) => {
 // Éxito en modal
 const handleModalSuccess = async () => {
   toast.success(editingPaciente.value ? 'Paciente actualizado correctamente' : 'Paciente creado correctamente')
-  await store.fetchPacientes()
+  isModalOpen.value = false
+  searchTerm.value = ''
+  statusFilter.value = 'all'
+  await store.fetchPacientes({ limit: 500, activo: true })
   selectedPaciente.value = null
 }
 
 // Seleccionar paciente
 const handleSelectPaciente = async (paciente: Paciente) => {
   selectedPaciente.value = paciente
+  isDetailModalOpen.value = true
   
   // Cargar la encuesta del paciente seleccionado
   try {
@@ -363,15 +359,8 @@ const handleSelectPaciente = async (paciente: Paciente) => {
   await cargarCasosDelPaciente(paciente.id)
 }
 
-// Formatear fecha
-const formatDate = (date: string | Date | null | undefined): string => {
-  if (!date) return 'N/A'
-  const d = new Date(date)
-  return d.toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+const closeDetailModal = () => {
+  isDetailModalOpen.value = false
 }
 
 // Calcular edad a partir de fecha de nacimiento
@@ -387,21 +376,6 @@ const calcularEdad = (fechaNacimiento: string | Date | null | undefined): number
   }
   
   return age
-}
-
-// Obtener progreso de encuesta desde el store
-const getEncuestaProgreso = (pacienteId: number): EncuestaProgreso | null => {
-  // Retornar el progreso real del store de encuesta
-  if (encuestaStore.encuestaPacienteActual && 
-      encuestaStore.encuestaPacienteActual.pacienteId === pacienteId) {
-    return {
-      totalPreguntas: encuestaStore.encuestaPacienteActual.totalPreguntas || 0,
-      respuestasCompletadas: encuestaStore.encuestaPacienteActual.respuestasCompletadas || 0,
-      porcentaje: encuestaStore.encuestaPacienteActual.porcentaje || 0,
-      estado: encuestaStore.encuestaPacienteActual.estado || 'PENDIENTE'
-    }
-  }
-  return null
 }
 
 // Cargar casos clínicos del paciente
@@ -449,9 +423,8 @@ const handleEncuestaSaved = async () => {
 
 // Seleccionar un caso clínico
 const handleSelectCaso = (casoId: number) => {
-  console.log('Seleccionar caso:', casoId)
-  toast.info('Abrir página de caso clínico (Por implementar)')
-  // TODO: Navegar a página de detalle del caso clínico
+  selectedCasoId.value = casoId
+  isHistorialModalOpen.value = true
 }
 
 // Abrir historial completo
@@ -461,6 +434,7 @@ const handleOpenHistorialCompleto = () => {
     return
   }
 
+  selectedCasoId.value = null
   isHistorialModalOpen.value = true
 }
 

@@ -1,13 +1,19 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateTratamientoDto } from './dto';
+import { RoleEnum } from '../../common/enums/roles.enum';
+
+interface AuthenticatedUser {
+  id: number;
+  role: { nombre: RoleEnum };
+}
 
 @Injectable()
 export class TratamientosService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listByCaso(casoClinicoId: number, actorId: number) {
-    const caso = await this.ensureCasoDisponibleParaEstudiante(casoClinicoId, actorId, false);
+  async listByCaso(casoClinicoId: number, actor: AuthenticatedUser) {
+    const caso = await this.ensureCasoDisponible(casoClinicoId, actor, false);
 
     return this.prisma.tratamiento.findMany({
       where: { casoClinicoId: caso.id },
@@ -32,15 +38,19 @@ export class TratamientosService {
     });
   }
 
-  async createForCaso(casoClinicoId: number, actorId: number, dto: CreateTratamientoDto) {
-    const caso = await this.ensureCasoDisponibleParaEstudiante(casoClinicoId, actorId, true);
+  async createForCaso(
+    casoClinicoId: number,
+    actor: AuthenticatedUser,
+    dto: CreateTratamientoDto,
+  ) {
+    const caso = await this.ensureCasoDisponible(casoClinicoId, actor, true);
     await this.ensureCatalogoCodigos(dto.cie10Codigo, dto.procedimientoCodigo);
 
     return this.prisma.$transaction(async (tx) => {
       const tratamiento = await tx.tratamiento.create({
         data: {
           casoClinicoId,
-          estudianteId: actorId,
+          estudianteId: caso.estudianteId,
           docenteId: caso.profesorId,
           descripcion: dto.descripcion.trim(),
           frecuenciaCardiaca: dto.frecuenciaCardiaca.trim(),
@@ -120,9 +130,9 @@ export class TratamientosService {
     }
   }
 
-  private async ensureCasoDisponibleParaEstudiante(
+  private async ensureCasoDisponible(
     casoClinicoId: number,
-    actorId: number,
+    actor: AuthenticatedUser,
     rejectIfRejected: boolean,
   ) {
     const caso = await this.prisma.casoClinico.findUnique({
@@ -139,13 +149,28 @@ export class TratamientosService {
       throw new NotFoundException(`Caso clínico con ID ${casoClinicoId} no encontrado`);
     }
 
-    if (caso.estudianteId !== actorId) {
+    if (actor.role.nombre === RoleEnum.ADMIN) {
+      // El administrador conserva acceso administrativo.
+    } else if (
+      actor.role.nombre === RoleEnum.PROFESOR &&
+      caso.profesorId === actor.id
+    ) {
+      // Profesor asignado.
+    } else if (
+      actor.role.nombre === RoleEnum.ESTUDIANTE &&
+      caso.estudianteId === actor.id
+    ) {
+      // Estudiante propietario.
+    } else {
       throw new ForbiddenException('No tienes permisos para operar sobre este caso clínico');
     }
 
-    if (rejectIfRejected && caso.estado === 'CANCELADO') {
+    if (
+      rejectIfRejected &&
+      (caso.estado === 'CANCELADO' || caso.estado === 'RECHAZADO')
+    ) {
       throw new BadRequestException(
-        'No puedes registrar tratamientos en un caso clínico cancelado',
+        'No puedes registrar tratamientos en un caso clínico cancelado o rechazado',
       );
     }
 

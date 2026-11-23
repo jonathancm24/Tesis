@@ -5,7 +5,17 @@
         <h3>Odontograma detallado</h3>
         <p>Selecciona las caras por diente y registra observaciones específicas.</p>
       </div>
-      <span class="odontograma-count">{{ filasSeleccionadas.length }} registros</span>
+      <div class="odontograma-header-actions">
+        <label class="denticion-selector">
+          <span>Tipo de dentición</span>
+          <select :value="tipoDenticion" :disabled="disabled" @change="emit('update:tipoDenticion', ($event.target as HTMLSelectElement).value as TipoDenticion)">
+            <option value="PERMANENTE">Permanente (32 piezas)</option>
+            <option value="TEMPORAL">Temporal (20 piezas)</option>
+            <option value="MIXTA">Mixta</option>
+          </select>
+        </label>
+        <span class="odontograma-count">{{ filasSeleccionadas.length }} registros</span>
+      </div>
     </div>
 
     <div class="legend">
@@ -27,8 +37,15 @@
     </div>
 
     <div class="odontograma-grid">
-      <article v-for="diente in dientesFDI" :key="diente" class="diente-card">
-        <header>{{ diente }}</header>
+      <article v-for="diente in dientesFDI" :key="diente" class="diente-card"
+        :class="{ 'pieza-activa': seleccion?.diente === diente, 'diente-temporal': /^([5-8][1-5])$/.test(diente) }">
+        <header>
+          <button v-if="sincronizado" type="button" class="pieza-btn"
+            :aria-label="`Seleccionar pieza ${diente}`"
+            :aria-pressed="seleccion?.diente === diente"
+            @click="emit('seleccionar', { diente })">{{ diente }}</button>
+          <template v-else>{{ diente }}</template>
+        </header>
         <div class="caras-grid">
           <button
             v-for="cara in caras"
@@ -37,6 +54,7 @@
             class="cara-btn"
             :class="[
               { selected: tieneCaraSeleccionada(diente, cara.codigo) },
+              { 'cara-activa': seleccion?.diente === diente && seleccion?.cara === cara.codigo },
               getCaraConditionClass(diente, cara.codigo)
             ]"
             :disabled="disabled"
@@ -69,6 +87,7 @@
                 class="condicion-select"
                 :value="fila.condicion"
                 :disabled="disabled"
+                @focus="emit('seleccionar', { diente: fila.diente, cara: fila.cara })"
                 @change="actualizarCondicion(fila.diente, fila.cara, ($event.target as HTMLSelectElement).value)"
               >
                 <option
@@ -86,6 +105,7 @@
                 rows="2"
                 placeholder="Ej: caries, fractura, restauración, sensibilidad..."
                 :disabled="disabled"
+                @focus="emit('seleccionar', { diente: fila.diente, cara: fila.cara })"
                 @input="actualizarObservacion(fila.diente, fila.cara, ($event.target as HTMLTextAreaElement).value)"
               ></textarea>
             </td>
@@ -108,9 +128,9 @@
     </div>
 
     <div class="general-obs">
-      <label for="observacion-general">Observación general del odontograma</label>
+      <label :for="observacionId">Observación general del odontograma</label>
       <textarea
-        id="observacion-general"
+        :id="observacionId"
         :value="generalObservacion"
         rows="3"
         placeholder="Conclusiones generales del estudiante sobre el odontograma..."
@@ -122,13 +142,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import type { DienteOdontogramaInput } from '@/types/odontograma.types'
+import type { SeleccionDental } from '@/composables/useOdontograma'
+import { caras, condiciones } from './catalogoOdontograma'
+import { ALL_TEETH } from './modelo3d/fdi'
+
+export type TipoDenticion = 'PERMANENTE' | 'TEMPORAL' | 'MIXTA'
 
 interface Props {
   modelValue: DienteOdontogramaInput[]
   generalObservacion: string
   disabled?: boolean
+  sincronizado?: boolean
+  seleccion?: SeleccionDental | null
+  tipoDenticion?: TipoDenticion
 }
 
 interface FilaSeleccionada {
@@ -141,37 +169,28 @@ interface FilaSeleccionada {
 const props = withDefaults(defineProps<Props>(), {
   modelValue: () => [],
   generalObservacion: '',
-  disabled: false
+  disabled: false,
+  tipoDenticion: 'PERMANENTE'
 })
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: DienteOdontogramaInput[]): void
   (e: 'update:generalObservacion', value: string): void
+  (e: 'seleccionar', value: SeleccionDental): void
+  (e: 'update:tipoDenticion', value: TipoDenticion): void
 }>()
 
-const caras = [
-  { codigo: 'V', nombre: 'Vestibular' },
-  { codigo: 'L', nombre: 'Lingual / Palatina' },
-  { codigo: 'M', nombre: 'Mesial' },
-  { codigo: 'D', nombre: 'Distal' },
-  { codigo: 'O', nombre: 'Oclusal / Incisal' }
-]
+const DIENTES_TEMPORALES_SUPERIOR = ['55', '54', '53', '52', '51', '61', '62', '63', '64', '65']
+const DIENTES_TEMPORALES_INFERIOR = ['85', '84', '83', '82', '81', '71', '72', '73', '74', '75']
+const DIENTES_TEMPORALES = [...DIENTES_TEMPORALES_SUPERIOR, ...DIENTES_TEMPORALES_INFERIOR]
+const DIENTES_PERMANENTES = ALL_TEETH.map(({ fdi }) => fdi)
 
-const condiciones = [
-  { value: 'SIN_HALLAZGO', label: 'Sin hallazgo', colorClass: 'condicion-ok' },
-  { value: 'CARIES', label: 'Caries', colorClass: 'condicion-caries' },
-  { value: 'RESTAURACION', label: 'Restauración', colorClass: 'condicion-restauracion' },
-  { value: 'FRACTURA', label: 'Fractura', colorClass: 'condicion-fractura' },
-  { value: 'MOVILIDAD', label: 'Movilidad', colorClass: 'condicion-movilidad' },
-  { value: 'AUSENTE', label: 'Ausente', colorClass: 'condicion-ausente' }
-]
-
-const dientesFDI = [
-  '18', '17', '16', '15', '14', '13', '12', '11',
-  '21', '22', '23', '24', '25', '26', '27', '28',
-  '38', '37', '36', '35', '34', '33', '32', '31',
-  '41', '42', '43', '44', '45', '46', '47', '48'
-]
+const dientesFDI = computed(() => {
+  if (props.tipoDenticion === 'TEMPORAL') return DIENTES_TEMPORALES
+  if (props.tipoDenticion === 'MIXTA') return [...DIENTES_PERMANENTES, ...DIENTES_TEMPORALES]
+  return DIENTES_PERMANENTES
+})
+const observacionId = useId()
 
 const cloneModelValue = (): DienteOdontogramaInput[] => {
   return props.modelValue.map((diente) => ({
@@ -225,6 +244,7 @@ const tieneCaraSeleccionada = (diente: string, cara: string) => {
 }
 
 const toggleCara = (diente: string, cara: string) => {
+  emit('seleccionar', { diente, cara })
   const nuevo = cloneModelValue()
   const indexDiente = nuevo.findIndex((item) => item.diente === diente)
 
@@ -283,3 +303,18 @@ const updateGeneralObservacion = (value: string) => {
 </script>
 
 <style scoped src="@/assets/styles/Estudiantes/Odontograma.css"></style>
+<style scoped>
+.pieza-btn {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  width: 100%;
+}
+.pieza-activa,
+.cara-activa {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+</style>

@@ -63,7 +63,7 @@ export const useUsuariosStore = defineStore('usuarios', () => {
       const response = await usuariosService.getAll(currentFilters.value)
       usuarios.value = response.data
       pagination.value = response.pagination
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = getErrorMessage(err)
       console.error('Error fetching usuarios:', err)
       throw err
@@ -82,7 +82,7 @@ export const useUsuariosStore = defineStore('usuarios', () => {
     try {
       usuarioActual.value = await usuariosService.getById(id)
       return usuarioActual.value
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = getErrorMessage(err)
       console.error('Error fetching usuario:', err)
       throw err
@@ -106,7 +106,7 @@ export const useUsuariosStore = defineStore('usuarios', () => {
       pagination.value.total++
 
       return nuevoUsuario
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = getErrorMessage(err)
       console.error('Error creating usuario:', err)
       throw err
@@ -137,7 +137,7 @@ export const useUsuariosStore = defineStore('usuarios', () => {
       }
 
       return usuarioActualizado
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = getErrorMessage(err)
       console.error('Error updating usuario:', err)
       throw err
@@ -164,7 +164,7 @@ export const useUsuariosStore = defineStore('usuarios', () => {
       if (usuarioActual.value?.id === id) {
         usuarioActual.value = null
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = getErrorMessage(err)
       console.error('Error deleting usuario:', err)
       throw err
@@ -190,7 +190,7 @@ export const useUsuariosStore = defineStore('usuarios', () => {
       }
 
       return usuarioActualizado
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = getErrorMessage(err)
       console.error('Error activating usuario:', err)
       throw err
@@ -216,7 +216,7 @@ export const useUsuariosStore = defineStore('usuarios', () => {
       }
 
       return usuarioActualizado
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = getErrorMessage(err)
       console.error('Error deactivating usuario:', err)
       throw err
@@ -234,7 +234,7 @@ export const useUsuariosStore = defineStore('usuarios', () => {
 
     try {
       await usuariosService.changePassword(id, data)
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = getErrorMessage(err)
       console.error('Error changing password:', err)
       throw err
@@ -253,7 +253,7 @@ export const useUsuariosStore = defineStore('usuarios', () => {
     try {
       stats.value = await usuariosService.getStats()
       return stats.value
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = getErrorMessage(err)
       console.error('Error fetching stats:', err)
       throw err

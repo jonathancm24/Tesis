@@ -18,6 +18,31 @@
 	flex-wrap: wrap;
 }
 
+.odontograma-header-actions {
+	display: flex;
+	align-items: flex-end;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+}
+
+.denticion-selector {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	font-size: 0.72rem;
+	font-weight: 700;
+	color: var(--color-text-secondary);
+}
+
+.denticion-selector select {
+	min-width: 210px;
+	padding: 0.45rem 0.55rem;
+	border: 1px solid var(--input-border);
+	border-radius: var(--border-radius);
+	background: var(--input-background);
+	color: var(--input-text);
+}
+
 .odontograma-header h3 {
 	margin: 0 0 0.2rem;
 	font-size: 1.1rem;
@@ -85,6 +110,21 @@
 	display: flex;
 	flex-direction: column;
 	gap: 0.4rem;
+}
+
+.diente-card.diente-temporal {
+	border-style: dashed;
+	border-color: color-mix(in srgb, var(--color-info) 45%, var(--color-border));
+	background: color-mix(in srgb, var(--color-info) 5%, var(--color-surface));
+}
+
+.diente-card.diente-temporal header::after {
+	content: ' temporal';
+	display: block;
+	font-size: 0.62rem;
+	font-weight: 700;
+	color: var(--color-info);
+	text-transform: uppercase;
 }
 
 .diente-card header {

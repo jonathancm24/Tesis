@@ -111,10 +111,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
 
 // Composables
 const router = useRouter()
 const authStore = useAuthStore()
+const toast = useToast()
 
 // Estado del formulario
 const email = ref('')
@@ -175,7 +177,12 @@ const clearError = () => {
  * Manejar el enlace de contraseña olvidada
  */
 const handleForgotPassword = () => {
-  alert('Funcionalidad de recuperación de contraseña pendiente de implementar')
+  const emailText = email.value.trim()
+  if (!emailText) {
+    toast.warning('Ingrese su correo electrónico y contacte al administrador para recuperar la contraseña.')
+    return
+  }
+  toast.info(`Solicite la recuperación de contraseña para ${emailText} con el administrador del sistema.`)
 }
 
 // Inicializar el componente

@@ -238,12 +238,18 @@ const prescripcionInline = ref({
   viadeadministracion: ''
 })
 
-const canEdit = computed(() => Boolean(props.caso) && props.caso?.estado !== 'RECHAZADO' && props.caso?.estado !== 'FINALIZADO')
+const canEdit = computed(() =>
+  Boolean(props.caso) &&
+  props.caso?.estado !== 'RECHAZADO' &&
+  props.caso?.estado !== 'CANCELADO' &&
+  props.caso?.estado !== 'FINALIZADO'
+)
 
 const estadoBadge = computed(() => {
   const estado = props.caso?.estado
   if (estado === 'FINALIZADO' || estado === 'APROBADO') return 'tratamientos-modal-badge--success'
-  if (estado === 'RECHAZADO') return 'tratamientos-modal-badge--danger'
+  if (estado === 'RECHAZADO' || estado === 'CANCELADO') return 'tratamientos-modal-badge--danger'
+  if (estado === 'PENDIENTE_ESTUDIOS') return 'tratamientos-modal-badge--warning'
   if (estado === 'EN_TRATAMIENTO') return 'tratamientos-modal-badge--info'
   return 'tratamientos-modal-badge--warning'
 })

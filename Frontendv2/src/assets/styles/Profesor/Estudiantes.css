@@ -38,8 +38,97 @@
 
 .layout {
 	display: grid;
-	grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+	grid-template-columns: minmax(0, 1fr);
 	gap: 1.5rem;
+}
+
+.modal-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	display: grid;
+	place-items: center;
+	padding: 1rem;
+	background: rgba(15, 20, 25, 0.58);
+	backdrop-filter: blur(4px);
+}
+
+.paciente-detail-modal {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	border: 1px solid var(--color-border);
+	border-radius: 1rem;
+	background: var(--color-surface);
+	box-shadow: 0 20px 50px rgba(15, 20, 25, 0.28);
+}
+
+.paciente-detail-modal .modal-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 1rem 1.25rem;
+	border-bottom: 1px solid var(--color-border);
+}
+
+.paciente-detail-modal .modal-header h2 {
+	margin: 0.15rem 0 0;
+	font-size: 1.25rem;
+}
+
+.paciente-detail-modal .modal-body {
+	padding: 1.25rem;
+}
+
+.paciente-detail-modal .btn-close {
+	width: 32px;
+	height: 32px;
+	border: 0;
+	border-radius: 50%;
+	background: var(--color-background-secondary);
+	color: var(--color-text-primary);
+	cursor: pointer;
+	font-size: 1.25rem;
+}
+
+.paciente-detail-modal {
+	max-width: 820px;
+	width: min(92vw, 820px);
+	max-height: min(88vh, 820px);
+}
+
+.paciente-detail-modal .modal-body {
+	overflow-y: auto;
+}
+
+.paciente-detail-body {
+	display: grid;
+	gap: 1rem;
+}
+
+.paciente-detail-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.75rem;
+}
+
+.paciente-detail-grid .info-item {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	padding: 0.75rem;
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius);
+	background: var(--color-background-secondary);
+}
+
+.paciente-detail-grid .label {
+	font-size: 0.72rem;
+	color: var(--color-text-secondary);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	font-weight: 700;
 }
 
 .card {
@@ -156,6 +245,20 @@
 .patient-meta {
 	font-size: 0.85rem;
 	color: var(--color-text-muted);
+}
+
+.table-action {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.35rem;
+	min-height: 38px;
+	padding: 0.45rem 0.65rem;
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius);
+	background: var(--color-surface);
+	color: var(--color-primary);
+	font-size: 0.82rem;
 }
 
 .empty-state {
@@ -528,5 +631,73 @@
 
 	.search-bar {
 		flex-direction: column;
+	}
+
+	.paciente-detail-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.table-wrapper {
+		overflow: visible;
+	}
+
+	.estudiantes-table,
+	.estudiantes-table tbody,
+	.estudiantes-table tr,
+	.estudiantes-table td,
+	.pacientes-table,
+	.pacientes-table tbody,
+	.pacientes-table tr,
+	.pacientes-table td {
+		display: block;
+		width: 100%;
+	}
+
+	.estudiantes-table thead,
+	.pacientes-table thead {
+		display: none;
+	}
+
+	.estudiantes-table tbody,
+	.pacientes-table tbody {
+		display: grid;
+		gap: 0.75rem;
+	}
+
+	.estudiantes-table tr,
+	.pacientes-table tr {
+		padding: 0.75rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--border-radius);
+		background: var(--color-surface);
+	}
+
+	.estudiantes-table td,
+	.pacientes-table td {
+		display: grid;
+		grid-template-columns: 92px minmax(0, 1fr);
+		align-items: center;
+		padding: 0.45rem 0;
+		border: 0;
+		text-align: left;
+	}
+
+	.estudiantes-table td::before,
+	.pacientes-table td::before {
+		content: attr(data-label);
+		font-size: 0.72rem;
+		font-weight: 700;
+		color: var(--color-text-secondary);
+		text-transform: uppercase;
+	}
+
+	.estudiantes-table .actions-col,
+	.pacientes-table .actions-col {
+		grid-template-columns: 92px 1fr;
+		white-space: normal;
+	}
+
+	.table-action {
+		width: 100%;
 	}
 }

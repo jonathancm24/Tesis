@@ -5,6 +5,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { estudiantesService } from '@/services/Profesores/estudiantes.service'
+import { getErrorMessage } from '@/utils/errorHandler'
 import type { Usuario, PaginatedUsuarios } from '@/types/usuarios.types'
 
 export const useEstudiantesStore = defineStore('estudiantes', () => {
@@ -33,8 +34,8 @@ export const useEstudiantesStore = defineStore('estudiantes', () => {
         limit: response.pagination.limit,
         totalPages: response.pagination.totalPages
       }
-    } catch (err: any) {
-      error.value = err.message || 'Error al cargar estudiantes'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err) || 'Error al cargar estudiantes'
       throw err
     } finally {
       isLoading.value = false

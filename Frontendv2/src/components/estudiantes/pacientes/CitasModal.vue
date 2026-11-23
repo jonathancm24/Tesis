@@ -119,6 +119,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useToast } from '@/composables/useToast';
+import { getErrorMessage } from '@/utils/errorHandler';
 import citasService from '@/services/estudiantes/Citas/citas.service';
 import { especialidadesService } from '@/services/Admin/especialidades.service';
 import { usuariosService } from '@/services/Admin/usuarios.service';
@@ -176,7 +177,7 @@ const cargarEspecialidades = async () => {
 const cargarDocentes = async () => {
   try {
     const response = await usuariosService.getAll({ limit: 200 });
-    docentes.value = response.data.filter((u: any) => u.role?.nombre === 'PROFESOR');
+    docentes.value = response.data.filter((u) => u.role?.nombre === 'PROFESOR');
   } catch (err) {
     console.error('Error al cargar docentes:', err);
     toast.error('Error al cargar docentes');
@@ -235,9 +236,9 @@ const handleSubmit = async () => {
     toast.success('Cita agendada exitosamente');
     emit('citaCreada');
     handleClose();
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error al crear cita:', err);
-    error.value = err.response?.data?.message || 'Error al agendar la cita';
+    error.value = getErrorMessage(err);
     toast.error(error.value);
   } finally {
     isSubmitting.value = false;

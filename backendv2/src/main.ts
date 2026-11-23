@@ -1,13 +1,22 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
+import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+  const allowedOrigins = (configService.get<string>('CORS_ORIGINS') || 'http://localhost:5173')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  const port = Number(configService.get<string>('PORT') || 3000);
 
-  // Habilitar CORS
+  app.use(helmet());
+
   app.enableCors({
-    origin: 'http://localhost:5173', // URL del frontend Vue
+    origin: allowedOrigins,
     credentials: true,
   });
 
@@ -20,7 +29,7 @@ async function bootstrap() {
     })
   );
 
-  await app.listen(3000);
-  console.log('🚀 Servidor backend corriendo en http://localhost:3000');
+  await app.listen(port);
+  console.log(`Servidor backend corriendo en puerto ${port}`);
 }
 bootstrap();

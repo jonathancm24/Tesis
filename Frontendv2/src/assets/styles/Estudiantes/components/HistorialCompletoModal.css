@@ -113,6 +113,12 @@
   background: var(--color-surface);
 }
 
+.historial-sub-card--destacado {
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--color-primary) 14%, transparent);
+  scroll-margin-top: 1rem;
+}
+
 .historial-sub-header {
   display: flex;
   justify-content: space-between;

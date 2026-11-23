@@ -79,9 +79,17 @@
 
             <section class="historial-section-card">
               <h3>Casos clínicos y evolución</h3>
-              <div v-if="historial.casosClinicos.length === 0" class="historial-sub-empty">No hay casos clínicos creados.</div>
+              <div v-if="casosVisibles.length === 0" class="historial-sub-empty">
+                {{ props.casoId ? 'No se encontró el caso clínico seleccionado.' : 'No hay casos clínicos creados.' }}
+              </div>
               <div v-else class="historial-stack">
-                <article v-for="caso in historial.casosClinicos" :key="caso.id" class="historial-sub-card">
+                <article
+                  v-for="caso in casosVisibles"
+                  :id="`caso-clinico-${caso.id}`"
+                  :key="caso.id"
+                  class="historial-sub-card"
+                  :class="{ 'historial-sub-card--destacado': props.casoId === caso.id }"
+                >
                   <div class="historial-sub-header">
                     <strong>Caso #{{ caso.id }} - {{ caso.especialidad?.nombre || 'Sin especialidad' }}</strong>
                     <span class="historial-badge">{{ caso.estado }}</span>
@@ -106,17 +114,7 @@
                     <div><span class="historial-label">Talla</span><p>{{ caso.talla }}</p></div>
                   </div>
 
-                  <details class="historial-detail-block">
-                    <summary>Odontograma ({{ caso.odontograma.length }} registros)</summary>
-                    <div v-if="caso.odontograma.length === 0" class="historial-sub-empty">Sin odontograma registrado.</div>
-                    <div v-else class="historial-odontograma-box">
-                      <OdontogramaEditor
-                        :model-value="toOdontogramaModel(caso.odontograma)"
-                        :general-observacion="getOdontogramaObservacionGeneral(caso.observaciones)"
-                        :disabled="true"
-                      />
-                    </div>
-                  </details>
+                  <OdontogramaHistorial class="historial-detail-block" :registros="caso.odontograma" :observaciones="caso.observaciones" />
 
                   <details class="historial-detail-block">
                     <summary>Observaciones ({{ caso.observaciones.length }})</summary>
@@ -194,24 +192,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import OdontogramaEditor from '@/components/estudiantes/Odontograma/OdontogramaEditor.vue'
+import { computed, nextTick, ref, watch } from 'vue'
+import OdontogramaHistorial from '@/components/estudiantes/Odontograma/OdontogramaHistorial.vue'
 import { pacientesService } from '@/services/estudiantes/Pacientes/pacientes.service'
 import { archivosService } from '@/services/common/archivos.service'
 import { useToast } from '@/composables/useToast'
 import { getErrorMessage } from '@/utils/errorHandler'
 import type { HistorialCompletoPaciente } from '@/types/pacientes.types'
-import type { DienteOdontogramaInput } from '@/types/odontograma.types'
 import type { ArchivoItem } from '@/types/archivos.types'
 import '@/assets/styles/Estudiantes/components/HistorialCompletoModal.css'
 
 interface Props {
   isOpen: boolean
   pacienteId?: number
+  casoId?: number | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  pacienteId: 0
+  pacienteId: 0,
+  casoId: null
 })
 
 const emit = defineEmits<{
@@ -223,6 +222,12 @@ const archivosPorCaso = ref<Record<number, ArchivoItem[]>>({})
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const toast = useToast()
+
+const casosVisibles = computed(() => {
+  if (!historial.value) return []
+  if (!props.casoId) return historial.value.casosClinicos
+  return historial.value.casosClinicos.filter((caso) => caso.id === props.casoId)
+})
 
 const formatDate = (date: string | Date | null | undefined): string => {
   if (!date) return '—'
@@ -238,31 +243,6 @@ const formatDate = (date: string | Date | null | undefined): string => {
 const formatPersona = (persona?: { nombre: string; apellido: string } | null): string => {
   if (!persona) return 'No asignado'
   return `${persona.nombre} ${persona.apellido}`
-}
-
-const toOdontogramaModel = (
-  registros: Array<{
-    diente: string
-    condicion: {
-      caras: Array<{ cara: string; observacion?: string | null; condicion?: string | null }>
-    }
-  }>
-): DienteOdontogramaInput[] => {
-  return registros.map((registro) => ({
-    diente: registro.diente,
-    caras: (registro.condicion?.caras || []).map((cara) => ({
-      cara: cara.cara,
-      observacion: cara.observacion || undefined,
-      condicion: cara.condicion || undefined
-    }))
-  }))
-}
-
-const getOdontogramaObservacionGeneral = (
-  observaciones: Array<{ titulo: string; descripcion: string }>
-): string => {
-  const observacion = observaciones.find((item) => item.titulo === 'Observación general odontograma')
-  return observacion?.descripcion || ''
 }
 
 const getArchivosCaso = (casoId: number): ArchivoItem[] => {
@@ -313,7 +293,7 @@ const cargarHistorial = async () => {
     error.value = null
     historial.value = await pacientesService.getHistorialCompleto(props.pacienteId)
     await cargarArchivosPorCaso(historial.value.casosClinicos.map((caso) => caso.id))
-  } catch (err) {
+  } catch {
     historial.value = null
     archivosPorCaso.value = {}
     error.value = 'No se pudo cargar el historial completo del paciente.'
@@ -323,14 +303,21 @@ const cargarHistorial = async () => {
 }
 
 watch(
-  () => [props.isOpen, props.pacienteId],
+  () => [props.isOpen, props.pacienteId, props.casoId],
   async ([isOpen, pacienteId], previousValue) => {
-    const [prevOpen, prevPacienteId] = previousValue ?? [false, 0]
+    const [prevOpen, prevPacienteId, prevCasoId] = previousValue ?? [false, 0, null]
 
     if (!isOpen) return
     if (!pacienteId) return
-    if (isOpen !== prevOpen || pacienteId !== prevPacienteId) {
+    if (isOpen !== prevOpen || pacienteId !== prevPacienteId || props.casoId !== prevCasoId) {
       await cargarHistorial()
+      if (props.casoId) {
+        await nextTick()
+        document.getElementById(`caso-clinico-${props.casoId}`)?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        })
+      }
     }
   },
   { immediate: true }

@@ -39,8 +39,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { EstadoEncuesta } from '@/types/encuestaTamizaje.types'
 
 interface Props {
   pacienteId: number
@@ -51,7 +49,7 @@ interface Emits {
   (e: 'accion', accion: 'historial-completo' | 'nueva-cita' | 'nuevo-caso'): void
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const emitAction = (accion: 'historial-completo' | 'nueva-cita' | 'nuevo-caso') => {
