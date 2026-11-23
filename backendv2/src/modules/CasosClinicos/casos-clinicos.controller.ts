@@ -92,7 +92,7 @@ export class CasosClinicosController {
   }
 
   @Post('observaciones')
-  @Roles(RoleEnum.ADMIN, RoleEnum.PROFESOR)
+  @Roles(RoleEnum.PROFESOR)
   @HttpCode(HttpStatus.CREATED)
   async createObservacion(
     @Body() dto: CreateObservacionDto,
